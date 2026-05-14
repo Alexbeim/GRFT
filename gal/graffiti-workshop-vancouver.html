@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graffiti+ Workshop, Vancouver | GraffitiPlus Gallery</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="../index.html">
+    <img src="../images/logo.png" alt="Graffiti+">
+  </a>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="../rentals.html">Rentals</a></li>
+    <li><a href="../add-ons.html">Add-ons</a></li>
+    <li><a href="../gallery.html" class="active">Gallery</a></li>
+    <li><a href="../about.html">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <button class="nav-hamburger" aria-label="Menu" id="nav-hamburger">☰</button>
+</nav>
+
+<!-- BACK -->
+<div class="gal-back">
+  <a href="../gallery.html">← Back to Gallery</a>
+</div>
+
+<!-- HERO IMAGE -->
+<div class="gal-hero">
+  <img src="../images/gal-graffiti-workshop-vancouver.jpg" alt="Graffiti+ Workshop, Vancouver">
+</div>
+
+<!-- VIDEOS -->
+<div class="gal-video">
+  <iframe src="https://player.vimeo.com/video/778586993?title=0&byline=0&portrait=0" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+</div>
+
+<!-- CONTENT -->
+<div class="gal-content">
+  <h1>Graffiti+ Workshop, Vancouver</h1>
+  <div class="includes-tags" style="margin-bottom:32px"><span class="includes-tag">Community</span></div>
+  <div class="gal-body">
+    <p>We recently hosted an incredible digital graffiti workshop, offering participants the chance to dive into the world of street art with no prior experience required. Led by a talented local graffiti artist, the workshop guided attendees through a creative journey that was both fun and educational.</p>
+    <p>Participants began with an introduction to the rich history of graffiti before learning essential lettering skills with markers. They honed their techniques with hands-on practice, exploring shading and composition to elevate their artwork.</p>
+    <p>After testing various spray nozzles and practicing on a digital wall, participants had the chance to collaborate as a group, creating dynamic, collective pieces of art. The workshop allowed everyone to unleash their inner artist and work together in a completely unique way. It was incredible to see the digital graffiti artwork that was created by the participants, especially since most had never picked up a spray can ever before.</p>
+  </div>
+  <div style="margin-top:48px">
+    <a href="#contact" class="btn">Book a Demo</a>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<section class="contact-section" id="contact">
+  <h2>Get in touch!</h2>
+  <p class="contact-sub">We’ll get back to you right away to schedule a call + live demo.</p>
+  <form class="contact-form" name="contact" method="POST" data-netlify="true">
+    <input type="hidden" name="form-name" value="contact">
+    <div class="form-row">
+      <div class="form-group">
+        <label>First Name <span style="color:#555">(required)</span></label>
+        <input type="text" name="first_name" required>
+      </div>
+      <div class="form-group">
+        <label>Last Name <span style="color:#555">(required)</span></label>
+        <input type="text" name="last_name" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Email <span style="color:#555">(required)</span></label>
+      <input type="email" name="email" required>
+    </div>
+    <div class="form-group">
+      <label>Message <span style="color:#555">(required)</span></label>
+      <textarea name="message" required></textarea>
+    </div>
+    <button type="submit" class="btn-submit">Send</button>
+  </form>
+</section>
+
+<footer>
+  <div>
+    <div class="footer-logo">
+      <img src="../images/logo.png" alt="Graffiti+">
+    </div>
+    <p class="footer-copy">© 2025. All rights reserved.</p>
+  </div>
+  <div>
+    <h4>Contact</h4>
+    <a href="mailto:info@graffitiplus.io">info@graffitiplus.io</a>
+    <a href="tel:+13239916463">+1 (323) 991-6463</a>
+  </div>
+  <div>
+    <h4>Follow us on socials</h4>
+    <div class="footer-socials">
+      <a href="https://www.instagram.com/graffitiplus.io/" target="_blank" aria-label="Instagram">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@graffitiplus" target="_blank" aria-label="TikTok">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.27 8.27 0 004.84 1.56V6.78a4.85 4.85 0 01-1.07-.09z"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('nav-hamburger').addEventListener('click', () => {
+    document.getElementById('nav-links').classList.toggle('open');
+  });
+</script>
+</body>
+</html>

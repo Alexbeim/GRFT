@@ -1,0 +1,131 @@
+/*
+  GRID LINES MODE
+  ─────────────────────────────────────────────────────────────
+  Replaces whitespace gaps between sections with hairline borders,
+  revealing the underlying grid structure.
+
+  TO REVERT: remove the <link rel="stylesheet" href="style-grid-lines.css">
+  line from the <head> of each HTML file.
+  ─────────────────────────────────────────────────────────────
+*/
+
+/* ── 1. Add hairline border-top to every section ── */
+.v2-stats-bar,
+.v2-origin,
+.v2-ticker-label,
+.v2-ticker,
+.v4-how,
+.v4-tagline-strip,
+.v4-use-cases,
+.v2-products,
+.v4-highlights,
+.v4-testimonials,
+.v4-community,
+.v4-faq,
+.v2-contact,
+footer {
+  border-top: 1px solid rgba(0, 13, 16, 0.08) !important;
+}
+
+/* ── 2. Tighten vertical padding to remove large gaps ── */
+.v2-origin,
+.v4-how,
+.v4-use-cases,
+.v4-testimonials,
+.v4-community,
+.v4-faq,
+.v2-contact {
+  padding-top: var(--sp-60);
+  padding-bottom: var(--sp-60);
+}
+
+.v2-products {
+  padding-top: var(--sp-60);
+}
+
+.v4-highlights {
+  padding-top: var(--sp-60);
+  padding-bottom: var(--sp-60);
+}
+
+.v4-highlights-header {
+  padding-bottom: var(--sp-34);
+}
+
+/* ── 3. Add hairlines between grid items ── */
+
+/* How it works */
+.v4-how-grid {
+  border-left: 1px solid rgba(0, 13, 16, 0.08);
+  border-top: 1px solid rgba(0, 13, 16, 0.08);
+}
+.v4-how-step {
+  border-right: 1px solid rgba(0, 13, 16, 0.08);
+  border-bottom: 1px solid rgba(0, 13, 16, 0.08);
+  padding: var(--sp-23);
+}
+
+/* Tagline strip */
+.v4-tagline-strip {
+  padding-top: var(--sp-34);
+  padding-bottom: var(--sp-34);
+  border-bottom: 1px solid rgba(0, 13, 16, 0.08);
+}
+
+/* Use cases items */
+.v4-use-case-item {
+  border-top: 1px solid rgba(0, 13, 16, 0.08);
+}
+.v4-use-cases-right {
+  border-top: none;
+}
+
+/* Products grid */
+.v2-products-grid {
+  border-top: 1px solid rgba(0, 13, 16, 0.08);
+  border-left: 1px solid rgba(0, 13, 16, 0.08);
+}
+.v2-product-card {
+  border-right: 1px solid rgba(0, 13, 16, 0.08) !important;
+  border-bottom: 1px solid rgba(0, 13, 16, 0.08);
+}
+
+/* Testimonials */
+.v4-testimonials-grid {
+  border-top: 1px solid rgba(0, 13, 16, 0.08);
+  border-left: 1px solid rgba(0, 13, 16, 0.08);
+}
+.v4-testimonial {
+  border-right: 1px solid rgba(0, 13, 16, 0.08);
+  border-bottom: 1px solid rgba(0, 13, 16, 0.08);
+  padding: var(--sp-34);
+}
+.v4-testimonial:last-child {
+  border-bottom: 1px solid rgba(0, 13, 16, 0.08);
+}
+
+/* Community cards */
+.v4-community-grid {
+  border-top: 1px solid rgba(0, 13, 16, 0.08);
+  border-left: 1px solid rgba(0, 13, 16, 0.08);
+}
+.v4-community-card {
+  border-right: 1px solid rgba(0, 13, 16, 0.08);
+  border-bottom: 1px solid rgba(0, 13, 16, 0.08);
+}
+
+/* Stats bar items */
+.v2-stat-divider {
+  display: none;
+}
+.v2-stat-item {
+  border-right: 1px solid rgba(0, 13, 16, 0.08);
+}
+.v2-stat-item:last-child {
+  border-right: none;
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid rgba(0, 13, 16, 0.08) !important;
+}

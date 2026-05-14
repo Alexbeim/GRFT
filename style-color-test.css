@@ -1,0 +1,26 @@
+/*
+  COLOR TEST — remove <link> in index.html to revert instantly
+  Changes: off-white for mid sections, charcoal for secondary darks
+*/
+
+/* Mid-tone variables */
+:root {
+  --off-white: #f5f4f1;
+  --charcoal:  #111820;
+}
+
+/* Highlights — off-white instead of stark white */
+.v4-highlights {
+  background: var(--off-white) !important;
+}
+
+/* Testimonials + Community — charcoal instead of pure black */
+.v4-testimonials,
+.v4-community {
+  background: var(--charcoal) !important;
+}
+
+/* FAQ — off-white */
+.v4-faq {
+  background: var(--off-white) !important;
+}

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="40" viewBox="0 0 100 40">
+  <text x="50" y="21" 
+        dominant-baseline="middle" text-anchor="middle"
+        font-family="Inter, Arial, sans-serif"
+        font-size="28"
+        font-weight="700"
+        font-style="normal"
+        letter-spacing="0.08em"
+        fill="white">IBM</text>
+</svg>
