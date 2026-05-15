@@ -1012,7 +1012,7 @@ footer {
   flex-wrap: wrap;
 }
 .v4-tagline-strip span {
-  font-size: clamp(1.1rem, 2.2vw, 1.8rem);
+  font-size: clamp(2rem, 4vw, 3.5rem);
   font-weight: var(--w-bold);
   color: var(--obsidian);
   letter-spacing: var(--track-heading);
