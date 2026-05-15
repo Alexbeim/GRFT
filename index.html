@@ -21,6 +21,15 @@
   <meta name="twitter:description" content="500+ activations on 6 continents for Nike, Porsche, Samsung, Google, and more.">
   <meta name="twitter:image" content="https://graffitiplus.io/images/og-image.jpg">
 
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BZ2DLRYLJC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-BZ2DLRYLJC');
+  </script>
+
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="images/favicon.png">
   <link rel="apple-touch-icon" href="images/favicon.png">
@@ -50,7 +59,6 @@
 
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="style-v4.css">
-  <link rel="stylesheet" href="style-color-test.css"><!-- COLOR TEST: remove this line to revert -->
 </head>
 <body>
 
@@ -519,8 +527,8 @@
       </div>
     </div>
     <div class="v2-contact-form">
-      <form name="contact" method="POST" data-netlify="true">
-        <input type="hidden" name="form-name" value="contact">
+      <!-- Formspree: sign up at formspree.io and replace YOUR_FORM_ID below -->
+      <form name="contact" method="POST" action="https://formspree.io/f/YOUR_FORM_ID" novalidate id="contact-form">
         <div class="form-row">
           <div class="form-group">
             <label>First Name <span>(required)</span></label>
@@ -575,6 +583,23 @@
   document.getElementById('nav-hamburger').addEventListener('click', () => {
     document.getElementById('nav-links').classList.toggle('open');
   });
+
+  // Contact form validation
+  const form = document.getElementById('contact-form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      const email = form.querySelector('[name="email"]');
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(email.value)) {
+        e.preventDefault();
+        email.style.borderColor = '#ff4444';
+        email.focus();
+        return;
+      }
+      email.style.borderColor = '';
+      // Show success state (Formspree handles redirect)
+    });
+  }
 </script>
 </body>
 </html>
