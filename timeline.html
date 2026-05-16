@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Graffiti+ | Built from the Culture Since 2008</title>
+  <meta name="description" content="From writing graffiti in the 90s to building the world's most-deployed digital graffiti platform. The story of Graffiti+.">
+  <link rel="canonical" href="https://graffitiplus.io/about">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="apple-touch-icon" href="images/favicon.png">
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BZ2DLRYLJC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-BZ2DLRYLJC');
+  </script>
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style-v4.css">
+
+  <style>
+    /* ── PAGE SHELL ── */
+    body { background: var(--obsidian); }
+
+    /* ── ABOUT INTRO ── */
+    .tl-about {
+      background: var(--obsidian);
+      padding: 130px var(--sp-60) var(--sp-119);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .tl-about-label {
+      font-size: 11px;
+      font-weight: var(--w-bold);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--sp-22);
+    }
+    .tl-about h1 {
+      font-size: clamp(42px, 6vw, 80px);
+      font-weight: var(--w-bold);
+      letter-spacing: var(--track-display);
+      color: var(--canvas);
+      margin: 0 0 var(--sp-60);
+      line-height: 1.05;
+    }
+    .tl-about-video {
+      width: 100%;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      margin-bottom: var(--sp-60);
+    }
+    .tl-about-video video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .tl-about-text {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-60);
+      max-width: 1100px;
+    }
+    .tl-about-text p {
+      font-size: var(--text-body);
+      color: rgba(255,255,255,0.5);
+      line-height: 1.75;
+      margin: 0;
+    }
+    @media (max-width: 900px) {
+      .tl-about { padding: 100px var(--sp-34) var(--sp-60); }
+      .tl-about-text { grid-template-columns: 1fr; gap: var(--sp-34); }
+    }
+
+    /* ── FOUNDER HERO ── */
+    .tl-founder {
+      background: var(--obsidian);
+      padding: 130px var(--sp-60) var(--sp-119);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-119);
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .tl-founder-media {
+      aspect-ratio: 4/5;
+      background: rgba(255,255,255,0.04);
+      border: 1px dashed rgba(255,255,255,0.12);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: rgba(255,255,255,0.2);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .tl-founder-media svg { opacity: 0.3; }
+    .tl-founder-text {}
+    .tl-founder-label {
+      font-size: 11px;
+      font-weight: var(--w-bold);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--sp-22);
+    }
+    .tl-founder-text h1 {
+      font-size: clamp(36px, 4.5vw, 60px);
+      font-weight: var(--w-bold);
+      letter-spacing: var(--track-display);
+      color: var(--canvas);
+      margin: 0 0 var(--sp-34);
+      line-height: 1.05;
+    }
+    .tl-founder-text p {
+      font-size: var(--text-body);
+      color: rgba(255,255,255,0.5);
+      line-height: 1.75;
+      margin: 0 0 var(--sp-22);
+      max-width: 520px;
+    }
+    .tl-founder-book {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: var(--sp-22);
+      padding: 12px 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.4);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── SCROLL HINT ── */
+    .tl-scroll-intro {
+      padding: var(--sp-60) var(--sp-60) var(--sp-34);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tl-scroll-intro h2 {
+      font-size: clamp(22px, 2.5vw, 32px);
+      font-weight: var(--w-bold);
+      color: var(--canvas);
+      letter-spacing: var(--track-heading);
+      margin: 0;
+    }
+    .tl-scroll-hint {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255,255,255,0.25);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .tl-scroll-hint svg { animation: nudge 2s ease-in-out infinite; }
+    @keyframes nudge {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(6px); }
+    }
+
+    /* ── HORIZONTAL TRACK ── */
+    .tl-track-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* The horizontal line */
+    .tl-track-wrap::before {
+      content: '';
+      position: absolute;
+      top: 220px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .tl-track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      gap: 0;
+      padding: 0 var(--sp-60) var(--sp-60);
+      scrollbar-width: none;
+      cursor: grab;
+    }
+    .tl-track:active { cursor: grabbing; }
+    .tl-track::-webkit-scrollbar { display: none; }
+
+    /* ── CARD ── */
+    .tl-card {
+      flex: 0 0 420px;
+      scroll-snap-align: start;
+      padding: 0 var(--sp-60) 0 0;
+      position: relative;
+    }
+    .tl-card:last-child { flex: 0 0 480px; }
+
+    .tl-card-content {
+      padding-right: var(--sp-34);
+    }
+
+    /* Dot on timeline */
+    .tl-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.1);
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 2;
+      margin-top: 215px;
+    }
+    .tl-card.tl-featured .tl-dot {
+      background: var(--accent);
+      border-color: var(--accent);
+      width: 16px;
+      height: 16px;
+      margin-top: 212px;
+    }
+    .tl-card.tl-future .tl-dot {
+      background: transparent;
+      border: 2px dashed rgba(255,255,255,0.2);
+    }
+
+    /* Media placeholder */
+    .tl-card-media {
+      width: 100%;
+      height: 200px;
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.18);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: var(--sp-60);
+    }
+    .tl-card-media svg { opacity: 0.4; }
+
+    .tl-card-content {
+      padding-top: var(--sp-34);
+    }
+
+    .tl-card-year {
+      font-size: 11px;
+      font-weight: var(--w-bold);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      margin-bottom: 10px;
+    }
+    .tl-card.tl-featured .tl-card-year { color: var(--accent); }
+    .tl-card.tl-future .tl-card-year {
+      color: rgba(255,255,255,0.15);
+      font-style: italic;
+    }
+
+    .tl-card h3 {
+      font-size: clamp(18px, 1.8vw, 24px);
+      font-weight: var(--w-bold);
+      color: var(--canvas);
+      letter-spacing: var(--track-heading);
+      margin: 0 0 12px;
+      line-height: 1.2;
+    }
+    .tl-card.tl-future h3 { color: rgba(255,255,255,0.35); }
+
+    .tl-card p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.7;
+      margin: 0 0 16px;
+    }
+
+    .tl-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tl-tag {
+      font-size: 11px;
+      font-weight: var(--w-bold);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.3);
+    }
+    .tl-tag--accent {
+      background: rgba(255,200,0,0.1);
+      color: var(--accent);
+    }
+
+    /* Future divider card */
+    .tl-card-divider {
+      flex: 0 0 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      scroll-snap-align: none;
+    }
+    .tl-card-divider::before {
+      content: 'What\'s next';
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 10px;
+      font-weight: var(--w-bold);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.15);
+    }
+    .tl-card-divider::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 1px;
+      border-left: 1px dashed rgba(255,255,255,0.1);
+      z-index: 2;
+    }
+
+    /* Nav arrows */
+    .tl-nav {
+      display: flex;
+      gap: 10px;
+      padding: 0 var(--sp-60) var(--sp-60);
+    }
+    .tl-nav button {
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .tl-nav button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .tl-founder {
+        grid-template-columns: 1fr;
+        gap: var(--sp-60);
+        padding: 100px var(--sp-34) var(--sp-60);
+      }
+      .tl-founder-media { aspect-ratio: 3/2; }
+      .tl-scroll-intro, .tl-nav { padding-left: var(--sp-34); padding-right: var(--sp-34); }
+      .tl-track { padding-left: var(--sp-34); padding-right: var(--sp-34); }
+      .tl-card { flex: 0 0 calc(90vw); }
+      .tl-card:last-child { flex: 0 0 calc(90vw); }
+      .tl-card-content { padding-right: var(--sp-22); }
+      .tl-track-wrap::before { top: 210px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="images/logo-v4.webp" alt="Graffiti+">
+  </a>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="rentals.html">Rentals</a></li>
+    <li><a href="add-ons.html">Add-ons</a></li>
+    <li><a href="gallery.html">Gallery</a></li>
+    <li><a href="timeline.html" class="active">About</a></li>
+    <li><a href="index.html#contact">Contact</a></li>
+  </ul>
+  <button class="nav-hamburger" aria-label="Menu" id="nav-hamburger">☰</button>
+</nav>
+
+<!-- ABOUT SECTION -->
+<section class="tl-about">
+  <div class="tl-about-label">About</div>
+  <h1>Eighteen years.<br>Six continents.<br>One premise.</h1>
+  <div class="tl-about-video">
+    <video autoplay muted loop playsinline>
+      <source src="videos/about.webm" type="video/webm">
+      <source src="videos/about.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="tl-about-text">
+    <p>At Graffiti+, we believe in the power of art as a medium for expression, connection, and transformation. We are passionate about making the world of graffiti accessible to everyone, everywhere, in a way that respects and honors its roots and culture.</p>
+    <p>We believe in working with brands that get it — those who understand that graffiti is more than just street art; it's a voice for stories untold, a canvas for unbridled creativity, and a symbol of urban identity. Partnering with us means engaging in a respectful association with graffiti culture, where the art form and the brand grow from each other.</p>
+  </div>
+</section>
+
+<!-- FOUNDER SECTION -->
+<section class="tl-founder">
+  <div class="tl-founder-media">
+    <!-- Replace with founder photo or book cover scan -->
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    <span>Founder photo / book cover</span>
+  </div>
+  <div class="tl-founder-text">
+    <div class="tl-founder-label">The founder</div>
+    <h1>Started on walls.<br>Stayed there.</h1>
+    <p>In the 1990s, long before any of this was a platform or a company, it was just writing — working in the streets, publishing graffiti, learning what happens when you give people a wall and real tools and get out of the way.</p>
+    <p>That decade led to graphic design, then a design studio, then a move to Canada and a pivot into interactive work. In Vancouver, the pieces clicked together: a background in street culture, years of building digital experiences, and a persistent question about what participation actually feels like when it's real.</p>
+    <p>In 2008, Graffiti+ was the answer. Not a tech product — a continuation of the same thing that started on walls in the 90s. The tools got more sophisticated. The question stayed the same.</p>
+    <div class="tl-founder-book">
+      <!-- Update with real book title when confirmed -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      Published graffiti work — 1990s
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE HEADER -->
+<div class="tl-scroll-intro">
+  <h2>Eighteen years of work.</h2>
+  <div class="tl-scroll-hint">
+    Scroll to explore
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </div>
+</div>
+
+<!-- HORIZONTAL TRACK -->
+<div class="tl-track-wrap">
+  <div class="tl-track" id="tl-track">
+
+    <!-- 2008 -->
+    <div class="tl-card tl-featured">
+      <div class="tl-card-media">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        <span>Photo or video — 2008</span>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2008 — The beginning</div>
+        <h3>Richmond Olympics pitch.<br>Multi-user painting on a building.</h3>
+        <p>The first version: IR cameras, flashlights, and a multi-user collaborative painting interface projected onto city buildings. Graffiti writers tested it before anyone else.</p>
+        <div class="tl-tags">
+          <span class="tl-tag">IR tracking</span>
+          <span class="tl-tag">Multi-user</span>
+          <span class="tl-tag">Projection</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2010 -->
+    <div class="tl-card tl-featured">
+      <div class="tl-card-media">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span>Photo — Chanel SoHo 2010</span>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2010 — Global validation</div>
+        <h3>Chanel SoHo.<br>500 guests. The world notices.</h3>
+        <p>Fashion Week. Artists working alongside 500 guests across interactive screens wrapping the storefront. Spray can gesture integration built for this moment — physical movement as paint.</p>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag--accent">First major brand</span>
+          <span class="tl-tag">Spray can input</span>
+          <span class="tl-tag">Chanel</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2016 -->
+    <div class="tl-card">
+      <div class="tl-card-media">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        <span>Photo or video — Panorama 2016</span>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2016 — Scale</div>
+        <h3>Panorama Festival, NYC.<br>Motion capture. Massive LED walls.</h3>
+        <p>Randall's Island. Motion capture tracking replaced earlier IR methods — more precision, more responsiveness. The kind of visual scale that stops foot traffic and holds it.</p>
+        <div class="tl-tags">
+          <span class="tl-tag">Motion capture</span>
+          <span class="tl-tag">LED walls</span>
+          <span class="tl-tag">Festival scale</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2019 -->
+    <div class="tl-card">
+      <div class="tl-card-media">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span>Photo — Samsung KX 2019</span>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2019 — Precision</div>
+        <h3>Samsung King's Cross.<br>A 10-metre wall. Daily lineups.</h3>
+        <p>Samsung's concept showroom in London. Galaxy phones as spray-can controllers, active marker tracking, millimetre precision. The store's most-visited feature — repeat visitors, every day.</p>
+        <a href="gal/samsung-kings-cross.html" class="v4-highlight-link" style="color:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.2)">View project →</a>
+        <div class="tl-tags">
+          <span class="tl-tag">Active markers</span>
+          <span class="tl-tag">Phone input</span>
+          <span class="tl-tag">Samsung</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2018–2023 R&D -->
+    <div class="tl-card tl-featured">
+      <div class="tl-card-media">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        <span>Photo or video — R&amp;D lab</span>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2018 – 2023 — R&amp;D</div>
+        <h3>Proprietary tracking.<br>Built from scratch.</h3>
+        <p>R&D grant. Fully custom 3D tracking system — no off-the-shelf hardware. Real paint physics: pressure, angle, velocity. Swappable caps. Pro and user modes. A complete overhaul.</p>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag--accent">Proprietary system</span>
+          <span class="tl-tag tl-tag--accent">Paint physics</span>
+          <span class="tl-tag">Pressure + angle</span>
+          <span class="tl-tag">Swappable caps</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2024 -->
+    <div class="tl-card">
+      <div class="tl-card-media">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        <span>Video — AR export demo</span>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2024 — Art that travels</div>
+        <h3>3D object painting.<br>AR export.</h3>
+        <p>Paint onto 3D objects — basketballs, sneakers, custom forms. Export as AR. Art made at an event lives beyond it. People take their work home.</p>
+        <a href="gal/nba-all-star-2025.html" class="v4-highlight-link" style="color:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.2)">View Nike All-Star project →</a>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag--accent">3D painting</span>
+          <span class="tl-tag tl-tag--accent">AR export</span>
+          <span class="tl-tag">Nike Jordan</span>
+          <span class="tl-tag">Disney+</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FUTURE DIVIDER -->
+    <div class="tl-card-divider"></div>
+
+    <!-- CONSUMER PRODUCT -->
+    <div class="tl-card tl-future">
+      <div class="tl-card-media" style="border-style: dashed; opacity: 0.5;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        <span>Coming soon</span>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">In development</div>
+        <h3>Graffiti+ for everyone.<br>A consumer product.</h3>
+        <p>Eighteen years of building for the world's biggest events has produced something worth bringing home. A consumer version is in R&D — the same cultural roots, the same real tools, built for a different scale.</p>
+        <div class="tl-tags">
+          <span class="tl-tag">R&amp;D</span>
+          <span class="tl-tag">Consumer</span>
+          <span class="tl-tag">Coming soon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VOLUMETRIC -->
+    <div class="tl-card tl-future">
+      <div class="tl-card-media" style="border-style: dashed; opacity: 0.5;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <span>Coming soon</span>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">Coming</div>
+        <h3>Immersive volumetric spaces.<br>Painting in every direction.</h3>
+        <p>Beyond flat screens. Fully immersive environments where the art fills the room. The platform that started on a projected building in Richmond becomes something you step inside.</p>
+        <div class="tl-tags">
+          <span class="tl-tag">Volumetric painting</span>
+          <span class="tl-tag">Immersive environments</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- NAV ARROWS -->
+<div class="tl-nav">
+  <button id="tl-prev" aria-label="Previous">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  </button>
+  <button id="tl-next" aria-label="Next">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </button>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-logo">
+      <img src="images/logo-v4.webp" alt="Graffiti+">
+    </div>
+    <p class="footer-copy">© 2026. All rights reserved.</p>
+  </div>
+  <div>
+    <h4>Contact</h4>
+    <a href="mailto:info@graffitiplus.io">info@graffitiplus.io</a>
+    <a href="tel:+13239916463">+1 (323) 991-6463</a>
+  </div>
+  <div>
+    <h4>Follow us</h4>
+    <div class="footer-socials">
+      <a href="https://www.instagram.com/graffitiplus.io/" target="_blank" aria-label="Instagram">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@graffitiplus" target="_blank" aria-label="TikTok">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.27 8.27 0 004.84 1.56V6.78a4.85 4.85 0 01-1.07-.09z"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('nav-hamburger').addEventListener('click', () => {
+    document.getElementById('nav-links').classList.toggle('open');
+  });
+
+  // Arrow navigation
+  const track = document.getElementById('tl-track');
+  const cardWidth = 420;
+  document.getElementById('tl-next').addEventListener('click', () => {
+    track.scrollBy({ left: cardWidth, behavior: 'smooth' });
+  });
+  document.getElementById('tl-prev').addEventListener('click', () => {
+    track.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+  });
+
+  // Click-drag to scroll
+  let isDown = false, startX, scrollLeft;
+  track.addEventListener('mousedown', e => {
+    isDown = true;
+    startX = e.pageX - track.offsetLeft;
+    scrollLeft = track.scrollLeft;
+  });
+  track.addEventListener('mouseleave', () => isDown = false);
+  track.addEventListener('mouseup', () => isDown = false);
+  track.addEventListener('mousemove', e => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - track.offsetLeft;
+    track.scrollLeft = scrollLeft - (x - startX);
+  });
+</script>
+</body>
+</html>
