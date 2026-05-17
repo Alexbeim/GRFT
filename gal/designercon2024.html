@@ -4,88 +4,62 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DesignerCon 2024 | GraffitiPlus Gallery</title>
+  <link rel="icon" type="image/png" href="../images/favicon.png">
   <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../style-v4.css">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BZ2DLRYLJC"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-BZ2DLRYLJC');</script>
 </head>
 <body>
-
-<!-- NAV -->
 <nav>
-  <a class="nav-logo" href="../index.html">
-    <img src="../images/logo.png" alt="Graffiti+">
-  </a>
+  <a class="nav-logo" href="../index.html"><img src="../images/logo-v4.webp" alt="Graffiti+"></a>
   <ul class="nav-links" id="nav-links">
     <li><a href="../index.html">Home</a></li>
     <li><a href="../rentals.html">Rentals</a></li>
     <li><a href="../add-ons.html">Add-ons</a></li>
     <li><a href="../gallery.html" class="active">Gallery</a></li>
-    <li><a href="../about.html">About</a></li>
+    <li><a href="../timeline.html">About</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <button class="nav-hamburger" aria-label="Menu" id="nav-hamburger">☰</button>
 </nav>
-
-<!-- BACK -->
-<div class="gal-back">
-  <a href="../gallery.html">← Back to Gallery</a>
-</div>
-
-<!-- HERO IMAGE -->
-<div class="gal-hero">
-  <img src="../images/gal-designercon2024.webp" alt="DesignerCon 2024">
-</div>
-
-<!-- VIDEOS -->
-<div class="gal-video">
-  <iframe src="https://player.vimeo.com/video/1089837226?title=0&byline=0&portrait=0" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-</div>
-
-<!-- CONTENT -->
-<div class="gal-content">
-  <h1>DesignerCon 2024</h1>
-  <div class="includes-tags" style="margin-bottom:32px"><span class="includes-tag">Brand Collab</span></div>
-  <div class="gal-body">
-    <p>We teamed up with Trampt, a designer toys online marketplace and community, to create a fun, interactive experience right inside the entrance at DesignerCon in Las Vegas. We took 3D models from artists and brands like OG Slick, Superplastics, Nouns and Marmals, and turned them into paintable objects on our Digital Graffiti Wall.</p>
-    <p>Convention-goers got to customize their own 3D toys on the wall. Once they were done, they could scan a QR code to download their designs as AR models and place them around the event. We had so many established graffiti artists like OG Slick, Woes, Ron the Killer, Goopmasta and Chris RWK, along with complete newbies, dive in and try out the digital graffiti wall and AR experience. Whether they were pros or first-timers, everyone had a blast creating their own unique pieces.</p>
+<div class="gal-page">
+  <div class="gal-media">
+    <div class="gal-video-hero">
+      <iframe src="https://player.vimeo.com/video/1089837226?title=0&byline=0&portrait=0" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+    </div>
   </div>
-  <div style="margin-top:48px">
-    <a href="#contact" class="btn">Book a Demo</a>
+  <div class="gal-sidebar">
+    <div class="gal-back"><a href="../gallery.html">← Back to Gallery</a></div>
+    <div class="gal-sidebar-inner">
+      
+      <h1>DesignerCon 2024</h1>
+      <div class="includes-tags" style="margin-bottom:32px"><span class="includes-tag">Brand Collab</span></div>
+      <div class="gal-body"><p>At DesignerCon Las Vegas, we partnered with Trampt to turn 3D models from OG Slick, Superplastics, Nouns, and Marmals into paintable objects on the wall. People customized the toys, scanned a QR code, and took their designs home as AR models to drop anywhere at the event. OG Slick, Woes, Ron the Killer, Goopmasta, and Chris RWK all stepped up — alongside people who'd never touched a can. Both groups figured it out.</p></div>
+      <div class="gal-cta">
+        <a href="#contact" class="btn-primary">Book a Demo</a>
+        <a href="../gallery.html" class="btn">View More Projects</a>
+      </div>
+    </div>
   </div>
 </div>
-
-<!-- CONTACT -->
 <section class="contact-section" id="contact">
-  <h2>Get in touch!</h2>
-  <p class="contact-sub">We’ll get back to you right away to schedule a call + live demo.</p>
-  <form class="contact-form" name="contact" method="POST" data-netlify="true">
-    <input type="hidden" name="form-name" value="contact">
+  <h2>Let's talk.</h2>
+  <p class="contact-sub">We'll get back to you right away to schedule a call and live demo.</p>
+  <form class="contact-form" name="contact" method="POST" action="https://formspree.io/f/xkoydpkv">
     <div class="form-row">
-      <div class="form-group">
-        <label>First Name <span style="color:#555">(required)</span></label>
-        <input type="text" name="first_name" required>
-      </div>
-      <div class="form-group">
-        <label>Last Name <span style="color:#555">(required)</span></label>
-        <input type="text" name="last_name" required>
-      </div>
+      <div class="form-group"><label>First Name <span>(required)</span></label><input type="text" name="first_name" required></div>
+      <div class="form-group"><label>Last Name <span>(required)</span></label><input type="text" name="last_name" required></div>
     </div>
-    <div class="form-group">
-      <label>Email <span style="color:#555">(required)</span></label>
-      <input type="email" name="email" required>
-    </div>
-    <div class="form-group">
-      <label>Message <span style="color:#555">(required)</span></label>
-      <textarea name="message" required></textarea>
-    </div>
+    <div class="form-group"><label>Email <span>(required)</span></label><input type="email" name="email" required></div>
+    <div class="form-group"><label>Message <span>(required)</span></label><textarea name="message" required></textarea></div>
     <button type="submit" class="btn-submit">Send</button>
   </form>
 </section>
-
 <footer>
   <div>
-    <div class="footer-logo">
-      <img src="../images/logo.png" alt="Graffiti+">
-    </div>
-    <p class="footer-copy">© 2025. All rights reserved.</p>
+    <div class="footer-logo"><img src="../images/logo-v4.webp" alt="Graffiti+"></div>
+    <p class="footer-copy">&copy; 2026. All rights reserved.</p>
   </div>
   <div>
     <h4>Contact</h4>
@@ -93,7 +67,7 @@
     <a href="tel:+13239916463">+1 (323) 991-6463</a>
   </div>
   <div>
-    <h4>Follow us on socials</h4>
+    <h4>Follow us</h4>
     <div class="footer-socials">
       <a href="https://www.instagram.com/graffitiplus.io/" target="_blank" aria-label="Instagram">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
@@ -104,11 +78,6 @@
     </div>
   </div>
 </footer>
-
-<script>
-  document.getElementById('nav-hamburger').addEventListener('click', () => {
-    document.getElementById('nav-links').classList.toggle('open');
-  });
-</script>
+<script>document.getElementById('nav-hamburger').addEventListener('click',()=>document.getElementById('nav-links').classList.toggle('open'));</script>
 </body>
 </html>
