@@ -1030,8 +1030,15 @@ footer {
 .v4-use-cases-inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--sp-68);
-  align-items: center;
+  gap: 0;
+  align-items: stretch;
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.v4-use-cases-left {
+  padding: var(--sp-68) var(--sp-60);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .v4-use-cases-left h2 {
   font-size: clamp(2rem, 4vw, var(--text-heading-lg));
@@ -1080,14 +1087,14 @@ footer {
   grid-template-columns: 1fr 1fr;
   gap: 1px;
   background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.07);
+  border-left: 1px solid rgba(255,255,255,0.07);
 }
 .v4-use-case-item {
   padding: var(--sp-22) var(--sp-34);
   display: flex;
   align-items: flex-start;
   gap: var(--sp-17);
-  background: var(--obsidian);
+  background: #0a0f10;
   transition: background 0.25s;
   cursor: default;
 }
