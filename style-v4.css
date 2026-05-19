@@ -1030,8 +1030,8 @@ footer {
 .v4-use-cases-inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--sp-119);
-  align-items: start;
+  gap: var(--sp-68);
+  align-items: center;
 }
 .v4-use-cases-left h2 {
   font-size: clamp(2rem, 4vw, var(--text-heading-lg));
@@ -1047,6 +1047,34 @@ footer {
   line-height: 1.55;
   margin: 0;
 }
+.v4-use-cases-stat-row {
+  display: flex;
+  gap: var(--sp-38);
+  margin-top: var(--sp-53);
+  padding-top: var(--sp-38);
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.v4-use-cases-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.v4-use-cases-stat span {
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: var(--w-bold);
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: var(--track-heading);
+}
+.v4-use-cases-stat em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: var(--w-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+}
+
 .v4-use-cases-right {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1055,18 +1083,45 @@ footer {
   border: 1px solid rgba(255,255,255,0.07);
 }
 .v4-use-case-item {
-  padding: var(--sp-34);
-  font-size: var(--text-sub);
+  padding: var(--sp-22) var(--sp-34);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-17);
+  background: var(--obsidian);
+  transition: background 0.25s;
+  cursor: default;
+}
+.v4-use-case-item svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: rgba(255,255,255,0.25);
+  transition: color 0.25s;
+}
+.v4-use-case-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.v4-use-case-item strong {
+  font-size: 16px;
   font-weight: var(--w-bold);
   color: var(--canvas);
   letter-spacing: var(--track-heading);
-  background: var(--obsidian);
-  transition: background 0.2s;
+  transition: color 0.25s;
+}
+.v4-use-case-item span {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  font-weight: var(--w-regular);
+  line-height: 1.4;
+  transition: color 0.25s;
 }
 .v4-use-case-item:hover {
-  background: rgba(255,255,255,0.04);
-  color: var(--accent);
+  background: rgba(255,200,0,0.04);
 }
+.v4-use-case-item:hover svg { color: var(--accent); }
+.v4-use-case-item:hover strong { color: var(--accent); }
+.v4-use-case-item:hover span { color: rgba(255,255,255,0.55); }
 
 /* ── FOR EVERYONE ── */
 .v4-for-everyone {

@@ -173,6 +173,61 @@
       overflow: hidden;
     }
 
+    /* Floating edge arrows */
+    .tl-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: 52px;
+      height: 52px;
+      background: rgba(0,13,16,0.7);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s;
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .tl-track-wrap:hover .tl-arrow {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .tl-arrow:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+    }
+    .tl-arrow-left  { left: 16px; }
+    .tl-arrow-right { right: 16px; }
+    .tl-arrow.hidden { opacity: 0 !important; pointer-events: none !important; }
+
+    /* Drag cursor label */
+    .tl-drag-hint {
+      position: absolute;
+      bottom: 72px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .tl-track-wrap:hover .tl-drag-hint { opacity: 1; }
+    .tl-drag-hint svg { opacity: 0.6; }
+
     /* The horizontal line */
     .tl-track-wrap::before {
       content: '';
@@ -189,7 +244,7 @@
     .tl-track {
       display: flex;
       overflow-x: auto;
-      scroll-snap-type: x mandatory;
+      scroll-snap-type: x proximity;
       -webkit-overflow-scrolling: touch;
       gap: 0;
       padding: 0 var(--sp-60) var(--sp-60);
@@ -258,6 +313,24 @@
     }
     .tl-card-media svg { opacity: 0.4; }
 
+    .tl-card-media.tl-video,
+    .tl-card-media.tl-image {
+      border: none;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    .tl-card-media.tl-video iframe,
+    .tl-card-media.tl-video video,
+    .tl-card-media.tl-image img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      object-fit: cover;
+    }
+
     .tl-card-content {
       padding-top: var(--sp-34);
     }
@@ -313,6 +386,21 @@
     }
 
     /* Future divider card */
+    .tl-irap-link {
+      display: inline-block;
+      margin: 10px 0 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,200,0,0.3);
+      padding-bottom: 2px;
+      transition: border-color 0.2s;
+    }
+    .tl-irap-link:hover { border-color: var(--accent); }
+
     .tl-card-divider {
       flex: 0 0 120px;
       display: flex;
@@ -330,6 +418,9 @@
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: rgba(255,255,255,0.15);
+      position: relative;
+      left: 18px;
+      z-index: 3;
     }
     .tl-card-divider::after {
       content: '';
@@ -448,13 +539,22 @@
 
 <!-- HORIZONTAL TRACK -->
 <div class="tl-track-wrap">
+  <button class="tl-arrow tl-arrow-left" id="tl-arrow-left" aria-label="Scroll left">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  </button>
+  <button class="tl-arrow tl-arrow-right" id="tl-arrow-right" aria-label="Scroll right">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </button>
+  <div class="tl-drag-hint">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6.5a2.5 2.5 0 00-5 0v3M13 9.5V5a2.5 2.5 0 00-5 0v6M8 11V8a2.5 2.5 0 00-5 0v5a8 8 0 0016 0v-3a2.5 2.5 0 00-5 0"/></svg>
+    Drag to explore
+  </div>
   <div class="tl-track" id="tl-track">
 
     <!-- 2008 -->
     <div class="tl-card tl-featured">
-      <div class="tl-card-media">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-        <span>Photo or video — 2008</span>
+      <div class="tl-card-media tl-video">
+        <video class="tl-autoplay-video" src="videos/2008.webm" muted playsinline loop preload="none"></video>
       </div>
       <div class="tl-dot"></div>
       <div class="tl-card-content">
@@ -471,9 +571,8 @@
 
     <!-- 2010 -->
     <div class="tl-card tl-featured">
-      <div class="tl-card-media">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-        <span>Photo — Chanel SoHo 2010</span>
+      <div class="tl-card-media tl-image">
+        <img src="images/chanel.webp" alt="Chanel SoHo 2010">
       </div>
       <div class="tl-dot"></div>
       <div class="tl-card-content">
@@ -490,9 +589,8 @@
 
     <!-- 2016 -->
     <div class="tl-card">
-      <div class="tl-card-media">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-        <span>Photo or video — Panorama 2016</span>
+      <div class="tl-card-media tl-video">
+        <video class="tl-autoplay-video" src="videos/panorama.webm" muted playsinline loop preload="none"></video>
       </div>
       <div class="tl-dot"></div>
       <div class="tl-card-content">
@@ -509,9 +607,8 @@
 
     <!-- 2019 -->
     <div class="tl-card">
-      <div class="tl-card-media">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-        <span>Photo — Samsung KX 2019</span>
+      <div class="tl-card-media tl-video">
+        <video class="tl-autoplay-video" src="videos/king-cross.webm" muted playsinline loop preload="none"></video>
       </div>
       <div class="tl-dot"></div>
       <div class="tl-card-content">
@@ -529,15 +626,15 @@
 
     <!-- 2018–2023 R&D -->
     <div class="tl-card tl-featured">
-      <div class="tl-card-media">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-        <span>Photo or video — R&amp;D lab</span>
+      <div class="tl-card-media tl-video">
+        <video class="tl-autoplay-video" src="videos/led-screen-v3.webm" muted playsinline loop preload="none"></video>
       </div>
       <div class="tl-dot"></div>
       <div class="tl-card-content">
         <div class="tl-card-year">2018 – 2023 — R&amp;D</div>
         <h3>Proprietary tracking.<br>Built from scratch.</h3>
-        <p>R&D grant. Fully custom 3D tracking system — no off-the-shelf hardware. Real paint physics: pressure, angle, velocity. Swappable caps. Pro and user modes. A complete overhaul.</p>
+        <p>Supported by NRC-IRAP, Canada's national R&D funding program for technology innovation. Five years to rebuild the core from scratch — fully custom 3D tracking, real paint physics, pressure and angle response, swappable caps, pro and user modes. No off-the-shelf components. Built to last.</p>
+        <a href="https://nrc.canada.ca/en/support-technology-innovation/about-nrc-industrial-research-assistance-program" target="_blank" rel="noopener" class="tl-irap-link">NRC-IRAP supported →</a>
         <div class="tl-tags">
           <span class="tl-tag tl-tag--accent">Proprietary system</span>
           <span class="tl-tag tl-tag--accent">Paint physics</span>
@@ -549,9 +646,8 @@
 
     <!-- 2024 -->
     <div class="tl-card">
-      <div class="tl-card-media">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-        <span>Video — AR export demo</span>
+      <div class="tl-card-media tl-video">
+        <video class="tl-autoplay-video" src="videos/3d-car.webm" muted playsinline loop preload="none"></video>
       </div>
       <div class="tl-dot"></div>
       <div class="tl-card-content">
@@ -655,12 +751,25 @@
   // Arrow navigation
   const track = document.getElementById('tl-track');
   const cardWidth = 420;
-  document.getElementById('tl-next').addEventListener('click', () => {
-    track.scrollBy({ left: cardWidth, behavior: 'smooth' });
-  });
-  document.getElementById('tl-prev').addEventListener('click', () => {
-    track.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-  });
+  const arrowLeft  = document.getElementById('tl-arrow-left');
+  const arrowRight = document.getElementById('tl-arrow-right');
+
+  function updateArrows() {
+    arrowLeft.classList.toggle('hidden', track.scrollLeft <= 10);
+    arrowRight.classList.toggle('hidden', track.scrollLeft >= track.scrollWidth - track.clientWidth - 10);
+  }
+  track.addEventListener('scroll', updateArrows);
+  updateArrows();
+
+  function scrollBy(dir) { track.scrollBy({ left: dir * cardWidth, behavior: 'smooth' }); }
+
+  // Floating arrows
+  arrowLeft.addEventListener('click',  () => scrollBy(-1));
+  arrowRight.addEventListener('click', () => scrollBy(1));
+
+  // Bottom nav arrows (keep working too)
+  document.getElementById('tl-next').addEventListener('click', () => scrollBy(1));
+  document.getElementById('tl-prev').addEventListener('click', () => scrollBy(-1));
 
   // Click-drag to scroll
   let isDown = false, startX, scrollLeft;
@@ -677,6 +786,20 @@
     const x = e.pageX - track.offsetLeft;
     track.scrollLeft = scrollLeft - (x - startX);
   });
+
+  // Autoplay videos when they scroll into view
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const video = entry.target;
+      if (entry.isIntersecting) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    });
+  }, { threshold: 0.4 });
+
+  document.querySelectorAll('.tl-autoplay-video').forEach(v => observer.observe(v));
 </script>
 </body>
 </html>
