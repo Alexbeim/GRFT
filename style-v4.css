@@ -66,12 +66,18 @@ nav {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 20px 48px !important;
+  height: auto !important;
 }
 
 nav a, nav .nav-links a {
   color: rgba(255,255,255,0.5);
-  font-size: var(--text-body);
+  font-size: 14px !important;
   letter-spacing: var(--track-body);
+}
+
+nav .nav-links {
+  gap: 36px !important;
 }
 
 nav .nav-links a:hover,
@@ -81,6 +87,8 @@ nav .nav-links a.active {
 
 nav .nav-logo img {
   filter: none;
+  height: 52px !important;
+  width: auto !important;
 }
 
 /* ── SHARED: LABELS ── */
@@ -130,7 +138,8 @@ nav .nav-logo img {
   overflow: hidden;
 }
 
-.v2-hero video {
+.v2-hero video,
+.v2-hero img {
   position: absolute;
   inset: 0;
   width: 100%;
