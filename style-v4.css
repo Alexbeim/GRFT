@@ -1617,14 +1617,15 @@ footer {
 
 /* ── PAGE HEADER (rentals, add-ons, gallery) ── */
 .page-header {
-  background: var(--canvas);
-  padding: calc(var(--sp-68) + 60px) var(--sp-60) var(--sp-68);
+  background: var(--obsidian);
+  padding: var(--sp-68) var(--sp-60);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .page-header h1 {
   font-size: clamp(2.5rem, 6vw, var(--text-heading-lg));
   font-weight: var(--w-bold);
-  color: var(--obsidian);
+  color: var(--canvas);
   line-height: 1.0;
   letter-spacing: var(--track-heading);
   margin: 0 0 var(--sp-17);
@@ -1992,12 +1993,11 @@ footer {
 
 /* ── ADD-ONS GRID ── */
 .addons-grid {
-  background: rgba(0,13,16,0.08);
-  padding: var(--sp-119) 0;
+  background: var(--obsidian);
+  padding: var(--sp-68) 0 var(--sp-119);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
-  border-top: 1px solid rgba(0,13,16,0.06);
 }
 
 .addon-card {
@@ -2184,13 +2184,13 @@ footer {
 
 /* ── GALLERY ── */
 .gallery-filters {
-  background: var(--canvas);
-  padding: var(--sp-38) var(--sp-60);
+  background: var(--obsidian);
+  padding: var(--sp-22) var(--sp-60);
   display: flex;
   align-items: center;
   gap: var(--sp-11);
   flex-wrap: wrap;
-  border-bottom: 1px solid rgba(0,13,16,0.07);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .gallery-filters > span {
@@ -2198,26 +2198,26 @@ footer {
   font-weight: var(--w-bold);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--slate);
+  color: rgba(255,255,255,0.35);
   margin-right: var(--sp-11);
 }
 
 .filter-btn {
   background: transparent;
-  color: var(--slate);
-  border: 1px solid rgba(0,13,16,0.15);
+  color: rgba(255,255,255,0.5);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: var(--r-pill);
-  padding: 8px 20px;
-  font-size: 13px;
+  padding: 7px 18px;
+  font-size: 12px;
   font-weight: var(--w-bold);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .filter-btn:hover {
-  border-color: var(--obsidian);
-  color: var(--obsidian);
+  border-color: rgba(255,255,255,0.5);
+  color: var(--canvas);
 }
 
 .filter-btn.active {
@@ -2227,7 +2227,7 @@ footer {
 }
 
 .gallery-grid {
-  background: rgba(0,13,16,0.08);
+  background: var(--obsidian);
   padding: var(--sp-60) 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -2240,7 +2240,7 @@ footer {
   overflow: hidden;
   border-radius: 0;
   position: relative;
-  background: rgba(0,13,16,0.04);
+  background: rgba(255,255,255,0.04);
 }
 
 .gallery-item img {
