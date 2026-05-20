@@ -2,11 +2,941 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=timeline.html">
-  <link rel="canonical" href="https://graffitiplus.io/timeline">
-  <title>About Graffiti+</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Graffiti+ | Built from the Culture Since 2008</title>
+  <meta name="description" content="From writing graffiti in the 90s to building the world's most-deployed digital graffiti platform. The story of Graffiti+.">
+  <link rel="canonical" href="https://graffitiplus.io/about">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="apple-touch-icon" href="images/favicon.png">
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BZ2DLRYLJC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-BZ2DLRYLJC');
+  </script>
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style-v4.css">
+
+  <style>
+    /* ── PAGE SHELL ── */
+    body { background: var(--obsidian); }
+
+    /* ── ABOUT INTRO ── */
+    .tl-about {
+      background: var(--obsidian);
+      padding: 130px var(--sp-60) var(--sp-119);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .tl-about-label {
+      font-size: 11px;
+      font-weight: var(--w-bold);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--sp-22);
+    }
+    .tl-about h1 {
+      font-size: clamp(42px, 6vw, 80px);
+      font-weight: var(--w-bold);
+      letter-spacing: var(--track-display);
+      color: var(--canvas);
+      margin: 0 0 var(--sp-60);
+      line-height: 1.05;
+    }
+    .tl-about-video {
+      width: 100%;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      margin-bottom: var(--sp-60);
+    }
+    .tl-about-video video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .tl-about-text {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-60);
+      max-width: 1100px;
+    }
+    .tl-about-text p {
+      font-size: var(--text-body);
+      color: rgba(255,255,255,0.5);
+      line-height: 1.75;
+      margin: 0;
+    }
+    @media (max-width: 900px) {
+      .tl-about { padding: 100px var(--sp-34) var(--sp-60); }
+      .tl-about-text { grid-template-columns: 1fr; gap: var(--sp-34); }
+    }
+
+    /* ── FOUNDER HERO ── */
+    .tl-founder {
+      background: var(--obsidian);
+      padding: 130px var(--sp-60) var(--sp-119);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-119);
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .tl-founder-media {
+      aspect-ratio: 4/5;
+      background: rgba(255,255,255,0.04);
+      border: 1px dashed rgba(255,255,255,0.12);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: rgba(255,255,255,0.2);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .tl-founder-media svg { opacity: 0.3; }
+    .tl-founder-text {}
+    .tl-founder-label {
+      font-size: 11px;
+      font-weight: var(--w-bold);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--sp-22);
+    }
+    .tl-founder-text h1 {
+      font-size: clamp(36px, 4.5vw, 60px);
+      font-weight: var(--w-bold);
+      letter-spacing: var(--track-display);
+      color: var(--canvas);
+      margin: 0 0 var(--sp-34);
+      line-height: 1.05;
+    }
+    .tl-founder-text p {
+      font-size: var(--text-body);
+      color: rgba(255,255,255,0.5);
+      line-height: 1.75;
+      margin: 0 0 var(--sp-22);
+      max-width: 520px;
+    }
+    .tl-founder-book {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: var(--sp-22);
+      padding: 12px 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.4);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── SCROLL HINT ── */
+    .tl-scroll-intro {
+      padding: var(--sp-60) var(--sp-60) var(--sp-34);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tl-scroll-intro h2 {
+      font-size: clamp(22px, 2.5vw, 32px);
+      font-weight: var(--w-bold);
+      color: var(--canvas);
+      letter-spacing: var(--track-heading);
+      margin: 0;
+    }
+    .tl-scroll-hint {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255,255,255,0.25);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .tl-scroll-hint svg { animation: nudge 2s ease-in-out infinite; }
+    @keyframes nudge {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(6px); }
+    }
+
+    /* ── HORIZONTAL TRACK ── */
+    .tl-track-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Floating edge arrows */
+    .tl-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: 52px;
+      height: 52px;
+      background: rgba(0,13,16,0.7);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s;
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .tl-track-wrap:hover .tl-arrow {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .tl-arrow:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+    }
+    .tl-arrow-left  { left: 16px; }
+    .tl-arrow-right { right: 16px; }
+    .tl-arrow.hidden { opacity: 0 !important; pointer-events: none !important; }
+
+    /* The horizontal line */
+    .tl-track-wrap::before {
+      content: '';
+      position: absolute;
+      top: 220px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .tl-track {
+      display: flex;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      gap: 0;
+      padding: 0 var(--sp-60) var(--sp-60);
+      scrollbar-width: none;
+      cursor: grab;
+      overscroll-behavior-x: contain;
+    }
+    .tl-track.tl-dragging {
+      cursor: grabbing;
+      user-select: none;
+    }
+    .tl-track.tl-dragging * { pointer-events: none; }
+    .tl-track::-webkit-scrollbar { display: none; }
+
+    /* ── CARD ── */
+    .tl-card {
+      flex: 0 0 420px;
+      padding: 0 var(--sp-60) 0 0;
+      position: relative;
+    }
+    .tl-card:last-child { flex: 0 0 480px; }
+
+    .tl-card-content {
+      padding-right: var(--sp-34);
+    }
+
+    /* Dot on timeline */
+    .tl-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.1);
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 2;
+      margin-top: 215px;
+    }
+    .tl-card.tl-featured .tl-dot {
+      background: var(--accent);
+      border-color: var(--accent);
+      width: 16px;
+      height: 16px;
+      margin-top: 212px;
+    }
+    .tl-card.tl-future .tl-dot {
+      background: transparent;
+      border: 2px dashed rgba(255,255,255,0.2);
+    }
+
+    /* Media placeholder */
+    .tl-card-media {
+      width: 100%;
+      height: 200px;
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.18);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: var(--sp-60);
+    }
+    .tl-card-media svg { opacity: 0.4; }
+
+    .tl-card-media.tl-video,
+    .tl-card-media.tl-image {
+      border: none;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    .tl-card-media.tl-video iframe,
+    .tl-card-media.tl-video video,
+    .tl-card-media.tl-image img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      object-fit: cover;
+    }
+
+    .tl-card-content {
+      padding-top: var(--sp-34);
+    }
+
+    .tl-card-year {
+      font-size: 11px;
+      font-weight: var(--w-bold);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      margin-bottom: 10px;
+    }
+    .tl-card.tl-featured .tl-card-year { color: var(--accent); }
+    .tl-card.tl-future .tl-card-year {
+      color: rgba(255,255,255,0.15);
+      font-style: italic;
+    }
+
+    .tl-card h3 {
+      font-size: clamp(18px, 1.8vw, 24px);
+      font-weight: var(--w-bold);
+      color: var(--canvas);
+      letter-spacing: var(--track-heading);
+      margin: 0 0 12px;
+      line-height: 1.2;
+    }
+    .tl-card.tl-future h3 { color: rgba(255,255,255,0.35); }
+
+    .tl-card p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.7;
+      margin: 0 0 16px;
+    }
+
+    .tl-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tl-tag {
+      font-size: 11px;
+      font-weight: var(--w-bold);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.3);
+    }
+    /* Accent variant retained for backward compat — visually identical to .tl-tag.
+       Yellow is reserved for links (press, project, NRC-IRAP). */
+    .tl-tag--accent {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* Future divider card */
+    .tl-irap-link {
+      display: inline-block;
+      margin: 10px 0 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,200,0,0.3);
+      padding-bottom: 2px;
+      transition: border-color 0.2s;
+    }
+    .tl-irap-link:hover { border-color: var(--accent); }
+
+    .tl-card-divider {
+      flex: 0 0 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .tl-card-divider::before {
+      content: 'What\'s next';
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 10px;
+      font-weight: var(--w-bold);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.15);
+      position: relative;
+      left: 18px;
+      z-index: 3;
+    }
+    .tl-card-divider::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 1px;
+      border-left: 1px dashed rgba(255,255,255,0.1);
+      z-index: 2;
+    }
+
+    /* Nav arrows */
+    .tl-nav {
+      display: flex;
+      gap: 10px;
+      padding: 0 var(--sp-60) var(--sp-60);
+    }
+    .tl-nav button {
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .tl-nav button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .tl-founder {
+        grid-template-columns: 1fr;
+        gap: var(--sp-60);
+        padding: 100px var(--sp-34) var(--sp-60);
+      }
+      .tl-founder-media { aspect-ratio: 3/2; }
+      .tl-scroll-intro, .tl-nav { padding-left: var(--sp-34); padding-right: var(--sp-34); }
+      .tl-track { padding-left: var(--sp-34); padding-right: var(--sp-34); }
+      .tl-card { flex: 0 0 calc(90vw); }
+      .tl-card:last-child { flex: 0 0 calc(90vw); }
+      .tl-card-content { padding-right: var(--sp-22); }
+      .tl-track-wrap::before { top: 210px; }
+    }
+  </style>
 </head>
 <body>
-  <p>Redirecting… <a href="timeline.html">Click here if not redirected</a></p>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="images/logo-v4.webp" alt="Graffiti+">
+  </a>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="rentals.html">Rentals</a></li>
+    <li><a href="add-ons.html">Add-ons</a></li>
+    <li><a href="gallery.html">Gallery</a></li>
+    <li><a href="about.html" class="active">About</a></li>
+    <li><a href="index.html#contact">Contact</a></li>
+  </ul>
+  <button class="nav-hamburger" aria-label="Menu" id="nav-hamburger">☰</button>
+</nav>
+
+<!-- ABOUT SECTION -->
+<section class="tl-about">
+  <div class="tl-about-label">About</div>
+  <h1>Eighteen years.<br>Six continents.<br>One premise.</h1>
+  <div class="tl-about-video">
+    <video autoplay muted loop playsinline>
+      <source src="videos/about.webm" type="video/webm">
+      <source src="videos/about.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="tl-about-text">
+    <p>At Graffiti+, we believe in the power of art as a medium for expression, connection, and transformation. We are passionate about making the world of graffiti accessible to everyone, everywhere, in a way that respects and honors its roots and culture.</p>
+    <p>We believe in working with brands that get it — those who understand that graffiti is more than just street art; it's a voice for stories untold, a canvas for unbridled creativity, and a symbol of urban identity. Partnering with us means engaging in a respectful association with graffiti culture, where the art form and the brand grow from each other.</p>
+  </div>
+</section>
+
+<!-- FOUNDER SECTION -->
+<section class="tl-founder">
+  <div class="tl-founder-media">
+    <!-- Replace with founder photo or book cover scan -->
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    <span>Founder photo / book cover</span>
+  </div>
+  <div class="tl-founder-text">
+    <div class="tl-founder-label">The founder</div>
+    <h1>Started on walls.<br>Stayed there.</h1>
+    <p>In the 1990s, long before any of this was a platform or a company, it was just writing — working in the streets, publishing graffiti, learning what happens when you give people a wall and real tools and get out of the way.</p>
+    <p>That decade led to graphic design, then a design studio, then a move to Canada and a pivot into interactive work. In Vancouver, the pieces clicked together: a background in street culture, years of building digital experiences, and a persistent question about what participation actually feels like when it's real.</p>
+    <p>In 2008, Graffiti+ was the answer. Not a tech product — a continuation of the same thing that started on walls in the 90s. The tools got more sophisticated. The question stayed the same.</p>
+    <div class="tl-founder-book">
+      <!-- Update with real book title when confirmed -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      Published graffiti work — 1990s
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE HEADER -->
+<div class="tl-scroll-intro">
+  <h2>Eighteen years of work.</h2>
+  <div class="tl-scroll-hint">
+    Scroll to explore
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </div>
+</div>
+
+<!-- HORIZONTAL TRACK -->
+<div class="tl-track-wrap">
+  <button class="tl-arrow tl-arrow-left" id="tl-arrow-left" aria-label="Scroll left">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  </button>
+  <button class="tl-arrow tl-arrow-right" id="tl-arrow-right" aria-label="Scroll right">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </button>
+  <div class="tl-track" id="tl-track">
+
+    <!-- 2008 -->
+    <div class="tl-card tl-featured">
+      <div class="tl-card-media tl-video">
+        <video class="tl-autoplay-video" src="videos/2008.webm" muted playsinline loop preload="none"></video>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2008 — The beginning</div>
+        <h3>Richmond Olympics pitch.<br>Multi-user painting on a building.</h3>
+        <p>The first version: IR cameras, flashlights, and a multi-user collaborative painting interface projected onto city buildings. Graffiti writers tested it before anyone else.</p>
+        <div class="tl-tags">
+          <span class="tl-tag">IR tracking</span>
+          <span class="tl-tag">Multi-user</span>
+          <span class="tl-tag">Projection</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2010 -->
+    <div class="tl-card tl-featured">
+      <div class="tl-card-media tl-image">
+        <img src="images/chanel.webp" alt="Chanel SoHo 2010">
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2010 — Global validation</div>
+        <h3>Chanel SoHo.<br>500 guests. The world notices.</h3>
+        <p>Fashion Week. Artists working alongside 500 guests across interactive screens wrapping the storefront. Spray can gesture integration built for this moment, physical movement as paint.</p>
+        <a href="https://www.bizbash.com/event-fabrication/chanel-tags-soho-store-with-digital-graffiti-for-reopening-bash" target="_blank" rel="noopener" class="tl-irap-link">Featured in BizBash →</a>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag--accent">First major brand</span>
+          <span class="tl-tag">Spray can input</span>
+          <span class="tl-tag">Chanel</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2016 -->
+    <div class="tl-card">
+      <div class="tl-card-media tl-video">
+        <video class="tl-autoplay-video" src="videos/panorama.webm" muted playsinline loop preload="none"></video>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2016 — Scale</div>
+        <h3>Panorama Festival, NYC.<br>Motion capture. Massive LED walls.</h3>
+        <p>Randall's Island. Motion capture tracking replaced earlier IR methods — more precision, more responsiveness. The kind of visual scale that stops foot traffic and holds it.</p>
+        <div class="tl-tags">
+          <span class="tl-tag">Motion capture</span>
+          <span class="tl-tag">LED walls</span>
+          <span class="tl-tag">Festival scale</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2019 -->
+    <div class="tl-card">
+      <div class="tl-card-media tl-video">
+        <video class="tl-autoplay-video" src="videos/king-cross.webm" muted playsinline loop preload="none"></video>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2019 — Precision</div>
+        <h3>Samsung King's Cross.<br>A 10-metre wall. Daily lineups.</h3>
+        <p>Samsung's concept showroom in London. Galaxy phones as spray-can controllers, active marker tracking, millimetre precision. The store's most-visited feature, with repeat visitors every day.</p>
+        <a href="gal/samsung-kings-cross.html" class="v4-highlight-link" style="color:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.2)">View project →</a>
+        <a href="https://gdruk.com/inspire/experiencing-the-unexpected-at-samsung-kx/" target="_blank" rel="noopener" class="tl-irap-link">Featured in GDR UK →</a>
+        <div class="tl-tags">
+          <span class="tl-tag">Active markers</span>
+          <span class="tl-tag">Phone input</span>
+          <span class="tl-tag">Samsung</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2018–2023 R&D -->
+    <div class="tl-card tl-featured">
+      <div class="tl-card-media tl-video">
+        <video class="tl-autoplay-video" src="videos/led-screen-v3.webm" muted playsinline loop preload="none"></video>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2018 – 2023 — R&amp;D</div>
+        <h3>Proprietary tracking.<br>Built from scratch.</h3>
+        <p>Supported by NRC-IRAP, Canada's national R&D funding program for technology innovation. Five years to rebuild the core from scratch — fully custom 3D tracking, real paint physics, pressure and angle response, swappable caps, pro and user modes. No off-the-shelf components. Built to last.</p>
+        <a href="https://nrc.canada.ca/en/support-technology-innovation/about-nrc-industrial-research-assistance-program" target="_blank" rel="noopener" class="tl-irap-link">NRC-IRAP supported →</a>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag--accent">Proprietary system</span>
+          <span class="tl-tag tl-tag--accent">Paint physics</span>
+          <span class="tl-tag">Pressure + angle</span>
+          <span class="tl-tag">Swappable caps</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2024 -->
+    <div class="tl-card">
+      <div class="tl-card-media tl-video">
+        <video class="tl-autoplay-video" src="videos/3d-car.webm" muted playsinline loop preload="none"></video>
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">2024 — Art that travels</div>
+        <h3>3D object painting.<br>AR export.</h3>
+        <p>Paint onto 3D objects — basketballs, sneakers, custom forms. Export as AR. Art made at an event lives beyond it. People take their work home.</p>
+        <a href="gal/nba-all-star-2025.html" class="v4-highlight-link" style="color:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.2)">View Nike All-Star project →</a>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag--accent">3D painting</span>
+          <span class="tl-tag tl-tag--accent">AR export</span>
+          <span class="tl-tag">Nike Jordan</span>
+          <span class="tl-tag">Disney+</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FUTURE DIVIDER -->
+    <div class="tl-card-divider"></div>
+
+    <!-- CONSUMER PRODUCT -->
+    <div class="tl-card tl-future">
+      <div class="tl-card-media tl-image">
+        <img src="images/future_consumer_action_tero.webp" alt="Graffiti+ consumer product in action">
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">In development</div>
+        <h3>Graffiti+ for everyone.<br>A consumer product.</h3>
+        <p>Eighteen years of building for the world's biggest events has produced something worth bringing home. A consumer version is in R&D — the same cultural roots, the same real tools, built for a different scale.</p>
+        <div class="tl-tags">
+          <span class="tl-tag">R&amp;D</span>
+          <span class="tl-tag">Consumer</span>
+          <span class="tl-tag">Coming soon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VOLUMETRIC -->
+    <div class="tl-card tl-future">
+      <div class="tl-card-media tl-image">
+        <img src="images/future_volumetric_spaces_close.webp" alt="Immersive volumetric painting space">
+      </div>
+      <div class="tl-dot"></div>
+      <div class="tl-card-content">
+        <div class="tl-card-year">Coming</div>
+        <h3>Immersive volumetric spaces.<br>Painting in every direction.</h3>
+        <p>Beyond flat screens. Fully immersive environments where the art fills the room. The platform that started on a projected building in Richmond becomes something you step inside.</p>
+        <div class="tl-tags">
+          <span class="tl-tag">Volumetric painting</span>
+          <span class="tl-tag">Immersive environments</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- NAV ARROWS -->
+<div class="tl-nav">
+  <button id="tl-prev" aria-label="Previous">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  </button>
+  <button id="tl-next" aria-label="Next">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </button>
+</div>
+
+<!-- CONTACT -->
+<section class="contact-section" id="contact">
+  <h2>Let's talk.</h2>
+  <p class="contact-sub">We'll get back to you right away to schedule a call and live demo.</p>
+  <form class="contact-form" name="contact" method="POST" action="https://formspree.io/f/xkoydpkv" novalidate>
+    <div class="form-row">
+      <div class="form-group"><label>First Name <span>(required)</span></label><input type="text" name="first_name" required></div>
+      <div class="form-group"><label>Last Name <span>(required)</span></label><input type="text" name="last_name" required></div>
+    </div>
+    <div class="form-group"><label>Email <span>(required)</span></label><input type="email" name="email" required></div>
+    <div class="form-group"><label>Message <span>(required)</span></label><textarea name="message" required></textarea></div>
+    <button type="submit" class="btn-submit">Send</button>
+  </form>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-logo">
+      <img src="images/logo-v4.webp" alt="Graffiti+">
+    </div>
+    <p class="footer-copy">© 2026. All rights reserved.</p>
+  </div>
+  <div>
+    <h4>Contact</h4>
+    <a href="mailto:info@graffitiplus.io">info@graffitiplus.io</a>
+    <a href="tel:+13239916463">+1 (323) 991-6463</a>
+  </div>
+  <div>
+    <h4>Follow us</h4>
+    <div class="footer-socials">
+      <a href="https://www.instagram.com/graffitiplus.io/" target="_blank" aria-label="Instagram">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      </a>
+</div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('nav-hamburger').addEventListener('click', () => {
+    document.getElementById('nav-links').classList.toggle('open');
+  });
+
+  // ── Horizontal timeline scroller ──
+  const track      = document.getElementById('tl-track');
+  const arrowLeft  = document.getElementById('tl-arrow-left');
+  const arrowRight = document.getElementById('tl-arrow-right');
+
+  // Tuning
+  const FRICTION       = 0.93;  // momentum decay per frame (higher = longer glide)
+  const MIN_VELOCITY   = 0.4;   // px/frame below which momentum ends → snap
+  const SNAP_DURATION  = 420;   // ms for the stick-to-grid animation
+  const DRAG_THRESHOLD = 5;     // px before a mousedown counts as a drag
+  const SCROLL_END_MS  = 140;   // idle ms after wheel/touch before snap fires
+
+  // State
+  let isDown        = false;
+  let isDragging    = false;
+  let startX        = 0;
+  let startScroll   = 0;
+  let lastX         = 0;
+  let lastTime      = 0;
+  let velocity      = 0;      // px/frame; positive = user threw rightward
+  let momentumRAF   = null;
+  let isAuto        = false;  // true while a programmatic scroll animation is running
+  let scrollEndTimer = null;
+  let suppressClick  = false;
+
+  const getPadLeft = () => parseFloat(getComputedStyle(track).paddingLeft) || 0;
+  const cards      = () => Array.from(track.querySelectorAll('.tl-card'));
+
+  function cardLeftAt(index) {
+    const c = cards();
+    if (!c.length) return 0;
+    const i = Math.max(0, Math.min(c.length - 1, index));
+    return c[i].offsetLeft - getPadLeft();
+  }
+
+  function nearestCardIndex(pos = track.scrollLeft) {
+    const c = cards();
+    const pad = getPadLeft();
+    let best = 0, bestDist = Infinity;
+    c.forEach((card, i) => {
+      const d = Math.abs((card.offsetLeft - pad) - pos);
+      if (d < bestDist) { bestDist = d; best = i; }
+    });
+    return best;
+  }
+
+  function smoothScrollTo(target, duration) {
+    cancelAnimationFrame(momentumRAF);
+    const start = track.scrollLeft;
+    const diff  = target - start;
+    if (Math.abs(diff) < 0.5) { isAuto = false; updateArrows(); return; }
+    isAuto = true;
+    const t0 = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - t0) / duration);
+      const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+      track.scrollLeft = start + diff * eased;
+      if (t < 1) {
+        momentumRAF = requestAnimationFrame(step);
+      } else {
+        isAuto = false;
+        updateArrows();
+      }
+    };
+    momentumRAF = requestAnimationFrame(step);
+  }
+
+  function snapToNearest() {
+    smoothScrollTo(cardLeftAt(nearestCardIndex()), SNAP_DURATION);
+  }
+
+  function startMomentum() {
+    cancelAnimationFrame(momentumRAF);
+    isAuto = true;
+    const step = () => {
+      track.scrollLeft -= velocity;
+      velocity *= FRICTION;
+      // Bail out if we hit an edge
+      const atEdge = track.scrollLeft <= 0 ||
+                     track.scrollLeft >= track.scrollWidth - track.clientWidth;
+      if (Math.abs(velocity) < MIN_VELOCITY || atEdge) {
+        snapToNearest();
+        return;
+      }
+      momentumRAF = requestAnimationFrame(step);
+    };
+    momentumRAF = requestAnimationFrame(step);
+  }
+
+  // ── Arrow buttons: step one card at a time, with proper snap ──
+  function jump(dir) {
+    cancelAnimationFrame(momentumRAF);
+    velocity = 0;
+    smoothScrollTo(cardLeftAt(nearestCardIndex() + dir), SNAP_DURATION);
+  }
+  arrowLeft .addEventListener('click', () => jump(-1));
+  arrowRight.addEventListener('click', () => jump(1));
+  document.getElementById('tl-prev').addEventListener('click', () => jump(-1));
+  document.getElementById('tl-next').addEventListener('click', () => jump(1));
+
+  // ── Edge-arrow visibility ──
+  function updateArrows() {
+    arrowLeft .classList.toggle('hidden', track.scrollLeft <= 10);
+    arrowRight.classList.toggle('hidden',
+      track.scrollLeft >= track.scrollWidth - track.clientWidth - 10);
+  }
+  updateArrows();
+
+  // ── Mouse drag (with velocity tracking) ──
+  track.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    isDown = true;
+    isDragging = false;
+    cancelAnimationFrame(momentumRAF);
+    isAuto = false;
+    velocity = 0;
+    startX = e.pageX;
+    startScroll = track.scrollLeft;
+    lastX = e.pageX;
+    lastTime = performance.now();
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!isDown) return;
+    const dx = e.pageX - startX;
+    if (!isDragging) {
+      if (Math.abs(dx) < DRAG_THRESHOLD) return;
+      isDragging = true;
+      track.classList.add('tl-dragging');
+    }
+    e.preventDefault();
+    track.scrollLeft = startScroll - dx;
+    const now = performance.now();
+    const dt = now - lastTime;
+    if (dt > 0) {
+      // Convert mouse delta into px/frame, then smooth via EMA
+      const instant = -(e.pageX - lastX) * (1000 / 60) / dt;
+      velocity = velocity * 0.7 + instant * 0.3;
+    }
+    lastX = e.pageX;
+    lastTime = now;
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!isDown) return;
+    const wasDragging = isDragging;
+    isDown = false;
+    isDragging = false;
+    track.classList.remove('tl-dragging');
+    if (!wasDragging) return; // it was a click, leave it alone
+    // Block the click that fires after a drag-release
+    suppressClick = true;
+    setTimeout(() => { suppressClick = false; }, 80);
+    // Decay velocity if it's been still for >80ms (prevents stale fling)
+    if (performance.now() - lastTime > 80) velocity = 0;
+    if (Math.abs(velocity) > 0.8) startMomentum();
+    else snapToNearest();
+  });
+
+  // Swallow the click immediately after a drag so links inside cards don't fire
+  track.addEventListener('click', e => {
+    if (suppressClick) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+
+  // Stop the browser from initiating native drags on imagery/links
+  track.querySelectorAll('img, video, a').forEach(el => {
+    el.addEventListener('dragstart', e => e.preventDefault());
+  });
+
+  // ── Wheel / touch: snap after native scroll goes idle ──
+  track.addEventListener('scroll', () => {
+    updateArrows();
+    if (isDown || isAuto) return;
+    clearTimeout(scrollEndTimer);
+    scrollEndTimer = setTimeout(snapToNearest, SCROLL_END_MS);
+  });
+
+  // Re-snap if the window resizes (card offsets change)
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (!isDown) smoothScrollTo(cardLeftAt(nearestCardIndex()), 250);
+    }, 150);
+  });
+
+  // Autoplay videos when they scroll into view
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const video = entry.target;
+      if (entry.isIntersecting) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    });
+  }, { threshold: 0.4 });
+
+  document.querySelectorAll('.tl-autoplay-video').forEach(v => observer.observe(v));
+</script>
 </body>
 </html>

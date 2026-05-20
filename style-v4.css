@@ -10,7 +10,7 @@
   --obsidian:  #000d10;
   --canvas:    #ffffff;
   --slate:     #8e8e95;
-  --sienna:    #e8001d;
+  /* --sienna removed: second saturated color forbidden by brand. Yellow stands alone. */
 
   /* Scroll-driven accent — shifts per section */
   --accent:    #ffc800;
@@ -560,103 +560,201 @@ nav .nav-logo img {
   transition: background 0.7s ease, color 0.7s ease;
 }
 
-/* ── 7. CONTACT ── */
+/* ── 7. CONTACT — Hi-Vis Bulletin ── */
 .v2-contact {
   padding: var(--sp-119) var(--sp-60);
-  background: var(--canvas);
-  border-top: 1px solid rgba(0,13,16,0.06);
+  background: var(--accent);
+  color: var(--obsidian);
+  border-bottom: 1px solid var(--obsidian);
 }
 
 .v2-contact-inner {
   max-width: 1200px;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1.6fr;
   gap: var(--sp-119);
   align-items: start;
 }
 
+/* Left rail — stamp label, direct contact */
 .v2-contact-label {
   display: inline-block;
   font-size: 11px;
   font-weight: var(--w-bold);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--accent);
-  margin: 0 0 var(--sp-23);
-  transition: color 0.7s ease;
+  background: var(--obsidian);
+  padding: 6px 10px 5px;
+  margin: 0 0 var(--sp-34);
 }
 
 .v2-contact-direct h2 {
-  font-size: clamp(var(--text-heading-sm), 4vw, var(--text-heading));
+  font-size: clamp(var(--text-heading-sm), 4.2vw, var(--text-heading-lg));
   font-weight: var(--w-bold);
   color: var(--obsidian);
-  margin: 0 0 var(--sp-23);
-  letter-spacing: var(--track-heading);
-  line-height: var(--lead-heading);
+  margin: 0 0 var(--sp-22);
+  letter-spacing: var(--track-display);
+  line-height: 0.95;
 }
 
 .v2-contact-sub {
-  color: var(--slate);
+  color: var(--obsidian);
+  opacity: 0.7;
   font-size: var(--text-body);
-  font-weight: var(--w-regular);
+  font-weight: 500;
   line-height: var(--lead-body);
   margin: 0 0 var(--sp-53);
+  max-width: 38ch;
 }
 
 .v2-contact-details {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-17);
+  gap: var(--sp-11);
+  padding-top: var(--sp-22);
+  border-top: 1px solid var(--obsidian);
 }
 
 .v2-contact-details a {
   color: var(--obsidian);
   text-decoration: none;
   font-size: var(--text-sub);
-  font-weight: var(--w-regular);
+  font-weight: var(--w-bold);
   letter-spacing: var(--track-body);
-  transition: color 0.2s;
+  transition: opacity 0.15s;
 }
 
-.v2-contact-details a:hover { color: var(--accent); }
+.v2-contact-details a:hover { opacity: 0.55; }
 
-/* Contact form */
+/* Right column — form */
+.v2-contact-form { width: 100%; }
+
+.v2-contact-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-17);
+  margin-bottom: var(--sp-22);
+}
+
+.v2-contact-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: var(--sp-22);
+}
+
 .v2-contact-form .form-group label {
-  color: var(--slate);
-  font-size: var(--text-body);
+  font-size: 11px;
+  font-weight: var(--w-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--obsidian);
+  line-height: 1;
+}
+
+/* Hide verbose "(required)" — every field is required, one quiet asterisk does the job */
+.v2-contact-form .form-group label span { display: none; }
+.v2-contact-form .form-group label::after {
+  content: ' *';
+  opacity: 0.4;
+  margin-left: 1px;
 }
 
 .v2-contact-form input,
 .v2-contact-form textarea {
   background: var(--canvas);
-  border: 1px solid rgba(0,13,16,0.15);
+  border: 2px solid var(--obsidian);
   color: var(--obsidian);
   border-radius: 0;
   font-size: var(--text-body);
+  font-weight: 500;
+  font-family: inherit;
+  padding: 14px 16px;
+  width: 100%;
+  outline: none;
+  transition: background 0.18s ease-out, color 0.18s ease-out;
+  letter-spacing: var(--track-body);
+  line-height: 1.4;
+}
+
+.v2-contact-form input::placeholder,
+.v2-contact-form textarea::placeholder {
+  color: var(--obsidian);
+  opacity: 0.3;
+}
+
+.v2-contact-form input:hover,
+.v2-contact-form textarea:hover {
+  background: rgba(255,255,255,0.65);
 }
 
 .v2-contact-form input:focus,
 .v2-contact-form textarea:focus {
-  border-color: var(--accent);
-  outline: none;
+  background: var(--obsidian);
+  color: var(--accent);
 }
 
-.btn-submit {
-  background: var(--sienna);
-  color: var(--canvas);
-  border: none;
-  border-radius: var(--r-pill);
-  font-size: var(--text-body);
+.v2-contact-form input:focus::placeholder,
+.v2-contact-form textarea:focus::placeholder {
+  color: var(--accent);
+  opacity: 0.4;
+}
+
+.v2-contact-form textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+
+/* Send — asphalt block on hi-vis, animated arrow */
+.v2-contact-form .btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-17);
+  background: var(--obsidian);
+  color: var(--accent);
+  border: 2px solid var(--obsidian);
+  border-radius: 0;
+  font-family: inherit;
+  font-size: 13px;
   font-weight: var(--w-bold);
-  padding: 15px 28px 16px;
+  padding: 22px 26px;
   cursor: pointer;
-  letter-spacing: var(--track-body);
-  transition: opacity 0.2s, transform 0.15s;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-top: var(--sp-22);
+  min-width: 260px;
+  width: auto;
+  transition: background 0.18s ease-out, color 0.18s ease-out;
 }
 
-.btn-submit:hover {
-  opacity: 0.88;
-  transform: translateY(-1px);
+.v2-contact-form .btn-submit::after {
+  content: '→';
+  font-size: 20px;
+  font-weight: var(--w-bold);
+  letter-spacing: 0;
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v2-contact-form .btn-submit:hover {
+  background: var(--canvas);
+  color: var(--obsidian);
+}
+.v2-contact-form .btn-submit:hover::after { transform: translateX(8px); }
+
+.v2-contact-form .btn-submit:focus-visible {
+  outline: 3px solid var(--obsidian);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2-contact-form .btn-submit,
+  .v2-contact-form .btn-submit::after,
+  .v2-contact-form input,
+  .v2-contact-form textarea { transition: none; }
 }
 
 /* Footer */
@@ -698,6 +796,7 @@ footer {
 
   .v2-contact { padding: var(--sp-68) var(--sp-34); }
   .v2-contact-inner { grid-template-columns: 1fr; gap: var(--sp-53); }
+  .v2-contact-form .btn-submit { width: 100%; min-width: 0; }
 }
 
 @media (max-width: 560px) {
@@ -1692,53 +1791,169 @@ footer {
    INNER PAGES — v4 overrides
    ============================================================ */
 
-/* ── SHARED: CONTACT SECTION (inner pages use .contact-section) ── */
+/* ── SHARED: CONTACT SECTION (inner pages) — Hi-Vis Bulletin ── */
 .contact-section {
   padding: var(--sp-119) var(--sp-60);
-  background: var(--canvas);
-  border-top: 1px solid rgba(0,13,16,0.06);
+  background: var(--accent);
+  color: var(--obsidian);
+  border-bottom: 1px solid var(--obsidian);
   max-width: none;
   margin: 0;
 }
 
 .contact-section h2 {
-  font-size: clamp(var(--text-heading-sm), 4vw, var(--text-heading));
+  font-size: clamp(var(--text-heading-sm), 4.2vw, var(--text-heading-lg));
   font-weight: var(--w-bold);
   color: var(--obsidian);
-  margin: 0 0 var(--sp-11);
-  letter-spacing: var(--track-heading);
-  line-height: var(--lead-heading);
+  margin: 0 auto var(--sp-22);
+  max-width: 1200px;
+  letter-spacing: var(--track-display);
+  line-height: 0.95;
 }
 
 .contact-section .contact-sub {
-  color: var(--slate);
+  color: var(--obsidian);
+  opacity: 0.7;
   font-size: var(--text-body);
+  font-weight: 500;
   line-height: var(--lead-body);
-  margin: 0 0 var(--sp-53);
+  margin: 0 auto var(--sp-53);
+  max-width: 1200px;
 }
 
 .contact-section .contact-form {
-  max-width: 760px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.contact-section .contact-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-17);
+  margin-bottom: var(--sp-22);
+}
+
+.contact-section .contact-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: var(--sp-22);
 }
 
 .contact-section .contact-form .form-group label {
-  color: var(--slate);
-  font-size: var(--text-body);
+  font-size: 11px;
+  font-weight: var(--w-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--obsidian);
+  line-height: 1;
+}
+
+.contact-section .contact-form .form-group label span { display: none; }
+.contact-section .contact-form .form-group label::after {
+  content: ' *';
+  opacity: 0.4;
+  margin-left: 1px;
 }
 
 .contact-section .contact-form input,
 .contact-section .contact-form textarea {
   background: var(--canvas);
-  border: 1px solid rgba(0,13,16,0.15);
+  border: 2px solid var(--obsidian);
   color: var(--obsidian);
   border-radius: 0;
   font-size: var(--text-body);
+  font-weight: 500;
+  font-family: inherit;
+  padding: 14px 16px;
+  width: 100%;
+  outline: none;
+  transition: background 0.18s ease-out, color 0.18s ease-out;
+  letter-spacing: var(--track-body);
+  line-height: 1.4;
+}
+
+.contact-section .contact-form input::placeholder,
+.contact-section .contact-form textarea::placeholder {
+  color: var(--obsidian);
+  opacity: 0.3;
+}
+
+.contact-section .contact-form input:hover,
+.contact-section .contact-form textarea:hover {
+  background: rgba(255,255,255,0.65);
 }
 
 .contact-section .contact-form input:focus,
 .contact-section .contact-form textarea:focus {
-  border-color: var(--accent);
-  outline: none;
+  background: var(--obsidian);
+  color: var(--accent);
+}
+
+.contact-section .contact-form input:focus::placeholder,
+.contact-section .contact-form textarea:focus::placeholder {
+  color: var(--accent);
+  opacity: 0.4;
+}
+
+.contact-section .contact-form textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+
+/* Send — asphalt block on hi-vis, animated arrow */
+.contact-section .contact-form .btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-17);
+  background: var(--obsidian);
+  color: var(--accent);
+  border: 2px solid var(--obsidian);
+  border-radius: 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: var(--w-bold);
+  padding: 22px 26px;
+  cursor: pointer;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-top: var(--sp-22);
+  min-width: 260px;
+  width: auto;
+  transition: background 0.18s ease-out, color 0.18s ease-out;
+}
+
+.contact-section .contact-form .btn-submit::after {
+  content: '→';
+  font-size: 20px;
+  font-weight: var(--w-bold);
+  letter-spacing: 0;
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.contact-section .contact-form .btn-submit:hover {
+  background: var(--canvas);
+  color: var(--obsidian);
+}
+.contact-section .contact-form .btn-submit:hover::after { transform: translateX(8px); }
+
+.contact-section .contact-form .btn-submit:focus-visible {
+  outline: 3px solid var(--obsidian);
+  outline-offset: 4px;
+}
+
+@media (max-width: 560px) {
+  .contact-section .contact-form .btn-submit { width: 100%; min-width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-section .contact-form .btn-submit,
+  .contact-section .contact-form .btn-submit::after,
+  .contact-section .contact-form input,
+  .contact-section .contact-form textarea { transition: none; }
 }
 
 /* ── PAGE HEADER (rentals, add-ons, gallery) ── */
@@ -2075,46 +2290,113 @@ footer {
   margin: 0;
 }
 
-/* ── RENTAL INCLUDES ── */
+/* ── RENTAL INCLUDES — Spec sheet ── */
 .rental-includes {
   background: var(--obsidian);
   padding: var(--sp-119) var(--sp-60);
-  border-top: 1px solid rgba(255,255,255,0.05);
-}
-
-.rental-includes h2 {
-  font-size: clamp(var(--text-heading-sm), 3vw, var(--text-heading));
-  font-weight: var(--w-bold);
   color: var(--canvas);
-  letter-spacing: var(--track-heading);
-  line-height: var(--lead-heading);
-  margin: 0 0 var(--sp-34);
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
 
-.includes-text {
-  color: var(--slate);
-  font-size: var(--text-body);
-  line-height: var(--lead-body);
-  max-width: 760px;
-  margin: 0 0 var(--sp-53);
+.rental-includes-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: var(--sp-119);
+  align-items: start;
 }
 
-.includes-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-11);
-}
-
-.includes-tag {
+.rental-includes-label {
   display: inline-block;
   font-size: 11px;
   font-weight: var(--w-bold);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  color: var(--obsidian);
+  background: var(--accent);
+  padding: 6px 10px 5px;
+  margin: 0 0 var(--sp-34);
+}
+
+.rental-includes h2 {
+  font-size: clamp(var(--text-heading-sm), 4vw, var(--text-heading));
+  font-weight: var(--w-bold);
   color: var(--canvas);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: var(--r-pill);
-  padding: 10px 20px;
+  letter-spacing: var(--track-display);
+  line-height: 0.95;
+  margin: 0 0 var(--sp-23);
+}
+
+.rental-includes-lede {
+  color: rgba(255,255,255,0.55);
+  font-size: var(--text-body);
+  line-height: var(--lead-body);
+  margin: 0;
+  max-width: 36ch;
+}
+
+/* The numbered list */
+.rental-includes-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rental-includes-list li {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: var(--sp-22);
+  padding: var(--sp-22) 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  align-items: baseline;
+  transition: background 0.2s ease-out;
+}
+
+.rental-includes-list li:last-child {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.rental-includes-list li:hover {
+  background: rgba(255,200,0,0.04);
+}
+
+.rental-num {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  font-weight: var(--w-bold);
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  padding-top: 2px;
+}
+
+.rental-includes-list h3 {
+  font-size: var(--text-sub);
+  font-weight: var(--w-bold);
+  color: var(--canvas);
+  letter-spacing: var(--track-body);
+  line-height: 1.15;
+  margin: 0 0 8px;
+}
+
+.rental-includes-list p {
+  font-size: var(--text-body);
+  color: rgba(255,255,255,0.6);
+  line-height: var(--lead-body);
+  margin: 0;
+  max-width: 52ch;
+}
+
+@media (max-width: 1024px) {
+  .rental-includes { padding: var(--sp-68) var(--sp-34); }
+  .rental-includes-inner { grid-template-columns: 1fr; gap: var(--sp-53); }
+}
+
+@media (max-width: 560px) {
+  .rental-includes-list li {
+    grid-template-columns: 56px 1fr;
+    gap: var(--sp-17);
+  }
 }
 
 /* ── ADD-ONS GRID ── */
