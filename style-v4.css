@@ -87,7 +87,7 @@ nav .nav-links a.active {
 
 nav .nav-logo img {
   filter: none;
-  height: 52px !important;
+  height: 70px !important;
   width: auto !important;
 }
 
@@ -183,7 +183,7 @@ nav .nav-logo img {
 .v2-hero-content h1 {
   font-size: clamp(2.8rem, 7.5vw, 8rem);
   font-weight: var(--w-bold);
-  line-height: 0.92;
+  line-height: 0.98;
   letter-spacing: var(--track-display);
   margin: 0 0 var(--sp-34);
   color: var(--canvas);
