@@ -8,7 +8,9 @@
 /* ── BRAND DISPLAY FONT ── */
 @font-face {
   font-family: "GraffitiPlus Display";
-  src: url("Fonts/GraffitiPlusDisplay-Regular.woff2") format("woff2");
+  /* Bump the ?v= query whenever the woff2 changes so cached browsers
+     fetch the new file instead of using the stale one. */
+  src: url("Fonts/GraffitiPlusDisplay-Regular.woff2?v=3") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -1188,7 +1190,7 @@ footer {
   min-width: 0;
   text-align: center;
   color: var(--obsidian);
-  font-size: clamp(1.5rem, 3.5vw, 4rem);
+  font-size: clamp(2.5rem, 6vw, 7rem);
   line-height: 0.95;
   white-space: nowrap;
   /* Compensate for the font's baked-in negative side bearings so

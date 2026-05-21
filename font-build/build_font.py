@@ -19,12 +19,13 @@ OUT_DIR = os.path.abspath(os.path.join(HERE, "..", "Fonts"))
 
 EM = 1000
 CAP_HEIGHT = 720        # tallest source glyph maps to this em-height
-SIDE_PADDING = -50      # em units of padding L+R of each LETTER's tight bbox.
-                        # -50 each side = -100 per pair = bakes a -0.1em
-                        # "graffiti tag" tightness for letter pairs.
+SIDE_PADDING = -75      # em units of padding L+R of each LETTER's tight bbox.
+                        # -75 each side = -150 per pair = aggressive overlap
+                        # for that crashed-together graffiti-tag look.
 SIDE_PADDING_SPECIAL = 30   # punctuation gets a small positive pad so a "."
                             # or "?" doesn't crash into adjacent letters.
-SPACE_WIDTH = 240       # space character width in em-units (also tightened)
+SPACE_WIDTH = 290       # bumped from 240 to compensate for the tighter
+                        # SIDE_PADDING — preserves the visual word gap.
 
 # Per-pair kerning in em-units (negative = pull closer). Tight bbox positioning
 # leaves visible gaps for pairs where one glyph has an angled/curved edge and
