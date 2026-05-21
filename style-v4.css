@@ -1529,9 +1529,10 @@ footer {
 
 .rental-card-img {
   width: 100% !important;
-  /* Shorter than the native 4/3 so the burned-in caption strip at the
-     bottom of each clip is cropped off by the container. */
-  aspect-ratio: 3/2 !important;
+  /* Container shorter than the 16:9 source so object-fit:cover +
+     object-position:center top crops the bottom ~12% of the video,
+     hiding the burned-in caption strip. */
+  aspect-ratio: 12/5 !important;
   object-fit: cover !important;
   object-position: center top !important;
   display: block !important;
