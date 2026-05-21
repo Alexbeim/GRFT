@@ -14,13 +14,16 @@ from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SVG_DIR = os.path.join(HERE, "Alphabet_Numbers")
+SPECIAL_DIR = os.path.join(HERE, "special_chars")
 OUT_DIR = os.path.abspath(os.path.join(HERE, "..", "Fonts"))
 
 EM = 1000
 CAP_HEIGHT = 720        # tallest source glyph maps to this em-height
-SIDE_PADDING = -50      # em units of padding L+R of each glyph's TIGHT bbox.
+SIDE_PADDING = -50      # em units of padding L+R of each LETTER's tight bbox.
                         # -50 each side = -100 per pair = bakes a -0.1em
-                        # "graffiti tag" tightness into the font default.
+                        # "graffiti tag" tightness for letter pairs.
+SIDE_PADDING_SPECIAL = 30   # punctuation gets a small positive pad so a "."
+                            # or "?" doesn't crash into adjacent letters.
 SPACE_WIDTH = 240       # space character width in em-units (also tightened)
 
 # Per-pair kerning in em-units (negative = pull closer). Tight bbox positioning
@@ -55,8 +58,25 @@ DIGIT_NAMES = {
 def glyph_name(char):
     return DIGIT_NAMES.get(char, char)
 
-# Pass 1 — collect SVG dimensions
-sources = []  # list of (char, glyph_name, width_pt, height_pt, svg_file)
+# Special characters from special_chars/ — file-stem → (codepoint, glyph_name)
+SPECIAL_CHARS = {
+    'ampersand':   (0x26, 'ampersand'),
+    'asterisk':    (0x2A, 'asterisk'),
+    'at':          (0x40, 'at'),
+    'comma':       (0x2C, 'comma'),
+    'dollar':      (0x24, 'dollar'),
+    'exclamation': (0x21, 'exclam'),
+    'hyphen':      (0x2D, 'hyphen'),
+    'percent':     (0x25, 'percent'),
+    'period':      (0x2E, 'period'),
+    'plus':        (0x2B, 'plus'),
+    'question':    (0x3F, 'question'),
+}
+
+# Pass 1 — collect SVG dimensions. Each source = (codepoints, glyph_name, w, h, file, kind)
+# codepoints is a list because letters get both lowercase+uppercase mapped.
+# kind is "letter" or "special" — used to pick the right SIDE_PADDING.
+sources = []
 for fname in sorted(os.listdir(SVG_DIR)):
     if not fname.endswith('.svg'):
         continue
@@ -68,14 +88,39 @@ for fname in sorted(os.listdir(SVG_DIR)):
         content = f.read()
     w = float(re.search(r'width="([0-9.]+)pt"', content).group(1))
     h = float(re.search(r'height="([0-9.]+)pt"', content).group(1))
-    sources.append((char, glyph_name(char), w, h, full))
+    cps = [ord(char)]
+    if char.isalpha():
+        cps.append(ord(char.upper()))
+    sources.append((cps, glyph_name(char), w, h, full, "letter"))
 
-max_h = max(h for _, _, _, h, _ in sources)
-scale = CAP_HEIGHT / max_h
-print(f"max source height = {max_h}pt → scale {scale:.4f} (so tallest = {CAP_HEIGHT} em)")
+# Special characters from special_chars/
+if os.path.isdir(SPECIAL_DIR):
+    for fname in sorted(os.listdir(SPECIAL_DIR)):
+        if not fname.endswith('.svg'):
+            continue
+        stem = fname[:-4]
+        if stem not in SPECIAL_CHARS:
+            print(f"  warning: no codepoint mapping for {stem}.svg — skipping")
+            continue
+        cp, gname = SPECIAL_CHARS[stem]
+        full = os.path.join(SPECIAL_DIR, fname)
+        with open(full) as f:
+            content = f.read()
+        w = float(re.search(r'width="([0-9.]+)pt"', content).group(1))
+        h = float(re.search(r'height="([0-9.]+)pt"', content).group(1))
+        sources.append(([cp], gname, w, h, full, "special"))
+
+# Use the ALPHABET's tallest glyph for the global scale, not specials —
+# some specials (like @) intentionally exceed cap height.
+alphabet_max_h = max(h for _, _, _, h, _, k in sources if k == "letter")
+scale = CAP_HEIGHT / alphabet_max_h
+print(f"alphabet tallest = {alphabet_max_h}pt → scale {scale:.4f} (cap-height = {CAP_HEIGHT})")
 
 # Pass 2 — build glyphs
-glyph_order = ['.notdef', 'space'] + [n for _, n, _, _, _ in sources]
+glyph_order = ['.notdef', 'space'] + [n for _, n, _, _, _, _ in sources]
+# Deduplicate while preserving order in case any glyph name appears twice
+seen = set()
+glyph_order = [n for n in glyph_order if not (n in seen or seen.add(n))]
 glyphs = {}
 advance_widths = {}
 lsb = {}
@@ -90,7 +135,9 @@ lsb['space']   = 0
 
 unit_scale = scale * 0.1  # raw potrace coords are 10x; SVGPath skips <g transform>
 
-for char, gname, w_pt, h_pt, svg_file in sources:
+for cps, gname, w_pt, h_pt, svg_file, kind in sources:
+    pad = SIDE_PADDING if kind == "letter" else SIDE_PADDING_SPECIAL
+
     # Pass 1: measure the glyph's TIGHT bounding box (potrace SVGs have
     # variable internal whitespace in their viewBox, so the viewBox width
     # isn't the real glyph width).
@@ -98,13 +145,13 @@ for char, gname, w_pt, h_pt, svg_file in sources:
     probe = TransformPen(bp, (unit_scale, 0, 0, unit_scale, 0, 0))
     SVGPath(filename=svg_file).draw(probe)
     if bp.bounds is None:
-        print(f"  warning: empty glyph for {char}")
+        print(f"  warning: empty glyph for {gname}")
         continue
     bx_min, _, bx_max, _ = bp.bounds
     tight_w = bx_max - bx_min
 
-    # Pass 2: build the glyph, shifted so its real xMin lands at SIDE_PADDING.
-    shift_x = SIDE_PADDING - bx_min
+    # Pass 2: build the glyph, shifted so its real xMin lands at pad.
+    shift_x = pad - bx_min
     transform = (unit_scale, 0, 0, unit_scale, shift_x, 0)
 
     pen = TTGlyphPen(None)
@@ -116,8 +163,8 @@ for char, gname, w_pt, h_pt, svg_file in sources:
     svg.draw(tpen)
 
     glyphs[gname] = pen.glyph()
-    advance_widths[gname] = max(50, int(tight_w + 2 * SIDE_PADDING))
-    lsb[gname] = SIDE_PADDING
+    advance_widths[gname] = max(80, int(tight_w + 2 * pad))
+    lsb[gname] = pad
 
 print(f"built {len(sources)} glyphs (+ .notdef + space)")
 
@@ -125,21 +172,19 @@ print(f"built {len(sources)} glyphs (+ .notdef + space)")
 fb = FontBuilder(EM, isTTF=True)
 fb.setupGlyphOrder(glyph_order)
 
-# Character map — letters get both lowercase and UPPERCASE codepoints
-# (the SVG artwork is uppercase-styled, but the file names are a–z; mapping
-# both lets the font render correctly regardless of input case).
+# Character map. Each source carries the list of codepoints it should serve;
+# letters include both lowercase and uppercase, specials carry just one.
 cmap = {0x20: 'space'}
-for char, gname, _, _, _ in sources:
-    cmap[ord(char)] = gname
-    if char.isalpha():
-        cmap[ord(char.upper())] = gname
+for cps, gname, _, _, _, _ in sources:
+    for cp in cps:
+        cmap[cp] = gname
 fb.setupCharacterMap(cmap)
 
 fb.setupGlyf(glyphs)
 fb.setupHorizontalMetrics({n: (advance_widths[n], lsb[n]) for n in glyph_order})
 
-ASCENT = CAP_HEIGHT + 120
-DESCENT = -150
+ASCENT = 950           # roomy enough for tall specials (@, $) that exceed cap
+DESCENT = -200         # roomy enough for comma/period descenders
 fb.setupHorizontalHeader(ascent=ASCENT, descent=DESCENT)
 fb.setupOS2(
     sTypoAscender=ASCENT,
