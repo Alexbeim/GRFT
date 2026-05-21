@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GraffitiPlus Display — preview</title>
+<style>
+  @font-face {
+    font-family: "GraffitiPlus Display";
+    src: url("../Fonts/GraffitiPlusDisplay-Regular.woff2?v=8") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root { color-scheme: light dark; }
+
+  * { box-sizing: border-box; }
+  body {
+    background: #fff;
+    color: #111;
+    font-family: -apple-system, system-ui, sans-serif;
+    margin: 0;
+    padding: 48px 64px 120px;
+    line-height: 1.4;
+  }
+
+  h1 { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #888; margin: 0 0 8px; }
+  h2 { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #888; margin: 48px 0 12px; }
+
+  .grft {
+    font-family: "GraffitiPlus Display", sans-serif;
+    color: #000;
+    line-height: 0.95;
+  }
+
+  .tag-big { font-size: 180px; }
+  .tag-mid { font-size: 96px; }
+  .tag-sm  { font-size: 48px; }
+
+  .row { margin: 0; padding: 24px 0; border-bottom: 1px solid #eee; }
+  .row > .grft { display: block; }
+
+  .controls {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    padding: 16px 0;
+    border-bottom: 1px solid #ddd;
+    margin: 0 0 24px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    z-index: 10;
+    font-size: 13px;
+  }
+  .controls label { display: flex; gap: 8px; align-items: center; }
+  .controls input[type=range] { width: 200px; }
+  .controls input[type=text]  { padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; min-width: 280px; font-family: inherit; font-size: 13px; }
+
+  .alphabet-grid {
+    display: grid;
+    grid-template-columns: repeat(13, 1fr);
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .alphabet-grid > div {
+    background: #fafafa;
+    border: 1px solid #eee;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "GraffitiPlus Display", sans-serif;
+    font-size: 64px;
+    line-height: 1;
+  }
+
+  .reference {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 12px;
+    margin: 12px 0;
+    text-align: center;
+  }
+  .reference img { max-width: 100%; display: block; margin: 0 auto; }
+  .reference span { display: block; font-size: 11px; color: #888; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <label>
+    Size
+    <input type="range" id="size" min="32" max="320" value="140">
+    <span id="sizeOut">140px</span>
+  </label>
+  <label>
+    Tracking
+    <input type="range" id="tracking" min="-0.10" max="0.10" step="0.005" value="0" autocomplete="off">
+    <span id="trkOut">0</span>
+  </label>
+  <label>
+    <input type="text" id="text" value="no fumes. no mess. 100% fun" autocomplete="off">
+  </label>
+</div>
+
+<h1>Live preview</h1>
+<div class="row">
+  <div class="grft" id="live">no fumes. no mess. 100% fun</div>
+</div>
+
+<h2>Reference image (source)</h2>
+<div class="reference">
+  <span>Original "no fumes / no mess / 100% fun" tag — provided as the target spacing feel</span>
+</div>
+
+<h2>Sample lines at fixed sizes</h2>
+<div class="row"><div class="grft tag-big">no fumes</div></div>
+<div class="row"><div class="grft tag-big">no mess</div></div>
+<div class="row"><div class="grft tag-big">100% fun</div></div>
+<div class="row"><div class="grft tag-mid">graffiti plus — interactive digital graffiti wall since 2008</div></div>
+<div class="row"><div class="grft tag-sm">nike jordan · samsung galaxy · porsche · modelo</div></div>
+
+<h2>Full glyph set</h2>
+<div class="alphabet-grid" id="grid"></div>
+
+<script>
+  const sizeR = document.getElementById('size');
+  const trkR  = document.getElementById('tracking');
+  const txtI  = document.getElementById('text');
+  const live  = document.getElementById('live');
+  const sizeOut = document.getElementById('sizeOut');
+  const trkOut  = document.getElementById('trkOut');
+
+  function update() {
+    const s = sizeR.value;
+    const t = trkR.value;
+    live.style.fontSize = s + 'px';
+    live.style.letterSpacing = t + 'em';
+    live.textContent = txtI.value;
+    sizeOut.textContent = s + 'px';
+    trkOut.textContent  = t;
+  }
+  [sizeR, trkR, txtI].forEach(el => el.addEventListener('input', update));
+  update();
+
+  const grid = document.getElementById('grid');
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'.split('');
+  chars.forEach(c => {
+    const div = document.createElement('div');
+    div.textContent = c;
+    grid.appendChild(div);
+  });
+</script>
+</body>
+</html>

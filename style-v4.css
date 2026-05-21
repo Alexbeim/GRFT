@@ -5,6 +5,27 @@
    Scroll-driven accent color (brand yellow ↔ Desert Sienna)
    ============================================================ */
 
+/* ── BRAND DISPLAY FONT ── */
+@font-face {
+  font-family: "GraffitiPlus Display";
+  src: url("Fonts/GraffitiPlusDisplay-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Utility — drop on any element to render it in the hand-drawn graffiti font.
+   Default tightness is already baked in; no letter-spacing needed.
+   Use sparingly: works for taglines, accents, and hero moments —
+   not for body copy. */
+.grft {
+  font-family: "GraffitiPlus Display", "Inter", sans-serif;
+  font-weight: 400;
+  /* Letting natural irregular bottoms read as graffiti — disable line-height
+     collapse and provide breathing room around descender-style glyphs. */
+  line-height: 0.95;
+}
+
 /* ── DESIGN TOKENS ── */
 :root {
   --obsidian:  #000d10;
@@ -239,12 +260,11 @@ nav .nav-logo img {
 }
 
 .v2-stat-num {
-  font-size: clamp(2.5rem, 4.5vw, 5rem);
+  font-size: clamp(3rem, 6vw, 6.5rem);
   font-weight: var(--w-bold);
-  color: var(--accent);
-  line-height: 1;
-  letter-spacing: var(--track-display);
-  transition: color 0.7s ease;
+  color: var(--obsidian);
+  line-height: 0.95;
+  letter-spacing: 0;
 }
 
 .v2-stat-label {
@@ -1162,6 +1182,27 @@ footer {
   min-width: 0;
   height: auto;
   display: block;
+}
+.v4-tagline-text {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  color: var(--obsidian);
+  font-size: clamp(1.5rem, 3.5vw, 4rem);
+  line-height: 0.95;
+  white-space: nowrap;
+  /* Compensate for the font's baked-in negative side bearings so
+     adjacent taglines don't visually crash into each other. */
+  padding: 0 0.4em;
+}
+@media (max-width: 700px) {
+  .v4-tagline-strip {
+    flex-wrap: wrap;
+    gap: var(--sp-22);
+  }
+  .v4-tagline-text {
+    flex-basis: 100%;
+  }
 }
 
 /* ── USE CASES ── */

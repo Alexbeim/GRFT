@@ -1,0 +1,8 @@
+# Font build workspace — keep the build script, ignore the venv
+font-build/venv/
+font-build/__pycache__/
+font-build/*.pyc
+
+# macOS
+.DS_Store
+__MACOSX/
