@@ -501,12 +501,17 @@ nav .nav-logo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Scale up from the top so the burned-in location label at the
+     bottom of each clip is cropped out by the card's overflow:hidden. */
+  transform: scale(1.30);
+  transform-origin: center top;
   transition: transform 0.8s ease;
   filter: brightness(0.8) saturate(0.9);
 }
 
 .v2-product-card:hover .v2-product-bg video {
-  transform: scale(1.04);
+  transform: scale(1.34);
+  transform-origin: center top;
   filter: brightness(1) saturate(1);
 }
 
@@ -630,6 +635,14 @@ nav .nav-logo img {
 
 /* Right column — form */
 .v2-contact-form { width: 100%; }
+
+/* Inline success state shown after AJAX submit */
+.form-success p {
+  margin: 0;
+  font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+  color: var(--obsidian);
+  line-height: 1.4;
+}
 
 .v2-contact-form .form-row {
   display: grid;
@@ -924,7 +937,7 @@ footer {
   font-weight: var(--w-bold);
   color: var(--obsidian);
   letter-spacing: var(--track-heading);
-  line-height: 1.15;
+  line-height: 1.05;
   margin: 0;
 }
 
@@ -1446,8 +1459,6 @@ footer {
   background: var(--canvas);
   border-right: 1px solid rgba(0,13,16,0.08);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 .v4-rental-case:last-child { border-right: none; }
@@ -1463,11 +1474,25 @@ footer {
 
 .v4-rental-case .v4-highlight-body {
   padding: var(--sp-34) var(--sp-38) var(--sp-53);
+}
+
+/* ── Card button vertical alignment (site-wide) ──
+   Make cards equal-height with their footer link pinned to the bottom,
+   so "View project →" lines up across a row regardless of copy length. */
+.v4-highlight-card,
+.v4-rental-case {
+  display: flex;
+  flex-direction: column;
+}
+
+.v4-highlight-card .v4-highlight-body,
+.v4-rental-case .v4-highlight-body {
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
+.v4-highlight-card .v4-highlight-link,
 .v4-rental-case .v4-highlight-link {
   margin-top: auto;
   padding-top: var(--sp-22);
@@ -1504,8 +1529,11 @@ footer {
 
 .rental-card-img {
   width: 100% !important;
-  aspect-ratio: 4/3 !important;
+  /* Shorter than the native 4/3 so the burned-in caption strip at the
+     bottom of each clip is cropped off by the container. */
+  aspect-ratio: 3/2 !important;
   object-fit: cover !important;
+  object-position: center top !important;
   display: block !important;
   margin: 0 !important;
   background: #111 !important;
@@ -2724,7 +2752,7 @@ footer {
   .gallery-grid { grid-template-columns: 1fr !important; }
 
   .rental-card-body { padding: var(--sp-22) var(--sp-34) var(--sp-34) !important; }
-  .rental-card-img { aspect-ratio: 16/9 !important; }
+  .rental-card-img { aspect-ratio: 16/9 !important; object-position: center top !important; }
   .v4-rental-case .v4-highlight-body { padding: var(--sp-22) var(--sp-34) var(--sp-34) !important; }
 
   .gallery-caption { opacity: 1; }
