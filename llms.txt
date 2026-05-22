@@ -1,0 +1,55 @@
+# Graffiti+
+
+> Graffiti+ is the original interactive digital graffiti wall — a hands-on, no-mess, no-fumes graffiti experience for event activations, brand events, music festivals, sports activations, augmented reality events, and corporate experiences. Built from the culture in Vancouver in 2008, with 500+ activations on 6 continents.
+
+Graffiti+ is operated by Tangible Interaction Design Inc. The platform uses custom-branded spray-can controllers with real spray-can physics (pressure, cap size, distance, drips) paired with an LED wall, LCD display, or projection mapping output. Multiple guests can paint simultaneously. Trained graffiti-artist technicians run every activation on-site. Artwork is shareable, printable, and can be extended into augmented reality.
+
+Clients include Nike, Jordan, Samsung, Porsche, Google, Disney, Louis Vuitton, Chanel, Hennessy, IBM, Modelo, Williams Racing F1, Netflix, Hyundai, Dell, Mattel, Ford, Kia, and others.
+
+Contact: info@graffitiplus.io · +1 (323) 991-6463
+
+## Core pages
+
+- [Home](https://graffitiplus.io/): Overview, how it works, configurations, FAQs, contact.
+- [Rentals](https://graffitiplus.io/rentals): Three rental configurations — LED Wall (outdoor / large crowds), LCD Display (indoor / controlled environments), Projection (large-scale mapping, zero footprint). Fully staffed and branded.
+- [Add-ons](https://graffitiplus.io/add-ons): Customization options — branded spray cans, custom stencils, augmented reality overlays, on-site printing, custom backgrounds, brand overlays.
+- [Gallery](https://graffitiplus.io/gallery): 500+ activation case studies worldwide.
+- [About](https://graffitiplus.io/about): The story of Graffiti+ — from writing graffiti in the 90s to building the world's most-deployed interactive digital graffiti wall.
+
+## Selected case studies
+
+- [Samsung Galaxy Z Flip 7 Launch — SoHo NYC](https://graffitiplus.io/gal/samsung-galaxy-z-flip-7-launch-nyc)
+- [Samsung Galaxy Z Flip 7 Launch — Paris](https://graffitiplus.io/gal/samsung-galaxy-z-flip-7-launch-paris)
+- [Samsung — Winter Olympics, Milan & Cortina](https://graffitiplus.io/gal/samsung-olympics)
+- [Nike Jordan — NBA All-Star 2025](https://graffitiplus.io/gal/nba-all-star-2025)
+- [Disney — Daredevil at Comicon Toronto 2025](https://graffitiplus.io/gal/disney-comiccon-toronto)
+- [Modelo — Rolling Loud LA & Miami 2025](https://graffitiplus.io/gal/modelo-rolling-loud)
+- [Formula 1 — Las Vegas Grand Prix](https://graffitiplus.io/gal/f1-las-vegas-grand-prix)
+- [Williams Racing — Formula 1](https://graffitiplus.io/gal/williams-racing-formula1)
+- [NASCAR — Daytona](https://graffitiplus.io/gal/nascar-daytona)
+- [Miss Dior — NYC](https://graffitiplus.io/gal/miss-dior-nyc)
+- [Porsche — Vancouver](https://graffitiplus.io/gal/porsche-vancouver)
+- [Hyundai — Seoul](https://graffitiplus.io/gal/hyundai-seoul)
+- [Netflix — Custom Assets](https://graffitiplus.io/gal/netflix-custom-assets)
+- [Chanel — SoHo 2010](https://graffitiplus.io/gal/chanel-soho-2010)
+- [Mattel — LA](https://graffitiplus.io/gal/mattel-la)
+- [Jabil — OFC LA](https://graffitiplus.io/gal/jabil-ofc-la)
+- [SHiFT Midtown — NYC](https://graffitiplus.io/gal/shift-midtown-nyc)
+- [Espolòn — LA](https://graffitiplus.io/gal/espolon-la)
+- [Modelo — NACS](https://graffitiplus.io/gal/modelo-nacs)
+- [Lululemon — Vancouver](https://graffitiplus.io/gal/lululemon-vancouver)
+
+Full gallery index: https://graffitiplus.io/gallery
+
+## Common questions
+
+- **Does it work outdoors?** Yes — the LED configuration is built for direct sunlight and large outdoor crowds. LCD and projection work best indoors.
+- **Can multiple people paint at once?** Yes. LED supports many simultaneous painters (more with larger walls). LCD supports 1–2, projection supports 2–3.
+- **Custom branding?** Yes — branded spray cans, custom stencils, brand overlays, custom backgrounds, on-site printing, AR extensions.
+- **Staffing?** Every activation includes trained graffiti-artist technicians on-site for setup, operation, and takedown.
+- **Lead time?** 4–6 weeks minimum for US events; longer for international or multi-city.
+- **On-site requirements?** Standard 110V power and floor space. Setup takes 2–4 hours.
+
+## Sitemap
+
+https://graffitiplus.io/sitemap.xml

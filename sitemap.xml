@@ -4,26 +4,31 @@
   <!-- Core pages -->
   <url>
     <loc>https://graffitiplus.io/</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/rentals</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/add-ons</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gallery</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/about</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -31,176 +36,241 @@
   <!-- Gallery detail pages -->
   <url>
     <loc>https://graffitiplus.io/gal/samsung-galaxy-z-flip-7-launch-paris</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/samsung-galaxy-z-flip-7-launch-nyc</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/led-reel</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/nike-san-francisco</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/outloud-festival-2024</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/designercon2024</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/ana-animefest-la</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/espolon-la</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/led-wall-freight-train</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/dell</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/johnsonandjohnson</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/jicaf-jakarta</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/urbanbreak</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/artistexposition-japan</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/veecon-starry</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/williams-racing-formula1</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/graffiti-workshop-vancouver</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/train-bombing-vancouver</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/porsche-vancouver</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/lululemon-vancouver</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/chanel-soho-2010</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/designercon-3d-models</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/designercon-ar-characters</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/disney-comiccon-toronto</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/ganga-tattoo-spain</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/hyundai-seoul</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/mattel-la</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/miss-dior-nyc</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/modelo-nacs</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/modelo-rolling-loud-miami</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/modelo-rolling-loud</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/nba-all-star-2025</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/netflix-custom-assets</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/panorama-festival-2016</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/samsung-kings-cross</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://graffitiplus.io/gal/f1-las-vegas-grand-prix</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://graffitiplus.io/gal/nascar-daytona</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://graffitiplus.io/gal/jabil-ofc-la</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://graffitiplus.io/gal/samsung-olympics</loc>
+    <lastmod>2026-05-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://graffitiplus.io/gal/shift-midtown-nyc</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

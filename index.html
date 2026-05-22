@@ -34,24 +34,198 @@
   <link rel="icon" type="image/png" href="images/favicon.png">
   <link rel="apple-touch-icon" href="images/favicon.png">
 
-  <!-- Structured Data -->
+  <meta name="theme-color" content="#000000">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="author" content="Tangible Interaction Design Inc.">
+  <meta name="keywords" content="interactive digital graffiti wall, digital graffiti wall, graffiti wall rental, event activation, brand activation, interactive event installation, festival activation, augmented reality event, LED graffiti wall, projection mapping graffiti, digital spray can, virtual graffiti">
+  <meta name="geo.region" content="US-CA">
+  <meta name="geo.placename" content="Los Angeles">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Structured Data: Organization / LocalBusiness -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": "https://graffitiplus.io/#organization",
     "name": "Graffiti+",
+    "alternateName": ["Graffiti Plus", "GraffitiPlus", "GRFT+"],
     "url": "https://graffitiplus.io",
-    "logo": "https://graffitiplus.io/images/logo-v4.webp",
-    "description": "The original interactive digital graffiti wall — a graffiti experience for event activations, brand events, festivals, and augmented reality events worldwide since 2008.",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://graffitiplus.io/images/logo-v4.webp",
+      "width": 512,
+      "height": 512
+    },
+    "image": "https://graffitiplus.io/images/og-image.jpg",
+    "description": "Graffiti+ is the original interactive digital graffiti wall — a hands-on graffiti experience for event activations, brand events, festivals, and augmented reality events. Built from the culture since 2008, deployed across 6 continents for Nike, Samsung, Porsche, Google, Disney, Louis Vuitton, Chanel, Hennessy, and IBM.",
+    "slogan": "Pioneering digital graffiti since 2008.",
     "foundingDate": "2008",
+    "foundingLocation": {
+      "@type": "Place",
+      "name": "Vancouver, BC, Canada"
+    },
+    "parentOrganization": {
+      "@type": "Organization",
+      "name": "Tangible Interaction Design Inc."
+    },
+    "areaServed": [
+      {"@type": "Place", "name": "North America"},
+      {"@type": "Place", "name": "Europe"},
+      {"@type": "Place", "name": "Asia"},
+      {"@type": "Place", "name": "South America"},
+      {"@type": "Place", "name": "Africa"},
+      {"@type": "Place", "name": "Oceania"}
+    ],
+    "knowsAbout": [
+      "Interactive digital graffiti wall",
+      "Brand activations",
+      "Event activations",
+      "Augmented reality events",
+      "Music festival activations",
+      "Trade show activations",
+      "Projection mapping",
+      "LED wall rental",
+      "Digital spray can technology",
+      "Live event art installations"
+    ],
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+1-323-991-6463",
       "email": "info@graffitiplus.io",
-      "contactType": "sales"
+      "contactType": "sales",
+      "areaServed": "Worldwide",
+      "availableLanguage": ["English", "Spanish"]
     },
     "sameAs": [
       "https://www.instagram.com/graffitiplus.io/"
+    ]
+  }
+  </script>
+
+  <!-- Structured Data: WebSite -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://graffitiplus.io/#website",
+    "url": "https://graffitiplus.io/",
+    "name": "Graffiti+",
+    "description": "The original interactive digital graffiti wall — event activations worldwide since 2008.",
+    "publisher": {"@id": "https://graffitiplus.io/#organization"},
+    "inLanguage": "en-US"
+  }
+  </script>
+
+  <!-- Structured Data: Service -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Interactive Digital Graffiti Wall — Event Activation Rental",
+    "serviceType": "Interactive event installation rental",
+    "provider": {"@id": "https://graffitiplus.io/#organization"},
+    "areaServed": "Worldwide",
+    "description": "Full-service interactive digital graffiti wall rental for brand activations, festivals, product launches, sports activations, and corporate events. Includes LED, LCD, or projection display, custom-branded spray-can controllers, on-site technicians, and shareable digital artwork output.",
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock",
+      "url": "https://graffitiplus.io/rentals"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Graffiti+ configurations",
+      "itemListElement": [
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "LED Wall configuration"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "LCD Display configuration"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Projection configuration"}}
+      ]
+    }
+  }
+  </script>
+
+  <!-- Structured Data: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Does the interactive graffiti wall work outdoors?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. The LED configuration is built for outdoor use — modular panels that stay fully visible in direct sunlight. LCD and projection setups work best indoors or in shaded environments. For outdoor event activations, we recommend the LED configuration."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What staffing does Graffiti+ provide for an event activation?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Every Graffiti+ activation includes trained graffiti artist technicians on-site for the full duration of your event. They handle setup, operate the system, guide guests through the experience, and manage takedown. You don't need to source any additional crew."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can multiple people paint on the digital graffiti wall at the same time?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. An LED configuration supports multiple simultaneous painters — the larger the setup, the more users at once. LCD supports 1–2 users and projection supports 2–3. For high-traffic events, LED is the right call."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can we use our own graphics and branding on the interactive graffiti wall?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes — and most clients do. We build custom digital stencils, backgrounds, spray-can labels, and brand overlays into every activation. Your brand lives inside the interactive graffiti wall experience, not just on a banner beside it."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Graffiti+ bring the LED screen, or does the venue provide it?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Either works. Most setups pair the Graffiti+ platform with a screen sourced by the venue or production team — we integrate seamlessly with what's on site. When that's not an option, we source the right configuration for your space."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How far in advance should we book Graffiti+?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We recommend reaching out at least 4–6 weeks ahead for US events. International activations may require more lead time depending on equipment logistics and crew travel. For large-scale festivals or multi-city tours, earlier is always better."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What kind of events is the Graffiti+ interactive graffiti wall right for?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Brand activations, product launches, music festivals, corporate conferences and team events, gallery openings, cultural events, augmented reality events, and private parties. Graffiti+ has been deployed in museums, warehouses, parking lots, and Formula 1 paddocks."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What does Graffiti+ need from the venue on-site?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Standard 110V power and floor space. Graffiti+ brings the full rig — controllers, custom cans, software, AV gear, and crew. The display itself is sorted with the client: a venue-provided LED screen, your own, or one sourced through us. Setup typically takes 2–4 hours depending on configuration."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Structured Data: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://graffitiplus.io/"}
     ]
   }
   </script>
