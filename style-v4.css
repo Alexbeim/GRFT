@@ -1848,7 +1848,7 @@ footer {
 
 /* ── RESPONSIVE: NEW HOMEPAGE SECTIONS ── */
 @media (max-width: 1024px) {
-  .v4-use-cases-inner { grid-template-columns: 1fr; gap: var(--sp-53); }
+  .v4-use-cases-inner { grid-template-columns: minmax(0, 1fr); gap: var(--sp-53); }
   .v4-highlights-grid { grid-template-columns: 1fr; }
   .v4-highlight-card { border-right: none; }
   .v4-community-grid { grid-template-columns: 1fr; gap: var(--sp-53); }
@@ -1867,7 +1867,8 @@ footer {
 @media (max-width: 700px) {
   .v4-community-card { flex-direction: column; }
   .v4-community-photo { flex: unset; }
-  .v4-use-cases-right { grid-template-columns: 1fr; }
+  .v4-use-cases-right { grid-template-columns: minmax(0, 1fr); }
+  .v4-use-cases-stat-row { gap: var(--sp-22); flex-wrap: wrap; }
 }
 
 /* ============================================================

@@ -72,6 +72,12 @@ nav {
   color: var(--white);
   cursor: pointer;
   font-size: 24px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 10px;
+  line-height: 1;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ── HERO ── */
@@ -750,7 +756,7 @@ footer a:hover { color: var(--yellow); }
     gap: 16px;
     z-index: 99;
   }
-  .nav-hamburger { display: block; }
+  .nav-hamburger { display: inline-flex; }
 
   section, .hero-text, .tagline, .logo-grid-section,
   .use-cases, .contact-section, .page-header,
