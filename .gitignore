@@ -6,3 +6,8 @@ font-build/*.pyc
 # macOS
 .DS_Store
 __MACOSX/
+
+# Secrets — never commit
+.env
+.env.local
+tools/output/
