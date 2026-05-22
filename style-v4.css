@@ -219,6 +219,22 @@ nav .nav-logo img {
   transition: color 0.7s ease;
 }
 
+.hero-since {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 1.35em;
+  line-height: 0.9;
+  margin-top: -0.18em;
+  margin-left: 0.08em;
+  transform: translateY(-0.05em);
+}
+
+.kern-shim {
+  display: inline-block;
+  width: var(--w, 0);
+  font-style: normal;
+}
+
 .v2-hero-scroll {
   position: absolute;
   bottom: var(--sp-38);
