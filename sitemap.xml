@@ -35,6 +35,12 @@
 
   <!-- Gallery detail pages -->
   <url>
+    <loc>https://graffitiplus.io/gal/i-light-singapore</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://graffitiplus.io/gal/samsung-galaxy-z-flip-7-launch-paris</loc>
     <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>

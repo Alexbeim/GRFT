@@ -1198,13 +1198,8 @@ footer {
   padding: 0 0.4em;
 }
 @media (max-width: 700px) {
-  .v4-tagline-strip {
-    flex-wrap: wrap;
-    gap: var(--sp-22);
-  }
-  .v4-tagline-text {
-    flex-basis: 100%;
-  }
+  .v4-tagline-strip { flex-wrap: wrap; }
+  .v4-tagline-text { flex-basis: 100%; }
 }
 
 /* ── USE CASES ── */
@@ -1864,11 +1859,36 @@ footer {
   .v4-tagline-strip { gap: var(--sp-34); padding: var(--sp-34); }
 }
 
+@media (max-width: 1024px) {
+  /* Tagline reads as one stacked graffiti tag on phones/tablets */
+  .v4-tagline-strip { flex-direction: column; gap: 0; padding: var(--sp-34); }
+  .v4-tagline-text {
+    flex-basis: auto;
+    width: 100%;
+    line-height: 0.68;
+    padding: 0 0.2em;
+    margin: -0.05em 0;
+  }
+}
+
 @media (max-width: 700px) {
   .v4-community-card { flex-direction: column; }
   .v4-community-photo { flex: unset; }
   .v4-use-cases-right { grid-template-columns: minmax(0, 1fr); }
-  .v4-use-cases-stat-row { gap: var(--sp-22); flex-wrap: wrap; }
+  /* Hide duplicate stat row on mobile — same numbers shown in the top stats bar */
+  .v4-use-cases-stat-row { display: none; }
+  /* Oversize stat numbers on mobile for visual impact */
+  .v2-stat-num { font-size: clamp(4.5rem, 18vw, 7rem); line-height: 0.9; }
+  .v4-use-cases-stat span { font-size: clamp(3.5rem, 14vw, 5rem); }
+  /* Oversize tagline (Zero mess / Zero fumes / 100% fun) on mobile,
+     stacked tight like a single graffiti tag — lines should touch */
+  .v4-tagline-strip { gap: 0; }
+  .v4-tagline-text {
+    font-size: clamp(4rem, 16vw, 6rem);
+    line-height: 0.68;
+    padding: 0 0.2em;
+    margin: -0.08em 0;
+  }
 }
 
 /* ============================================================
@@ -2852,4 +2872,184 @@ footer {
 }
 .v2-product-card:last-child {
   border-right: none !important;
+}
+
+/* ============================================================
+   GALLERY — STORY LAYOUT (long-form case study)
+   Alternative to the split .gal-page layout. Use when a project
+   has more text, multiple images, or several videos.
+   ============================================================ */
+.gal-story {
+  background: var(--obsidian);
+  color: var(--white);
+}
+.gal-story .gal-story-hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 80vh;
+  background: #000;
+  overflow: hidden;
+}
+.gal-story .gal-story-hero iframe,
+.gal-story .gal-story-hero video,
+.gal-story .gal-story-hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 0;
+}
+.gal-story .gal-story-back {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--sp-34) var(--sp-60) 0;
+}
+.gal-story .gal-story-back a {
+  color: rgba(255,255,255,0.55);
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  transition: color 0.2s;
+}
+.gal-story .gal-story-back a:hover { color: var(--accent); }
+
+.gal-story-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--sp-53) var(--sp-60) var(--sp-34);
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: var(--sp-68);
+  align-items: end;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.gal-story-header .gal-story-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: var(--w-bold);
+  color: var(--accent);
+  margin-bottom: var(--sp-17);
+}
+.gal-story-header h1 {
+  font-size: clamp(2.2rem, 4.5vw, 4.5rem);
+  font-weight: var(--w-bold);
+  line-height: 0.98;
+  letter-spacing: var(--track-display);
+  margin: 0 0 var(--sp-22);
+  color: var(--white);
+}
+.gal-story-header .includes-tags { margin: 0; }
+
+.gal-story-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-22) var(--sp-34);
+  font-size: 14px;
+  align-self: end;
+}
+.gal-story-facts dt {
+  color: rgba(255,255,255,0.4);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: var(--w-bold);
+  margin-bottom: 4px;
+}
+.gal-story-facts dd {
+  color: var(--white);
+  margin: 0 0 var(--sp-17);
+  line-height: 1.4;
+}
+
+.gal-story-body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--sp-68) var(--sp-60);
+}
+.gal-story-body .gal-story-lede {
+  font-size: clamp(1.25rem, 1.8vw, 1.6rem);
+  line-height: 1.45;
+  color: var(--white);
+  font-weight: var(--w-medium);
+  margin: 0 0 var(--sp-38);
+  letter-spacing: -0.005em;
+}
+.gal-story-body p {
+  font-size: 17px;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.72);
+  margin: 0 0 var(--sp-22);
+}
+.gal-story-body p strong { color: var(--white); font-weight: var(--w-bold); }
+.gal-story-body h2 {
+  font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+  font-weight: var(--w-bold);
+  color: var(--white);
+  margin: var(--sp-53) 0 var(--sp-22);
+  letter-spacing: var(--track-heading);
+  line-height: 1.1;
+}
+.gal-story-body .gal-story-pullquote {
+  font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+  line-height: 1.15;
+  color: var(--accent);
+  font-weight: var(--w-bold);
+  border-left: 3px solid var(--accent);
+  padding: var(--sp-17) 0 var(--sp-17) var(--sp-34);
+  margin: var(--sp-38) 0;
+  letter-spacing: var(--track-heading);
+}
+
+/* Media strip — flexible grid for additional photos & videos */
+.gal-story-media {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--sp-60) var(--sp-68);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-17);
+}
+.gal-story-media .gal-story-tile {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  overflow: hidden;
+}
+.gal-story-media .gal-story-tile.is-wide { grid-column: 1 / -1; aspect-ratio: 16 / 9; }
+.gal-story-media .gal-story-tile img,
+.gal-story-media .gal-story-tile video,
+.gal-story-media .gal-story-tile iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 0;
+}
+
+.gal-story-cta {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 var(--sp-60) var(--sp-119);
+  display: flex;
+  gap: var(--sp-17);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .gal-story-header {
+    grid-template-columns: 1fr;
+    gap: var(--sp-34);
+    padding: var(--sp-38) var(--sp-34) var(--sp-22);
+  }
+  .gal-story .gal-story-back { padding: var(--sp-22) var(--sp-34) 0; }
+  .gal-story-body { padding: var(--sp-38) var(--sp-34); }
+  .gal-story-media { padding: 0 var(--sp-34) var(--sp-38); gap: var(--sp-11); }
+  .gal-story-cta { padding: 0 var(--sp-34) var(--sp-68); }
+}
+@media (max-width: 600px) {
+  .gal-story-media { grid-template-columns: 1fr; }
+  .gal-story-facts { grid-template-columns: 1fr; }
 }
