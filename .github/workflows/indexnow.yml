@@ -1,0 +1,26 @@
+name: IndexNow ping
+
+# Tell Bing / Yandex / Seznam that the sitemap changed every time we push to main.
+# Free, instant, no account needed. Bing's index also powers ChatGPT search and Copilot.
+#
+# IndexNow docs: https://www.indexnow.org
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait 30s for GitHub Pages to deploy
+        run: sleep 30
+
+      - name: Ping IndexNow
+        run: |
+          KEY="324f435af9b0468aa120c201fcf0aefd"
+          URL="https://graffitiplus.io/sitemap.xml"
+          response=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "https://api.indexnow.org/indexnow?url=${URL}&key=${KEY}")
+          echo "IndexNow HTTP $response"
+          [[ "$response" =~ ^(200|202)$ ]]
