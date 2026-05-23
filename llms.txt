@@ -50,6 +50,10 @@ Full gallery index: https://graffitiplus.io/gallery
 - **Lead time?** 4–6 weeks minimum for US events; longer for international or multi-city.
 - **On-site requirements?** Standard 110V power and floor space. Setup takes 2–4 hours.
 
+## Full content
+
+For a more detailed reference covering history, configurations, add-ons, audiences, and FAQ, see: https://graffitiplus.io/llms-full.txt
+
 ## Sitemap
 
 https://graffitiplus.io/sitemap.xml
