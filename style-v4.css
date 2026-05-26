@@ -2754,6 +2754,109 @@ footer {
   border-color: var(--accent);
 }
 
+/* ── GALLERY SEARCH — pill input that lives in the filter bar.
+   Matches the .filter-btn pill aesthetic: transparent bg, rgba(255,255,255,0.15)
+   border, same bold-caps letterspacing on the placeholder, same height. ── */
+.gallery-search {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  min-width: 180px;
+  max-width: 280px;
+  flex: 0 1 220px;
+}
+.gallery-search:hover {
+  border-color: rgba(255,255,255,0.5);
+  color: var(--canvas);
+}
+.gallery-search:focus-within {
+  border-color: var(--accent);
+  color: var(--canvas);
+}
+.gallery-search-icon {
+  margin-right: 10px;
+  flex-shrink: 0;
+  color: inherit;
+  transition: color 0.2s ease;
+}
+.gallery-search:focus-within .gallery-search-icon {
+  color: var(--accent);
+}
+.gallery-search input {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  margin: 0;
+  color: var(--canvas);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: var(--w-bold);
+  letter-spacing: 0.06em;
+  width: 100%;
+  min-width: 0;
+  line-height: 1.5;
+}
+.gallery-search input::placeholder {
+  color: rgba(255,255,255,0.4);
+  font-weight: var(--w-bold);
+  letter-spacing: 0.06em;
+  text-transform: none; /* keep query natural; only the typography matches */
+}
+/* Hide native search field clear (we render our own). */
+.gallery-search input::-webkit-search-cancel-button,
+.gallery-search input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.gallery-search-clear {
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  border: 0;
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  margin-left: 8px;
+  padding: 0;
+  flex-shrink: 0;
+  border-radius: 999px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.gallery-search-clear:hover {
+  background: var(--accent);
+  color: var(--obsidian);
+}
+
+/* Empty-state shown when a search query yields zero matches. */
+.gallery-empty {
+  background: var(--obsidian);
+  color: var(--canvas);
+  text-align: center;
+  padding: var(--sp-60) var(--sp-22);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.gallery-empty p {
+  color: rgba(255,255,255,0.65);
+  font-size: 15px;
+  margin: 0 0 var(--sp-22);
+}
+.gallery-empty .gallery-empty-q {
+  color: var(--canvas);
+  font-weight: var(--w-bold);
+}
+
 .gallery-grid {
   background: var(--obsidian);
   padding: var(--sp-60) 0;
@@ -2761,6 +2864,10 @@ footer {
   grid-template-columns: repeat(4, 1fr);
   gap: 1px;
 }
+/* Override: without this, .gallery-grid's `display: grid` wins over the UA
+   `[hidden] { display: none }` rule, so setting `.hidden = true` from JS
+   wouldn't actually hide it. */
+.gallery-grid[hidden] { display: none; }
 
 .gallery-item {
   display: block;
@@ -2798,6 +2905,176 @@ footer {
   letter-spacing: -0.01em;
   line-height: 1.15;
   opacity: 1;
+}
+
+/* ── GALLERY VIEW TOGGLE — sits at the end of .gallery-filters ── */
+.gallery-view-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--r-pill);
+}
+.view-btn {
+  background: transparent;
+  border: 0;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  cursor: pointer;
+  color: rgba(255,255,255,0.5);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.view-btn svg { fill: currentColor; }
+.view-btn:hover { color: var(--canvas); }
+.view-btn.active {
+  background: var(--accent);
+  color: var(--obsidian);
+}
+
+/* ── GALLERY LIST VIEW — minimal directory layout, image reveal on hover ──
+   Built dynamically by JS from .gallery-item nodes so the grid stays the
+   single source of truth. */
+.gallery-list {
+  background: var(--obsidian);
+  color: var(--canvas);
+  list-style: none;
+  margin: 0;
+  padding: var(--sp-34) var(--sp-60);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.gallery-list[hidden] { display: none; }
+/* <li> is just a semantic wrapper for each row; it has no layout role. */
+.gallery-list > li { display: contents; }
+.gallery-list-row {
+  display: grid;
+  /* Title+Location | Description | Inline preview (hover, 16:9) | Tags */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) 220px minmax(0, 0.7fr);
+  align-items: center;
+  gap: var(--sp-34);
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  /* Initial state for stagger-fade reveal; ungated by JS adding .is-in */
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.3s ease, background 0.25s ease;
+}
+.gallery-list-row.is-in { opacity: 1; transform: none; }
+.gallery-list-row:hover { background: rgba(255,255,255,0.02); }
+.gallery-list-row[hidden] { display: none; }
+
+/* Col 1 — Title + Location stacked */
+.gallery-list-row .gl-titleblock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  transition: transform 0.35s cubic-bezier(.2,.7,.2,1);
+}
+.gallery-list-row:hover .gl-titleblock { transform: translateX(6px); }
+.gallery-list-row .gl-name {
+  font-size: clamp(20px, 2vw, 30px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: var(--canvas);
+  transition: color 0.18s ease;
+}
+.gallery-list-row:hover .gl-name { color: var(--accent); }
+.gallery-list-row .gl-loc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Col 2 — Description. Max-width forces a tighter wrap so paragraphs read as
+   a tight block instead of one long line, even on wide screens. */
+.gallery-list-row .gl-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.005em;
+  max-width: 38ch;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color 0.2s ease;
+}
+.gallery-list-row:hover .gl-desc { color: rgba(255,255,255,0.78); }
+
+/* Col 3 — Inline image preview, hidden until row hover. 16:9 landscape so
+   the rows feel cinematic — note: source thumbnails are square, so the image
+   will be center-cropped to 16:9 via object-fit: cover. */
+.gallery-list-row .gl-preview {
+  width: 220px;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.04);
+  opacity: 0;
+  transform: scale(0.94);
+  transition: opacity 0.3s ease, transform 0.45s cubic-bezier(.2,.7,.2,1);
+  justify-self: end;
+}
+.gallery-list-row:hover .gl-preview {
+  opacity: 1;
+  transform: scale(1);
+}
+.gallery-list-row .gl-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Col 4 — Tags (category labels). Small uppercase, muted. Wrapped pills
+   align to the right edge so multi-tag rows still feel anchored. */
+.gallery-list-row .gl-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-self: end;
+  justify-content: flex-end;
+  text-align: right;
+}
+.gallery-list-row .gl-tag {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  padding: 4px 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.gallery-list-row:hover .gl-tag {
+  color: rgba(255,255,255,0.75);
+  border-color: rgba(255,255,255,0.3);
+}
+
+/* The old floating preview element is kept in the markup for backward
+   compatibility but is no longer used — image now lives inline per row. */
+.gallery-list-preview { display: none !important; }
+
+/* Mobile: stack columns + smaller 16:9 preview, hide desc + tags */
+@media (max-width: 720px) {
+  .gallery-list-row {
+    grid-template-columns: 1fr 120px;
+    gap: 16px;
+    padding: 18px 0;
+  }
+  .gallery-list-row .gl-desc,
+  .gallery-list-row .gl-tags { display: none; }
+  .gallery-list-row .gl-preview { width: 120px; }
 }
 
 /* ── INNER PAGE RESPONSIVE ── */
@@ -2929,6 +3206,117 @@ footer {
   transition: color 0.2s;
 }
 .gal-story .gal-story-back a:hover { color: var(--accent); }
+
+/* ── Prev / All / Next nav bar (added by js/gal-nav.js) ── */
+.gal-story .gal-story-back.gal-story-back--nav {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--sp-22);
+  align-items: center;
+  padding: var(--sp-34) var(--sp-60);
+}
+.gal-story-back--nav .gal-nav-side {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: rgba(255,255,255,0.55);
+  transition: color 0.2s ease, transform 0.25s cubic-bezier(.2,.7,.2,1);
+  min-width: 0;
+}
+.gal-story-back--nav .gal-nav-side--empty { visibility: hidden; }
+.gal-story-back--nav .gal-nav-side:hover { color: var(--accent); }
+.gal-story-back--nav .gal-nav-prev:hover { transform: translateX(-3px); }
+.gal-story-back--nav .gal-nav-next:hover { transform: translateX(3px); }
+.gal-story-back--nav .gal-nav-next { justify-self: end; text-align: right; }
+.gal-story-back--nav .gal-nav-arrow {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.gal-story-back--nav .gal-nav-side-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.gal-story-back--nav .gal-nav-side-eyebrow {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  opacity: 0.55;
+}
+.gal-story-back--nav .gal-nav-side-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gal-story-back--nav .gal-nav-center {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-decoration: none;
+  color: rgba(255,255,255,0.55);
+  transition: color 0.2s ease;
+}
+.gal-story-back--nav .gal-nav-center:hover { color: var(--accent); }
+.gal-story-back--nav .gal-nav-center-label {
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+.gal-story-back--nav .gal-nav-center-count {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  opacity: 0.55;
+  text-transform: uppercase;
+}
+
+/* ── Sound toggle button on hero video (added by js/gal-nav.js) ── */
+.gal-sound-btn {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: rgba(0,13,16,0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 999px;
+  color: rgba(255,255,255,0.85);
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+.gal-sound-btn:hover {
+  background: var(--accent);
+  color: var(--obsidian);
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+.gal-sound-btn[data-state="on"] {
+  background: var(--accent);
+  color: var(--obsidian);
+  border-color: var(--accent);
+}
+
+/* Mobile: nav bar collapses to symbol-only sides + smaller centre */
+@media (max-width: 720px) {
+  .gal-story .gal-story-back.gal-story-back--nav {
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    padding: var(--sp-22) var(--sp-34);
+  }
+  .gal-story-back--nav .gal-nav-side-text { display: none; }
+  .gal-story-back--nav .gal-nav-arrow { font-size: 24px; }
+  .gal-sound-btn { bottom: 12px; right: 12px; width: 38px; height: 38px; }
+}
 
 .gal-story-header {
   max-width: 1200px;

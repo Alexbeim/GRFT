@@ -106,187 +106,218 @@
   <button class="filter-btn" data-filter="festival">Festival</button>
   <button class="filter-btn" data-filter="led-system">LED System</button>
   <button class="filter-btn" data-filter="private-party">Private Party</button>
+  <div class="gallery-search" role="search">
+    <svg class="gallery-search-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="10.6" y1="10.6" x2="14" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <input id="gallery-search-input" type="search" placeholder="Search" autocomplete="off" aria-label="Search projects, cities, keywords">
+    <button class="gallery-search-clear" id="gallery-search-clear" type="button" aria-label="Clear search" hidden>×</button>
+  </div>
+  <div class="gallery-view-toggle" role="group" aria-label="View">
+    <button class="view-btn active" data-view="grid" aria-label="Grid view" title="Grid">
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/></svg>
+    </button>
+    <button class="view-btn" data-view="list" aria-label="List view" title="List">
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="2" y="3" width="12" height="1.6"/><rect x="2" y="7.2" width="12" height="1.6"/><rect x="2" y="11.4" width="12" height="1.6"/></svg>
+    </button>
+  </div>
 </div>
 
 <!-- GALLERY GRID -->
 <div class="gallery-grid" id="gallery-grid">
 
-  <a class="gallery-item" data-category="festival brand-collab" href="gal/i-light-singapore.html">
+  <a class="gallery-item" data-category="festival brand-collab" data-desc="Grab a spray can, press the nozzle, and create anything you can imagine on the five-metre-tall canvas. Tactile but no aerosols." data-name="i Light" data-city="Singapore" href="gal/i-light-singapore.html">
     <img src="images/ilight.jpg" alt="i Light Singapore — Infinite Graffiti" loading="lazy">
     <div class="gallery-caption">i Light<br>Singapore</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/f1-las-vegas-grand-prix.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="A twenty-foot wall at the gateway to the loudest weekend on the Strip." data-name="Formula 1 / Grand Prix" data-city="Las Vegas" href="gal/f1-las-vegas-grand-prix.html">
     <img src="images/gal-f1-las-vegas-grand-prix.webp" alt="Formula 1, Las Vegas Grand Prix" loading="lazy">
     <div class="gallery-caption">Formula 1<br>Las Vegas Grand Prix</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/nascar-daytona.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="A 20-foot outdoor LED wall in the Daytona fanzone, and a live artist painting the drivers themselves." data-name="NASCAR" data-city="Daytona" href="gal/nascar-daytona.html">
     <img src="images/gal-nascar-daytona.webp" alt="NASCAR, Daytona" loading="lazy">
     <div class="gallery-caption">NASCAR<br>Daytona</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/samsung-olympics.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="Three installations across two cities, the Olympics on the LED wall, and the Z Flip 7 Olympic Edition in the athletes’ hands as the spray can." data-name="Samsung / Olympics" data-city="Milan & Cortina" href="gal/samsung-olympics.html">
     <img src="images/gal-samsung-olympics.webp" alt="Samsung, Winter Olympics — Milan &amp; Cortina" loading="lazy">
     <div class="gallery-caption">Samsung-Olympics<br>Milan &amp; Cortina</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab corporate-event" href="gal/jabil-ofc-la.html">
+  <a class="gallery-item" data-category="brand-collab corporate-event" data-desc="A trade-show booth on the OFC floor in LA — fully wrapped in hand-painted graffiti, with a second artist turning partner logos into graf-style giveaways live." data-name="Jabil / OFC" data-city="Los Angeles" href="gal/jabil-ofc-la.html">
     <img src="images/gal-jabil-ofc-la.webp" alt="Jabil, OFC Los Angeles" loading="lazy">
     <div class="gallery-caption">Jabil<br>OFC Los Angeles</div>
   </a>
 
-  <a class="gallery-item" data-category="private-party" href="gal/shift-midtown-nyc.html">
+  <a class="gallery-item" data-category="private-party" data-desc="A 5,000 sq ft immersive Midtown space turned over to a 30-foot graffiti wall and a 16-foot LED with a writer painting all night." data-name="SHiFT Midtown" data-city="New York" href="gal/shift-midtown-nyc.html">
     <img src="images/gal-shift-midtown-nyc.webp" alt="SHiFT Midtown, NYC" loading="lazy">
     <div class="gallery-caption">SHiFT Midtown<br>NYC</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab corporate-event private-party" href="gal/miss-dior-nyc.html">
+  <a class="gallery-item" data-category="brand-collab corporate-event private-party" data-desc="A custom-pink LED wall built for a Dior parfume launch, with a live artist guiding the room from first-timers through to confident writers." data-name="Miss Dior" data-city="New York" href="gal/miss-dior-nyc.html">
     <img src="images/gal-miss-dior-nyc.webp" alt="Miss Dior, NYC" loading="lazy">
     <div class="gallery-caption">Miss Dior<br>NYC</div>
   </a>
 
-  <a class="gallery-item" data-category="corporate-event" href="gal/modelo-nacs.html">
+  <a class="gallery-item" data-category="corporate-event" data-desc="A trade-show booth with a custom LED wall, a 3D Modelo soccer ball you could spray, and &quot;The Cerveza for Fútbol&quot; doing the heavy lifting." data-name="Modelo" data-city="Las Vegas" href="gal/modelo-nacs.html">
     <img src="images/gal-modelo-nacs.webp" alt="Modelo, NACS" loading="lazy">
-    <div class="gallery-caption">Modelo<br>NACS</div>
+    <div class="gallery-caption">Modelo<br>Las Vegas</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/samsung-galaxy-z-flip-7-launch-paris.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="An LED wall under the canopy at Forum des Halles, and a Flip 7 in every guest’s hand doing all the work." data-name="Samsung / Galaxy Z Flip 7" data-city="Paris" href="gal/samsung-galaxy-z-flip-7-launch-paris.html">
     <img src="images/gal-samsung-galaxy-z-flip-7-launch-paris.webp" alt="Samsung Galaxy Launch, Paris" loading="lazy">
     <div class="gallery-caption">Samsung-Galaxy<br>Paris</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/samsung-galaxy-z-flip-7-launch-nyc.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="A pop-up at 500 Broadway, an LED wall, and a Flip 7 in every guest’s hand doing all the work." data-name="Samsung / Galaxy Z Flip 7" data-city="New York" href="gal/samsung-galaxy-z-flip-7-launch-nyc.html">
     <img src="images/gal-samsung-galaxy-z-flip-7-launch-nyc.webp" alt="Samsung Galaxy Launch, NY" loading="lazy">
     <div class="gallery-caption">Samsung-Galaxy<br>NY</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/samsung-kings-cross.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="Samsung’s 20,000 sq ft creative playground at Coal Drops Yard chose Graffiti+ as its centrepiece." data-name="Samsung" data-city="London" href="gal/samsung-kings-cross.html">
     <img src="images/KX/kx-tunnel.webp" alt="Samsung KX, King's Cross London — 'The Tunnel' graffiti wall" loading="lazy">
     <div class="gallery-caption">Samsung-KX<br>King's Cross</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab festival" href="gal/modelo-rolling-loud-miami.html">
+  <a class="gallery-item" data-category="brand-collab festival" data-desc="Rolling Loud’s tenth anniversary, a Modelo wall, and a live mural session running in parallel — two crowds, one booth." data-name="Modelo / Rolling Loud" data-city="Miami" href="gal/modelo-rolling-loud-miami.html">
     <img src="images/gal-modelo-rolling-loud-miami.webp" alt="Modelo-Rolling Loud, Miami" loading="lazy">
     <div class="gallery-caption">Modelo-Rolling Loud<br>Miami</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/complexcon-hong-kong-2025.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="ComplexCon’s first major Asia edition — a thirteen-foot inflatable bunny holding a hundred-inch graffiti canvas, thirty thousand people over three days." data-name="ComplexCon" data-city="Hong Kong" href="gal/complexcon-hong-kong-2025.html">
     <img src="images/complexcon-hk/complexcon-overview.webp" alt="ComplexCon Hong Kong 2025 — Digital Graffiti Space Bun" loading="lazy">
     <div class="gallery-caption">ComplexCon<br>Hong Kong</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/hyundai-seoul.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="Three formats, one continuous gesture — paint on the wall, see it land on a rotating excavator, take it home in AR." data-name="Hyundai" data-city="Seoul" href="gal/hyundai-seoul.html">
     <img src="images/gal-hyundai-seoul.webp" alt="Hyundai, Seoul" loading="lazy">
     <div class="gallery-caption">Hyundai<br>Seoul</div>
   </a>
 
-  <a class="gallery-item" data-category="" href="gal/ganga-tattoo-spain.html">
+  <a class="gallery-item" data-category="" data-desc="A permanent Graffiti+ wall living inside the studio of one of Spain’s most internationally recognised tattoo artists." data-name="Ganga Tattoo" data-city="Spain" href="gal/ganga-tattoo-spain.html">
     <img src="images/gal-ganga-tattoo-spain.webp" alt="Ganga Tattoo, Spain" loading="lazy">
     <div class="gallery-caption">Ganga Tattoo<br>Spain</div>
   </a>
 
-  <a class="gallery-item" data-category="" href="gal/led-reel.html">
-    <img src="images/gal-led-reel.webp" alt="LED Wall Reel" loading="lazy">
-    <div class="gallery-caption">LED Wall Reel</div>
-  </a>
+  <!-- LED Wall Reel intentionally not listed in the public gallery. The
+       page at gal/led-reel.html still exists for direct links. -->
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/disney-comiccon-toronto.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="Disney+ ten days into Daredevil’s Born Again debut, the Toronto fanbase already in costume, and a wall that turned a design into a wearable in under two minutes." data-name="Disney / Comicon" data-city="Toronto" href="gal/disney-comiccon-toronto.html">
     <img src="images/gal-disney-comiccon-toronto.webp" alt="Disney, Comic-Con Toronto" loading="lazy">
-    <div class="gallery-caption">Disney-Comicon<br>Toronto</div>
+    <div class="gallery-caption">Disney / Comicon<br>Toronto</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/mattel-la.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="Mattel turning eighty, a Downtown LA gallery walls-deep with eighty artists, and a wall where the public could paint the toys themselves." data-name="Mattel" data-city="Los Angeles" href="gal/mattel-la.html">
     <img src="images/gal-mattel-la.webp" alt="Mattel, LA" loading="lazy">
     <div class="gallery-caption">Mattel<br>LA</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/nike-san-francisco.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="Two stories of sneaker drops on Powell Street, and one LED wall built for spray cans." data-name="Nike / Jordan" data-city="San Francisco" href="gal/nike-san-francisco.html">
     <img src="images/gal-nike-san-francisco.webp" alt="Nike Jordan, San Francisco" loading="lazy">
     <div class="gallery-caption">Nike Jordan<br>San Francisco</div>
   </a>
 
-  <a class="gallery-item" data-category="festival" href="gal/outloud-festival-2024.html">
+  <a class="gallery-item" data-category="festival" data-desc="98″ LCD in the lobby of the hotel hosting the festival writers — Artime Joe, Christian Storm, Cook Dissizit. Grassroots event, real community." data-name="Outloud Festival" data-city="Macau" href="gal/outloud-festival-2024.html">
     <img src="images/gal-outloud-festival-2024.webp" alt="Outloud Festival, Macau" loading="lazy">
     <div class="gallery-caption">Outloud Festival<br>Macau</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/designercon2024.html">
+  <a class="gallery-item" data-category="led-system community" data-desc="PIBG2038 × Graffiti+. Tag / throw-up / masterpiece, rebuilt in 3D on the LED facade above the Spectacle atrium. Centerpiece: CG-LEO." data-name="MGM Cotai / Spectacle Square" data-city="Macau" href="gal/mgm-cotai-macau.html">
+    <img src="images/mgm_cotai_lobby.webp" alt="CG-LEO 3D digital graffiti mural by PIBG2038 × Graffiti+ on the LED screens above MGM Cotai's Spectacle Square, Macau" loading="lazy">
+    <div class="gallery-caption">MGM Cotai<br>Spectacle Square</div>
+  </a>
+
+  <a class="gallery-item" data-category="brand-collab" data-desc="A 700-vendor toy convention, our LED wall, and 3D designer toys you could spray, rotate, and pocket as AR." data-name="DesignerCon" data-city="Las Vegas" href="gal/designercon2024.html">
     <img src="images/gal-designercon2024.webp" alt="DesignerCon 2024" loading="lazy">
     <div class="gallery-caption">DesignerCon 2024<br>Vegas</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/ana-animefest-la.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="ANA’s Anime Expo booth, an anime artist’s stencils baked into the wall, and a Downtown LA crowd showing up in full costume." data-name="ANA / LA Anime Fest" data-city="Los Angeles" href="gal/ana-animefest-la.html">
     <img src="images/gal-ana-animefest-la.webp" alt="Ana, LA Anime Fest" loading="lazy">
     <div class="gallery-caption">Ana<br>LA Anime Fest</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/espolon-la.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="A custom-branded wall built around Mexican street-art heritage and the bottle that just turned twenty-five." data-name="Espolòn" data-city="Los Angeles" href="gal/espolon-la.html">
     <img src="images/gal-espolon-la.webp" alt="Espolòn, LA" loading="lazy">
     <div class="gallery-caption">Espolòn<br>LA</div>
   </a>
 
-  <a class="gallery-item" data-category="led-system" href="gal/led-wall-freight-train.html">
-    <img src="images/gal-led-wall-freight-train.webp" alt="LED Wall, Freight Train Graffiti" loading="lazy">
-    <div class="gallery-caption">LED Wall<br>Freight Train Graffiti</div>
-  </a>
+  <!-- LED Wall (Freight Train Graffiti) intentionally not listed in the public
+       gallery. The page at gal/led-wall-freight-train.html still exists. -->
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/dell.html">
+    <a class="gallery-item" data-category="brand-collab" data-desc="A corporate room in Las Vegas, a graffiti wall, and a live artist quietly turning Dell employees into the kind of people who spend twenty minutes on a piece." data-name="Dell" data-city="Las Vegas" href="gal/dell.html">
     <img src="images/gal-dell.webp" alt="Dell, Las Vegas" loading="lazy">
     <div class="gallery-caption">Dell<br>Las Vegas</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/johnsonandjohnson.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="A curved LED graffiti wall at the J&J booth and a portrait artist painting visitors live — the most reliable way to stop trade-show traffic and hold it." data-name="Johnson &amp; Johnson" data-city="Washington D.C." href="gal/johnsonandjohnson.html">
     <img src="images/gal-johnsonandjohnson.webp" alt="Johnson &amp; Johnson, Washington D.C." loading="lazy">
     <div class="gallery-caption">Johnson &amp; Johnson<br>Washington D.C.</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/jicaf-jakarta.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="A three-week illustration and arts fair in Jakarta, our wall placed where every visitor walked past it on the way in." data-name="JICAF" data-city="Jakarta" href="gal/jicaf-jakarta.html">
     <img src="images/gal-jicaf-jakarta.webp" alt="JICAF 2024, Jakarta" loading="lazy">
     <div class="gallery-caption">JICAF 2024<br>Jakarta</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/urbanbreak.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="When graffiti culture is the whole point of the room, the wall doesn’t need much explaining." data-name="Urban Break" data-city="Seoul" href="gal/urbanbreak.html">
     <img src="images/gal-urbanbreak.webp" alt="Urban Break, Korea" loading="lazy">
-    <div class="gallery-caption">Urban Break<br>Korea</div>
+    <div class="gallery-caption">Urban Break<br>Seoul</div>
   </a>
 
-  <a class="gallery-item" data-category="community" href="gal/artistexposition-japan.html">
+  <a class="gallery-item" data-category="community" data-desc="A tight Tokyo room, a serious crowd, and some of Japan’s best writers stepping up to a digital canvas." data-name="Artist Exposition" data-city="Tokyo" href="gal/artistexposition-japan.html">
     <img src="images/gal-artistexposition-japan.webp" alt="Artist Exposition, Tokyo" loading="lazy">
     <div class="gallery-caption">Artist Exposition<br>Tokyo</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/veecon-starry.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="Starry’s booth at Gary Vee’s super conference — mascots, ice sculptures, cocktails, and a graffiti wall all pulling in the same direction." data-name="VeeCon / Starry" data-city="Indianapolis" href="gal/veecon-starry.html">
     <img src="images/gal-veecon-starry.webp" alt="VeeCon, Indianapolis" loading="lazy">
     <div class="gallery-caption">VeeCon<br>Indianapolis</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/williams-racing-formula1.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="Downtown Austin, the week of the US Grand Prix, with a Williams Racing wall and an artist painting fans in Williams kit before they could find their seat." data-name="Williams Racing / F1" data-city="Austin" href="gal/williams-racing-formula1.html">
     <img src="images/gal-williams-racing-formula1.webp" alt="Williams Racing F1, Austin" loading="lazy">
     <div class="gallery-caption">Williams Racing-F1<br>Austin</div>
   </a>
 
-  <a class="gallery-item" data-category="community" href="gal/graffiti-workshop-vancouver.html">
+  <a class="gallery-item" data-category="community" data-desc="A full-day graffiti workshop in Vancouver, no experience required — and by the end of the day everyone has a piece on the wall they’re proud of." data-name="Graffiti+ Workshop" data-city="Vancouver" href="gal/graffiti-workshop-vancouver.html">
     <img src="images/gal-graffiti-workshop-vancouver.webp" alt="Graffiti+ Workshop, Vancouver" loading="lazy">
     <div class="gallery-caption">Graffiti+ Workshop<br>Vancouver</div>
   </a>
 
-  <a class="gallery-item" data-category="community" href="gal/train-bombing-vancouver.html">
+  <a class="gallery-item" data-category="community" data-desc="A Vancouver pop-up built around bombing trains — writers painting freight-car panels live on a digital wall, then folding pieces into paper 3D models." data-name="Train Bombing" data-city="Vancouver" href="gal/train-bombing-vancouver.html">
     <img src="images/gal-train-bombing-vancouver.webp" alt="Train Bombing, Vancouver" loading="lazy">
     <div class="gallery-caption">Train Bombing<br>Vancouver</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/porsche-vancouver.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="Porsche’s 75th anniversary in a Vancouver showroom, an award-winning local artist on the wall, and a digital mural that became a permanent piece in the dealership." data-name="Porsche" data-city="Vancouver" href="gal/porsche-vancouver.html">
     <img src="images/gal-porsche-vancouver.webp" alt="Porsche, Vancouver" loading="lazy">
     <div class="gallery-caption">Porsche<br>Vancouver</div>
   </a>
 
-  <a class="gallery-item" data-category="brand-collab" href="gal/lululemon-vancouver.html">
+  <a class="gallery-item" data-category="brand-collab" data-desc="A Lululemon team-building event at Fairmont Vancouver — Chairman Ting drew live on the wall, and every staff member walked out in a hoodie printed with the art they’d helped make." data-name="Lululemon" data-city="Vancouver" href="gal/lululemon-vancouver.html">
     <img src="images/gal-lululemon-vancouver.webp" alt="Lululemon, Vancouver" loading="lazy">
     <div class="gallery-caption">Lululemon<br>Vancouver</div>
   </a>
 
 </div>
+
+<!-- LIST VIEW (built by JS from the grid items, single source of truth) -->
+<ul class="gallery-list" id="gallery-list" hidden></ul>
+
+<!-- Empty-state shown when a search query yields zero matches. -->
+<div class="gallery-empty" id="gallery-empty" hidden>
+  <p>No projects match <span class="gallery-empty-q"></span>.</p>
+  <button class="btn" type="button" id="gallery-empty-reset">Clear search</button>
+</div>
+
+<!-- Floating image preview for list-view hover. Fixed-position so the preview
+     doesn't jitter with cursor or scroll; it just swaps source as you move
+     between rows. -->
+<aside class="gallery-list-preview" id="gallery-list-preview" aria-hidden="true">
+  <img alt="" />
+  <div class="gallery-list-preview-cap"></div>
+</aside>
 
 <!-- CONTACT -->
 <section class="contact-section" id="contact">
@@ -344,20 +375,212 @@
     document.getElementById('nav-links').classList.toggle('open');
   });
 
-  // Gallery filter — supports multi-category items (space-separated data-category)
+  // ── Gallery filter + search ──
+  // Items pass when they match BOTH the active category and every word in the
+  // search query. The search looks at name + city + description + category
+  // slugs (so "festival" or "brand collab" works as a search too).
+  let activeFilter = 'all';
+  let searchTerms  = []; // already-lowercased non-empty tokens
+
+  // Build the searchable haystack for a single .gallery-item element.
+  function itemHaystack(item) {
+    const cats = (item.dataset.category || '').split(' ').filter(Boolean);
+    const tagWords = cats.map(prettyCat).join(' ');
+    return (
+      (item.dataset.name || '') + ' ' +
+      (item.dataset.city || '') + ' ' +
+      (item.dataset.desc || '') + ' ' +
+      cats.join(' ') + ' ' + tagWords
+    ).toLowerCase();
+  }
+
+  function matchesSearch(hay) {
+    if (!searchTerms.length) return true;
+    for (const t of searchTerms) if (!hay.includes(t)) return false;
+    return true;
+  }
+
+  function applyFilter() {
+    let visibleCount = 0;
+    document.querySelectorAll('.gallery-item').forEach(item => {
+      const cats = (item.dataset.category || '').split(' ');
+      const catOk = activeFilter === 'all' || cats.includes(activeFilter);
+      const show = catOk && matchesSearch(itemHaystack(item));
+      item.style.display = show ? '' : 'none';
+      if (show) visibleCount++;
+    });
+    // List rows mirror grid items 1:1 in insertion order.
+    const items = document.querySelectorAll('.gallery-item');
+    document.querySelectorAll('.gallery-list-row').forEach((row, i) => {
+      const item = items[i];
+      const cats = (row.dataset.category || '').split(' ');
+      const catOk = activeFilter === 'all' || cats.includes(activeFilter);
+      const show = catOk && (item ? matchesSearch(itemHaystack(item)) : true);
+      row.hidden = !show;
+    });
+
+    // Empty-state. Only show on search (not bare category filter).
+    const emptyEl = document.getElementById('gallery-empty');
+    const emptyQ  = emptyEl.querySelector('.gallery-empty-q');
+    if (visibleCount === 0 && searchTerms.length) {
+      emptyQ.textContent = '"' + searchTerms.join(' ') + '"';
+      emptyEl.hidden = false;
+    } else {
+      emptyEl.hidden = true;
+    }
+  }
+
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const filter = btn.dataset.filter;
-      document.querySelectorAll('.gallery-item').forEach(item => {
-        const cats = (item.dataset.category || '').split(' ');
-        if (filter === 'all' || cats.includes(filter)) {
-          item.style.display = '';
-        } else {
-          item.style.display = 'none';
-        }
-      });
+      activeFilter = btn.dataset.filter;
+      applyFilter();
+    });
+  });
+
+  // Search wiring. Debounced via rAF — input is cheap to filter so this is
+  // mostly to coalesce rapid keystrokes (e.g. paste).
+  const searchInput = document.getElementById('gallery-search-input');
+  const searchClear = document.getElementById('gallery-search-clear');
+  let searchRaf = 0;
+  function runSearchFromInput() {
+    const q = (searchInput.value || '').trim().toLowerCase();
+    searchTerms = q ? q.split(/\s+/) : [];
+    searchClear.hidden = !q;
+    applyFilter();
+  }
+  searchInput.addEventListener('input', () => {
+    if (searchRaf) cancelAnimationFrame(searchRaf);
+    searchRaf = requestAnimationFrame(runSearchFromInput);
+  });
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && searchInput.value) {
+      searchInput.value = '';
+      runSearchFromInput();
+    }
+  });
+  searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    runSearchFromInput();
+    searchInput.focus();
+  });
+  document.getElementById('gallery-empty-reset').addEventListener('click', () => {
+    searchInput.value = '';
+    runSearchFromInput();
+    searchInput.focus();
+  });
+  // Slash key focuses search (skip when typing in another field).
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  });
+
+  // ── Gallery view toggle (Grid ⇄ List) ──
+  // The list is built once on first switch, then reused. This keeps the grid
+  // markup the single source of truth for project data.
+  const grid       = document.getElementById('gallery-grid');
+  const list       = document.getElementById('gallery-list');
+  const preview    = document.getElementById('gallery-list-preview');
+  const previewImg = preview.querySelector('img');
+  const previewCap = preview.querySelector('.gallery-list-preview-cap');
+
+  // Prettifier for raw category slugs: "brand-collab" → "Brand Collab"
+  function prettyCat(slug) {
+    return slug.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+  }
+
+  function buildList() {
+    if (list.dataset.built === '1') return;
+    const frag = document.createDocumentFragment();
+    document.querySelectorAll('.gallery-item').forEach(item => {
+      const li = document.createElement('li');
+      const a  = document.createElement('a');
+      a.className = 'gallery-list-row';
+      a.href = item.getAttribute('href');
+      a.dataset.category = item.dataset.category || '';
+
+      // Prefer data-name + data-city for list-view formatting (Brand / Event |
+      // City), so the list and grid can have different presentations. Fall back
+      // to splitting the gallery caption if either attribute is missing.
+      let name = item.dataset.name || '';
+      let loc  = item.dataset.city || '';
+      if (!name || !loc) {
+        const cap = item.querySelector('.gallery-caption');
+        const parts = cap
+          ? cap.innerHTML.split(/<br\s*\/?>(?:\s*)/i).map(s => s.replace(/<[^>]+>/g, '').trim())
+          : [];
+        name = name || parts[0] || '';
+        loc  = loc  || parts[1] || '';
+      }
+
+      const desc = item.dataset.desc || '';
+      const tags = (item.dataset.category || '').split(' ').filter(Boolean).map(prettyCat);
+      const img  = item.querySelector('img');
+      const imgSrc = img ? img.getAttribute('src') : '';
+      const imgAlt = img ? img.getAttribute('alt') : name;
+
+      // Four-column row: title-block | description | inline preview (hover) | tags.
+      // Image uses loading="lazy" so off-screen rows don't fetch on init.
+      a.innerHTML = `
+        <div class="gl-titleblock">
+          <span class="gl-name">${name}</span>
+          <span class="gl-loc">${loc}</span>
+        </div>
+        <div class="gl-desc">${desc}</div>
+        <div class="gl-preview"><img src="${imgSrc}" alt="${imgAlt}" loading="lazy"></div>
+        <div class="gl-tags">${tags.map(t => `<span class="gl-tag">${t}</span>`).join('')}</div>
+      `;
+      li.appendChild(a);
+      frag.appendChild(li);
+    });
+    // <ul> doesn't typically wrap each row in <li>, but it preserves the
+    // semantic list nature for screen readers. The CSS uses .gallery-list-row
+    // directly so no styling impact.
+    list.appendChild(frag);
+    list.dataset.built = '1';
+
+    // Inline preview reveal is purely CSS (:hover on .gallery-list-row reveals
+    // its own .gl-preview), so no JS hover wiring needed here.
+
+    // Stagger fade-in on first visibility (IntersectionObserver).
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e, i) => {
+          if (e.isIntersecting) {
+            // Quick stagger: rows enter snappy, not slow. Capped at 6 rows
+            // worth of delay so scrolling fast doesn't leave anyone behind.
+            const idx = [...list.querySelectorAll('.gallery-list-row')].indexOf(e.target);
+            setTimeout(() => e.target.classList.add('is-in'), Math.min(idx, 6) * 18);
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.05 });
+      list.querySelectorAll('.gallery-list-row').forEach(r => io.observe(r));
+    } else {
+      list.querySelectorAll('.gallery-list-row').forEach(r => r.classList.add('is-in'));
+    }
+  }
+
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const view = btn.dataset.view;
+      if (view === 'list') {
+        buildList();
+        grid.hidden = true;
+        list.hidden = false;
+        applyFilter();  // re-apply current filter to the freshly-built list
+      } else {
+        list.hidden = true;
+        grid.hidden = false;
+        preview.classList.remove('is-visible');
+      }
     });
   });
 </script>
