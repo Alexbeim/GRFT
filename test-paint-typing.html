@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GRFT+ · Paint-engine typing test</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+<script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+
+<style>
+  @font-face {
+    font-family: "GraffitiPlus Display";
+    src: url("Fonts/GraffitiPlusDisplay-Regular.woff2?v=3") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+  }
+  :root { --bg: #1a1410; --ink: #fafafa; --accent: #ffc800; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", system-ui, sans-serif;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 14px;
+    padding: 18px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  header h1 {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.7;
+    margin: 0;
+    margin-right: auto;
+  }
+  input[type=text] {
+    background: rgba(255,255,255,0.08);
+    color: var(--ink);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font: 700 16px/1 "Inter", system-ui, sans-serif;
+    min-width: 200px;
+    flex: 1;
+    max-width: 480px;
+  }
+  input[type=text]:focus { outline: 2px solid var(--accent); }
+  .pill-group {
+    display: inline-flex;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .pill-group button {
+    background: transparent;
+    color: var(--ink);
+    border: none;
+    border-right: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 16px;
+    cursor: pointer;
+    font: 700 12px/1 "Inter", system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .pill-group button:last-child { border-right: none; }
+  .pill-group button.active {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  button.go {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 999px;
+    padding: 10px 22px;
+    font: 800 13px/1 "Inter", system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  button.go:disabled { opacity: 0.5; cursor: wait; }
+  button.go:hover:not(:disabled) { background: #fff; }
+
+  .stage {
+    position: relative;
+    background-color: #2a1b14;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='120'><rect width='240' height='120' fill='%23271710'/><g><rect x='3' y='3' width='112' height='52' fill='%239c4a2f'/><rect x='119' y='3' width='118' height='52' fill='%23b35836'/><rect x='-55' y='63' width='112' height='54' fill='%23a64f30'/><rect x='61' y='63' width='112' height='54' fill='%2394462a'/><rect x='177' y='63' width='118' height='54' fill='%23aa5232'/></g><g fill='%23000' fill-opacity='0.18'><rect x='3' y='49' width='112' height='6'/><rect x='119' y='49' width='118' height='6'/><rect x='-55' y='109' width='112' height='8'/><rect x='61' y='109' width='112' height='8'/><rect x='177' y='109' width='118' height='8'/></g><g fill='%23fff' fill-opacity='0.05'><rect x='3' y='3' width='112' height='5'/><rect x='119' y='3' width='118' height='5'/><rect x='-55' y='63' width='112' height='5'/><rect x='61' y='63' width='112' height='5'/><rect x='177' y='63' width='118' height='5'/></g></svg>");
+    background-size: 240px 120px;
+    background-repeat: repeat;
+    border: 1px solid rgba(0,0,0,0.4);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 0 180px rgba(0,0,0,0.65);
+  }
+  #paint {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  #writer {
+    position: absolute;
+    pointer-events: none;
+    transform-origin: 50% 0;
+    transform: translate(-50%, 0);
+    will-change: transform, left, top;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,0.6));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  footer {
+    font-size: 12px;
+    opacity: 0.55;
+    text-align: center;
+  }
+  footer code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Paint-engine typing test</h1>
+  <input id="text" type="text" value="hello" maxlength="40" autocomplete="off" spellcheck="false">
+  <div class="pill-group">
+    <button id="b-spray" class="active">Spray</button>
+    <button id="b-marker">Marker</button>
+  </div>
+  <label style="display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.85;">
+    Speed
+    <input type="range" id="speed" min="30" max="500" step="10" value="100" style="width:140px;accent-color:var(--accent);">
+    <span id="speed-val" style="font:700 12px/1 ui-monospace,Menlo,monospace;width:34px;text-align:right;">1.0×</span>
+  </label>
+  <button id="clear" class="go" style="background:transparent;color:var(--ink);border:1px solid rgba(255,255,255,0.25);">Clear</button>
+  <button id="go" class="go">▶ Play</button>
+</header>
+
+<div class="stage" id="stage">
+  <canvas id="paint"></canvas>
+  <img id="writer" alt="">
+</div>
+
+<footer id="status">loading…</footer>
+
+<script>
+//
+// ── PAINT ENGINE (lifted from experiment-paint.html, simplified) ────────────
+//
+const COLOR = '#ffc800';   // graffiti yellow
+const cap = { current: 'spray' };  // 'spray' | 'marker'
+const stampCache = new Map();
+const sizeBucket = (s) => Math.max(2, Math.round(s / 2) * 2);
+
+function hexA(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+function buildStamp(capName, col, size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const x = c.getContext('2d');
+  const r = size / 2;
+  x.translate(r, r);
+  if (capName === 'spray') {
+    // SPRAY: soft radial halo + dense pixel grain (like real aerosol)
+    const cx = (Math.random()-0.5) * r * 0.16;
+    const cy = (Math.random()-0.5) * r * 0.16;
+    const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0,    hexA(col, 0.55));
+    g.addColorStop(0.35, hexA(col, 0.18));
+    g.addColorStop(0.75, hexA(col, 0.04));
+    g.addColorStop(1,    hexA(col, 0));
+    x.fillStyle = g;
+    x.beginPath(); x.arc(0, 0, r, 0, Math.PI*2); x.fill();
+    // Grain
+    const grainCount = Math.min(700, Math.round(r * r * 0.55));
+    for (let i = 0; i < grainCount; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const rr = Math.pow(Math.random(), 1.5) * r;
+      const dx = Math.cos(a) * rr, dy = Math.sin(a) * rr;
+      const edge = rr / r;
+      const sz = (0.35 + Math.random()*0.9) * (1 - edge*0.5);
+      const alpha = (0.05 + Math.random()*0.18) * (1 - edge*0.7);
+      x.fillStyle = hexA(col, alpha);
+      x.beginPath(); x.arc(dx, dy, sz, 0, Math.PI*2); x.fill();
+    }
+  } else if (capName === 'marker') {
+    // MARKER: solid circle with slight soft edge — bold, opaque ink
+    const g = x.createRadialGradient(0, 0, r*0.85, 0, 0, r);
+    g.addColorStop(0,    hexA(col, 1));
+    g.addColorStop(0.85, hexA(col, 1));
+    g.addColorStop(1,    hexA(col, 0));
+    x.fillStyle = g;
+    x.beginPath(); x.arc(0, 0, r, 0, Math.PI*2); x.fill();
+  }
+  return c;
+}
+function getStamp(capName, size) {
+  const bucket = sizeBucket(size);
+  const k = `${capName}|${COLOR}|${bucket}`;
+  let s = stampCache.get(k);
+  if (!s) { s = buildStamp(capName, COLOR, bucket); stampCache.set(k, s); }
+  return s;
+}
+
+// Spacing per cap (fraction of brush size).  Spray = dense overdraw for halo,
+// marker = wider since the stamp is opaque so heavy overlap would just smear.
+const SPACING = { spray: 0.06, marker: 0.16 };
+
+function stampAt(pctx, x, y, capName, size) {
+  const stamp = getStamp(capName, size);
+  pctx.drawImage(stamp, x - size/2, y - size/2, size, size);
+}
+function strokeSegment(pctx, x0, y0, x1, y1, capName, size) {
+  const dx = x1 - x0, dy = y1 - y0;
+  const dist = Math.hypot(dx, dy);
+  const spacing = Math.max(1, size * (SPACING[capName] || 0.12));
+  const steps = Math.max(1, Math.ceil(dist / spacing));
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    stampAt(pctx, x0 + dx*t, y0 + dy*t, capName, size);
+  }
+}
+
+//
+// ── ASSETS LOAD ─────────────────────────────────────────────────────────────
+//
+let traces = null;
+let font = null;
+async function loadAssets() {
+  // 1. Traces — local copy in this folder.
+  const r = await fetch('grft-traced-paths.json', { cache: 'no-cache' });
+  if (!r.ok) throw new Error('traces JSON ' + r.status);
+  traces = await r.json();
+  console.log('[paint-test] traces loaded:', Object.keys(traces.letters || {}).length, 'letters');
+
+  // 2. Font — opentype.js, .ttf (woff2 needs Brotli which opentype 1.x lacks).
+  font = await new Promise((resolve, reject) => {
+    opentype.load('Fonts/GraffitiPlusDisplay-Regular.ttf', (err, f) => {
+      if (err) reject(new Error('opentype load failed: ' + (err.message || err)));
+      else resolve(f);
+    });
+  });
+  console.log('[paint-test] font loaded:', font.glyphs.length, 'glyphs');
+}
+
+//
+// ── LAYOUT + PLAYBACK ───────────────────────────────────────────────────────
+//
+const paint   = document.getElementById('paint');
+const writer  = document.getElementById('writer');
+const stage   = document.getElementById('stage');
+const statusEl = document.getElementById('status');
+let pctx = paint.getContext('2d');
+let abortToken = { aborted: false };
+
+// Writer config per cap — marker vs can have different images, anchors, sizes.
+// (Brush size below is the paint footprint; image size below is the on-screen
+//  writer image scale.)
+const WRITER_CONFIG = {
+  spray:  { img: 'images/grft_branded_can.png',
+            anchorY: 0.04,   // nozzle near top
+            imgHeight: 220,
+            brushSize: 50 },
+  marker: { img: 'images/grft_marker_true_top_down.png',
+            anchorY: 0.95,   // tip at bottom
+            imgHeight: 180,
+            brushSize: 26 },
+};
+
+function resizeCanvas() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const r = stage.getBoundingClientRect();
+  paint.width  = r.width  * dpr;
+  paint.height = r.height * dpr;
+  paint.style.width  = r.width  + 'px';
+  paint.style.height = r.height + 'px';
+  pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function clearCanvas() {
+  pctx.save();
+  pctx.setTransform(1, 0, 0, 1, 0, 0);
+  pctx.clearRect(0, 0, paint.width, paint.height);
+  pctx.restore();
+}
+
+function setCap(name) {
+  cap.current = name;
+  document.getElementById('b-spray').classList.toggle('active',  name === 'spray');
+  document.getElementById('b-marker').classList.toggle('active', name === 'marker');
+  const cfg = WRITER_CONFIG[name];
+  writer.src = cfg.img;
+  writer.style.height = cfg.imgHeight + 'px';
+  writer.style.width  = 'auto';
+  // Pivot rotations around the paint tip — top of image for can (anchorY≈0.04),
+  // bottom for marker (anchorY≈0.95). So the tip stays glued to the cursor while
+  // the body wobbles.
+  writer.style.transformOrigin = `50% ${(cfg.anchorY * 100).toFixed(1)}%`;
+}
+
+// Writer motion: each stroke gets ONE subtle grip angle (chosen at stroke start).
+// The angle eases in over a few frames so the start of a stroke has a small
+// hand-grip variation, then stays steady through the rest of that stroke.
+// No continuous wobble — that's what made it feel like dangling.
+let currentTilt = 0;
+let targetTilt  = 0;
+function setStrokeTilt() {
+  // Subtle, biased toward small angles (^3 brings most picks near zero)
+  const r = (Math.random() * 2 - 1);
+  targetTilt = Math.sign(r) * Math.pow(Math.abs(r), 2.2) * 4;   // mostly within ±2°, max ±4°
+}
+function positionWriter(x, y) {
+  const cfg = WRITER_CONFIG[cap.current];
+  const h = cfg.imgHeight;
+  // Ease the visible tilt toward the per-stroke target (~0.5s settle)
+  currentTilt += (targetTilt - currentTilt) * 0.08;
+  writer.style.left = x + 'px';
+  writer.style.top  = (y - cfg.anchorY * h) + 'px';
+  writer.style.transform = `translate(-50%, 0) rotate(${currentTilt.toFixed(2)}deg)`;
+}
+
+function showWriter() { writer.style.opacity = 1; }
+function hideWriter() { writer.style.opacity = 0; }
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const getSpeed = () => (+document.getElementById('speed').value) / 100;   // 0.5×..8×
+
+async function playSequence(text) {
+  abortToken.aborted = true;
+  abortToken = { aborted: false };
+  const token = abortToken;
+  clearCanvas();
+
+  const cfg = WRITER_CONFIG[cap.current];
+  const brushSize = cfg.brushSize;
+
+  // Layout via opentype
+  const r = stage.getBoundingClientRect();
+  const STAGE_W = r.width, STAGE_H = r.height;
+  const targetHeight = Math.min(STAGE_H * 0.55, 240);
+  const fontSize = targetHeight * 2;
+  const scale = fontSize / font.unitsPerEm;
+
+  let totalAdvance = 0;
+  for (const ch of text) totalAdvance += font.charToGlyph(ch).advanceWidth * scale;
+  let cursorX = (STAGE_W - totalAdvance) / 2;
+  const baselineY = STAGE_H * 0.62;
+
+  // ── 1. Pre-compute a flat timeline of "paint" actions ──
+  // Each action has an absolute time t (ms in record-time) + (x, y) in stage coords.
+  // We inflate the recorded dt by INK_TIME_PER_POINT so coalesced 1ms-apart
+  // samples produce a perceptible interval to begin with — the speed slider
+  // then scales the whole timeline linearly.
+  const INK_TIME_PER_POINT = 6;  // ms per recorded sample at speed=1.0
+  const actions = [];
+  let timeline = 0;
+
+  for (const ch of text) {
+    const glyph = font.charToGlyph(ch);
+    const advance = glyph.advanceWidth * scale;
+    if (ch === ' ') { cursorX += advance; timeline += 80; continue; }
+
+    const traceData = traces?.letters?.[ch.toLowerCase()];
+    if (!traceData || !(traceData.strokes || []).length) {
+      cursorX += advance; continue;
+    }
+
+    const otPath = glyph.getPath(cursorX, baselineY, fontSize);
+    const obb = otPath.getBoundingBox();
+    if (!obb || !isFinite(obb.x1)) { cursorX += advance; continue; }
+    const tBox = {
+      x: obb.x1, y: obb.y1,
+      w: obb.x2 - obb.x1, h: obb.y2 - obb.y1
+    };
+
+    for (const stroke of traceData.strokes) {
+      const pts = stroke.points;
+      if (!pts.length) continue;
+      const t0 = pts[0].t;
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        const x = tBox.x + p.nx * tBox.w;
+        const y = tBox.y + p.ny * tBox.h;
+        actions.push({
+          x, y,
+          t: timeline + (p.t - t0) + i * INK_TIME_PER_POINT,
+          stroke,
+          first: i === 0,
+        });
+      }
+      const last = pts[pts.length - 1];
+      timeline += (last.t - t0) + pts.length * INK_TIME_PER_POINT + 60;
+    }
+    cursorX += advance;
+  }
+  if (!actions.length) return;
+
+  // ── 2. Play timeline via rAF, scaled by speed live ──
+  showWriter();
+  const startWall = performance.now();
+  let lastIdx = -1;
+  let prevPt = null;
+
+  await new Promise(resolve => {
+    function tick(now) {
+      if (token.aborted) { resolve(); return; }
+      const elapsed = (now - startWall) * getSpeed();   // scaled record-time
+      // Find the latest action whose time has passed
+      let idx = lastIdx;
+      while (idx + 1 < actions.length && actions[idx + 1].t <= elapsed) idx++;
+      if (idx > lastIdx) {
+        for (let i = lastIdx + 1; i <= idx; i++) {
+          const a = actions[i];
+          if (a.first || !prevPt) {
+            setStrokeTilt();                              // new grip angle per stroke
+            stampAt(pctx, a.x, a.y, cap.current, brushSize);
+          } else {
+            strokeSegment(pctx, prevPt.x, prevPt.y, a.x, a.y, cap.current, brushSize);
+          }
+          prevPt = a;
+        }
+        positionWriter(prevPt.x, prevPt.y);
+        lastIdx = idx;
+      }
+      if (lastIdx >= actions.length - 1) { hideWriter(); resolve(); return; }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+//
+// ── WIRING ──────────────────────────────────────────────────────────────────
+//
+document.getElementById('b-spray').addEventListener('click', () => setCap('spray'));
+document.getElementById('b-marker').addEventListener('click', () => setCap('marker'));
+document.getElementById('go').addEventListener('click', () => {
+  const t = document.getElementById('text').value.trim() || 'hello';
+  playSequence(t);
+});
+document.getElementById('text').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('go').click();
+});
+document.getElementById('speed').addEventListener('input', e => {
+  document.getElementById('speed-val').textContent = (e.target.value / 100).toFixed(1) + '×';
+});
+document.getElementById('clear').addEventListener('click', () => {
+  abortToken.aborted = true;
+  clearCanvas();
+  hideWriter();
+});
+
+setCap('spray');
+loadAssets().then(() => {
+  resizeCanvas();
+  statusEl.textContent = `${Object.keys(traces?.letters || {}).length} letters available · type & hit Play`;
+  // Auto-play the default text on load so it's obvious what's happening
+  playSequence(document.getElementById('text').value);
+}).catch(err => {
+  statusEl.textContent = 'load failed: ' + err.message;
+});
+</script>
+
+</body>
+</html>

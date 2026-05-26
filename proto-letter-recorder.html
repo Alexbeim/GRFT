@@ -1057,11 +1057,18 @@ document.addEventListener('keydown', e => {
 // Load the GRFT+ font into opentype so we can compute TRUE ink bboxes
 // without depending on canvas measureText (which silently falls back to
 // sans-serif if the @font-face hasn't been pushed into the canvas context).
+// opentype.js 1.x can't decode .woff2 (no Brotli). Load the .ttf alongside —
+// same font, different container. Same Fonts/ folder.
 let otFont = null;
-opentype.load(FONT_URL, (err, font) => {
-  if (err) console.warn('opentype load failed:', err);
-  else otFont = font;
-  // Bust the cache so any pre-load measurements get retaken with the real font.
+opentype.load('Fonts/GraffitiPlusDisplay-Regular.ttf', (err, font) => {
+  if (err) {
+    console.warn('[recorder] opentype load failed:', err);
+    statusEl.textContent = 'WARN: opentype failed — bboxes will be wrong (' + (err.message || err) + ')';
+    return;
+  }
+  otFont = font;
+  console.log('[recorder] opentype font loaded, glyphs:', font.glyphs.length);
+  // Bust any sans-serif-sized values cached before the font arrived.
   _inkBBoxCache.clear();
   if (state) showLetter();
 });
