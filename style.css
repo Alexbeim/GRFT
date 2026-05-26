@@ -1,6 +1,6 @@
 /* ============================================
    GRAFFITI+ — Shared Stylesheet
-   Font: Inter | Palette: #000 / #fff / #ffc800
+   Font: Inter | Palette: #000 / #fff / #FEBD17 (DeWalt yellow)
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -8,7 +8,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --yellow: #ffc800;
+  --yellow: #FEBD17;
   --black: #000000;
   --white: #ffffff;
   --gray: #888888;

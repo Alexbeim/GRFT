@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Graffiti+ · Spray Can Writer · v3 (recorded human strokes)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<style>
+  @font-face {
+    font-family: "GraffitiPlus Display";
+    src: url("Fonts/GraffitiPlusDisplay-Regular.woff2?v=3") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+  }
+
+  :root {
+    --obsidian: #000d10;
+    --canvas:   #ffffff;
+    --accent:   #FEBD17;
+    --ink:      #000d10;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--canvas); color: var(--obsidian); font-family: "Inter", system-ui, sans-serif; }
+
+  .page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 24px;
+    padding: 28px 36px 40px;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 14px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  header p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    opacity: 0.6;
+  }
+
+  .stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 14 / 5;
+    background: var(--canvas);
+    border: 1px solid #eee;
+    border-radius: 14px;
+    overflow: hidden;
+    display: grid;
+    place-items: stretch;
+  }
+
+  .stage svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  #can {
+    will-change: transform, opacity;
+    opacity: 0;
+  }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .controls input[type="text"] {
+    flex: 1 1 320px;
+    min-width: 240px;
+    padding: 12px 16px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 999px;
+    font-family: inherit;
+  }
+  .controls button {
+    padding: 12px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--obsidian);
+    color: var(--canvas);
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .controls button.ghost {
+    background: transparent;
+    color: var(--obsidian);
+    border: 1px solid var(--obsidian);
+  }
+  .controls label {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+  .controls .slider-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+  .controls input[type="range"] { width: 110px; }
+
+  .hint {
+    font-size: 12px;
+    opacity: 0.55;
+    max-width: 760px;
+  }
+  .hint code { background: #f3f3f4; padding: 1px 6px; border-radius: 4px; font-size: 11px; }
+
+  .status {
+    font-size: 12px;
+    opacity: 0.5;
+    margin: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header>
+    <h1>Spray Can Writer — v3 (recorded human strokes)</h1>
+    <p>Plays back your traced motion · GRFT+ glyphs revealed underneath · template for any text</p>
+  </header>
+
+  <div class="stage" id="stage">
+    <svg id="svg" viewBox="0 0 1400 500" preserveAspectRatio="xMidYMid meet">
+      <!-- Per-letter masks live here. Each filled glyph references its own
+           mask so an overshooting stroke for letter N can't accidentally
+           reveal letter S sitting underneath it. -->
+      <defs id="letter-defs"></defs>
+
+      <!-- Filled GRFT+ glyphs (from opentype). Each child carries its own mask attribute. -->
+      <g id="filled-letters" fill="#000d10"></g>
+
+      <!-- Debug overlay (off by default) — shows the recorded human paths -->
+      <g id="debug-strokes" style="display:none;"></g>
+
+      <!-- Spray can -->
+      <image id="can"
+             href="images/grft_branded_can.png"
+             width="320" height="320"
+             x="0" y="0"
+             opacity="0"/>
+
+      <!-- Spray-tip indicator with full-canvas crosshair. The crosshair shows
+           the EXACT current path position so you can verify it lines up with
+           the leading edge of the reveal. If lines and reveal edge coincide,
+           can+mask are in sync (any "ahead" perception is just the wide
+           stroke width spreading 45px on each side of the path centerline). -->
+      <g id="spray-tip" style="display:none;">
+        <line x1="0" y1="-500" x2="0" y2="500" stroke="#FEBD17" stroke-width="1" stroke-dasharray="4 4" opacity="0.7"/>
+        <line x1="-1400" y1="0" x2="1400" y2="0" stroke="#FEBD17" stroke-width="1" stroke-dasharray="4 4" opacity="0.7"/>
+        <circle r="20" fill="#FEBD17" opacity="0.35"/>
+        <circle r="8" fill="#FEBD17" opacity="0.9"/>
+        <circle r="3" fill="#000" opacity="1"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="controls">
+    <label for="text-input">Text</label>
+    <input id="text-input" type="text" value="since 2008" maxlength="24" autocomplete="off" spellcheck="false">
+    <button id="play-btn">Replay</button>
+    <div class="slider-group">
+      <label for="sw">Stroke</label>
+      <input id="sw" type="range" min="40" max="180" value="50">
+      <span id="sw-val">50</span>
+    </div>
+    <div class="slider-group">
+      <label for="speed">Speed</label>
+      <input id="speed" type="range" min="50" max="150" value="120">
+      <span id="speed-val">1.2×</span>
+    </div>
+    <button id="pause-btn" class="ghost">Pause</button>
+    <button id="hide-can-btn" class="ghost">Hide can</button>
+    <button id="debug-btn" class="ghost">Toggle paths</button>
+  </div>
+
+  <p id="status" class="status">Loading…</p>
+
+  <p class="hint">
+    Reads <code>Letter animations/grft-traced-paths.json</code> (recorded with the trace tool) and replays the
+    real hand motion you captured. Each letter's normalized strokes are scaled to its GRFT+ glyph bbox in
+    the current text, then the can rides the recorded points using their original timing (multiplied by the
+    speed slider). The mask reveal exposes the real GRFT+ letter underneath as the can passes.
+  </p>
+
+</div>
+
+<!-- opentype.js for glyph outline extraction (TTF) -->
+<script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+
+<script>
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+const svg          = document.getElementById('svg');
+const letterDefs   = document.getElementById('letter-defs');
+const debugGroup   = document.getElementById('debug-strokes');
+const filledGroup  = document.getElementById('filled-letters');
+const can          = document.getElementById('can');
+const input        = document.getElementById('text-input');
+const playBtn      = document.getElementById('play-btn');
+const debugBtn     = document.getElementById('debug-btn');
+const swSlider     = document.getElementById('sw');
+const swVal        = document.getElementById('sw-val');
+const speedSlider  = document.getElementById('speed');
+const speedVal     = document.getElementById('speed-val');
+const status       = document.getElementById('status');
+
+const FONT_URL    = 'Fonts/GraffitiPlusDisplay-Regular.ttf';
+const TRACES_URL  = 'Letter animations/grft-traced-paths.json';
+const FONT_SIZE   = 280;
+const BASELINE_Y  = 340;
+const VIEW_W      = 1400;
+const VIEW_H      = 500;
+const CAN_W = 320, CAN_H = 320;
+// Slight counter-clockwise tilt so the cap leans left and the body's bottom
+// hangs to the right — like a writer holding the can in their right hand.
+const CAN_ANGLE   = -5;
+// 5× speedup baked in — the slider acts as a fine adjustment around this baseline.
+// Effective stroke speed = SPEED_BASELINE × slider value × recorded speed.
+const SPEED_BASELINE = 5.0;
+
+// Recorder rendered each letter inside a 600x600 SVG, with the GRFT+ font at
+// font-size 500, baseline y=470, text-anchor=middle at x=300. The recorder's
+// stored bbox came from SVG `<text>`.getBBox() which returns the layout box
+// (em-square + line-height), NOT the actual glyph ink bbox — so every letter's
+// stored bbox is identical (~y=-5, h=574.8) regardless of glyph. At playback we
+// recompute the TRUE recorder-time ink bbox via opentype, then convert the
+// stored normalized coords through it so they land on the glyph's real shape.
+const REC_FONT_SIZE = 500;
+const REC_BASELINE  = 470;
+const REC_CENTER_X  = 300;
+
+let font = null;
+let traces = null;       // { version, captureSize, letters: { 'a': { bbox, strokes: [{ points: [{x,y,t,nx,ny}, ...] }] } } }
+let strokeWidth = parseInt(swSlider.value, 10);
+let speedMult   = parseInt(speedSlider.value, 10) / 100; // 1.2 = 1.2× faster
+let showDebug   = false;
+let cancelToken = { aborted: false };
+
+// Virtual clock — when paused, vNow() freezes at the moment of pause and
+// resumes seamlessly afterward (without jumping the animation forward by
+// the wall-clock pause duration). All tick loops use vNow() instead of
+// performance.now() so they all freeze/unfreeze together.
+let isPaused = false;
+let pauseAccumDelta = 0; // ms of total time spent paused
+let pauseStartedAt  = 0;
+
+function vNow() {
+  return isPaused
+    ? (pauseStartedAt - pauseAccumDelta)
+    : (performance.now() - pauseAccumDelta);
+}
+
+function clearStage() {
+  letterDefs.replaceChildren();
+  debugGroup.replaceChildren();
+  filledGroup.replaceChildren();
+  can.style.opacity = 0;
+}
+
+let _maskCounter = 0;
+function makeLetterMask() {
+  const id = `lm-${++_maskCounter}`;
+  const m = document.createElementNS(SVG_NS, 'mask');
+  m.setAttribute('id', id);
+  m.setAttribute('maskUnits', 'userSpaceOnUse');
+  m.setAttribute('x', '0'); m.setAttribute('y', '0');
+  m.setAttribute('width', VIEW_W); m.setAttribute('height', VIEW_H);
+  const bg = document.createElementNS(SVG_NS, 'rect');
+  bg.setAttribute('x', '0'); bg.setAttribute('y', '0');
+  bg.setAttribute('width', VIEW_W); bg.setAttribute('height', VIEW_H);
+  bg.setAttribute('fill', 'black');
+  m.appendChild(bg);
+  letterDefs.appendChild(m);
+  return { id, el: m };
+}
+
+/**
+ * Build per-letter rendering data:
+ *   - filled GRFT+ glyph path (under mask)
+ *   - traced strokes mapped from recorded normalized coords → this glyph's bbox
+ *   - one SVG mask path per stroke (animated by progressing the can along its points)
+ * Returns: [{ ch, strokes: [{ points: [{x,y,t}], maskPath, duration }] }, ...]
+ */
+function buildLetters(text) {
+  if (!font) return [];
+
+  // Total advance for centering
+  let totalWidth = 0;
+  for (const ch of text) {
+    totalWidth += font.charToGlyph(ch).advanceWidth * (FONT_SIZE / font.unitsPerEm);
+  }
+
+  let cursorX = (VIEW_W - totalWidth) / 2;
+  const baselineY = BASELINE_Y;
+  const out = [];
+
+  for (const ch of text) {
+    const glyph   = font.charToGlyph(ch);
+    const advance = glyph.advanceWidth * (FONT_SIZE / font.unitsPerEm);
+
+    if (ch === ' ') { cursorX += advance; continue; }
+
+    // Render the filled GRFT+ glyph, gated by its OWN per-letter mask. The
+    // mask reveals progressively as the can paints — no fading, no overlays.
+    const otPath = glyph.getPath(cursorX, baselineY, FONT_SIZE);
+    const d = otPath.toPathData(2);
+    const letterMask = makeLetterMask();
+    let filled = null;
+    if (d && d.length > 5) {
+      filled = document.createElementNS(SVG_NS, 'path');
+      filled.setAttribute('d', d);
+      filled.setAttribute('mask', `url(#${letterMask.id})`);
+      filledGroup.appendChild(filled);
+
+      // Debug: outline of the actual GRFT+ glyph shape (gray, thin) — shows
+      // exactly where the letter sits so you can compare against the recorded path.
+      const glyphOutline = document.createElementNS(SVG_NS, 'path');
+      glyphOutline.setAttribute('d', d);
+      glyphOutline.setAttribute('fill', 'none');
+      glyphOutline.setAttribute('stroke', '#777');
+      glyphOutline.setAttribute('stroke-width', '1.5');
+      debugGroup.appendChild(glyphOutline);
+
+      // Debug: glyph bbox rectangle (dotted) — shows the target box that
+      // recorded normalized coords get mapped into.
+      const bb = otPath.getBoundingBox();
+      const bboxRect = document.createElementNS(SVG_NS, 'rect');
+      bboxRect.setAttribute('x', bb.x1);
+      bboxRect.setAttribute('y', bb.y1);
+      bboxRect.setAttribute('width', bb.x2 - bb.x1);
+      bboxRect.setAttribute('height', bb.y2 - bb.y1);
+      bboxRect.setAttribute('fill', 'none');
+      bboxRect.setAttribute('stroke', '#aaa');
+      bboxRect.setAttribute('stroke-dasharray', '3 3');
+      bboxRect.setAttribute('stroke-width', '1');
+      debugGroup.appendChild(bboxRect);
+    }
+
+    // Find recorded traces for this character (lowercase only — recorder traced lowercase)
+    const traceData = traces?.letters?.[ch.toLowerCase()];
+    if (!traceData || !traceData.strokes || traceData.strokes.length === 0) {
+      // No recording for this letter — snap-reveal it at the end via its own mask
+      out.push({ ch, strokes: [], fallback: true, advance, cursorX, letterMask, filled });
+      cursorX += advance;
+      continue;
+    }
+
+    // Get this glyph's actual bbox at rendered size
+    const bb = otPath.getBoundingBox();
+    const targetBox = { x: bb.x1, y: bb.y1, w: bb.x2 - bb.x1, h: bb.y2 - bb.y1 };
+
+    // Compute the TRUE recorder-time ink bbox via opentype (matches what the
+    // recorder SHOULD have stored). Position via text-anchor=middle math.
+    const recProvisional = glyph.getPath(0, REC_BASELINE, REC_FONT_SIZE);
+    const rbb = recProvisional.getBoundingBox();
+    const recVisualCenter = (rbb.x1 + rbb.x2) / 2;
+    const recShift = REC_CENTER_X - recVisualCenter;
+    const recTrueBox = {
+      x: rbb.x1 + recShift, y: rbb.y1,
+      w: rbb.x2 - rbb.x1, h: rbb.y2 - rbb.y1
+    };
+
+    // The (wrong) bbox the recorder stored alongside the strokes — used to
+    // reconstruct the absolute trace coords from the normalized values.
+    const recOldBox = traceData.bbox || recTrueBox;
+
+    // Map each recorded stroke to this glyph's bbox, converting through the
+    // corrected recorder-time bbox so traces land on the glyph's ink shape.
+    const strokes = traceData.strokes.map(stroke => {
+      const points = stroke.points.map(p => {
+        // 1) Reconstruct absolute recorder coords from stored nx/ny + old bbox
+        const absX = recOldBox.x + p.nx * recOldBox.width;
+        const absY = recOldBox.y + p.ny * recOldBox.height;
+        // 2) Re-normalize against the TRUE recorder ink bbox
+        const nxFixed = (absX - recTrueBox.x) / recTrueBox.w;
+        const nyFixed = (absY - recTrueBox.y) / recTrueBox.h;
+        // 3) Map into the playback glyph's bbox
+        return {
+          x: targetBox.x + nxFixed * targetBox.w,
+          y: targetBox.y + nyFixed * targetBox.h,
+          t: p.t
+        };
+      });
+
+      const pathD = 'M ' + points.map(pt => `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(' L ');
+
+      // Mask reveal stroke — appended to THIS letter's mask only
+      const maskPath = document.createElementNS(SVG_NS, 'path');
+      maskPath.setAttribute('d', pathD);
+      maskPath.setAttribute('stroke', 'white');
+      maskPath.setAttribute('stroke-width', strokeWidth);
+      maskPath.setAttribute('stroke-linecap', 'round');
+      maskPath.setAttribute('stroke-linejoin', 'round');
+      maskPath.setAttribute('fill', 'none');
+      letterMask.el.appendChild(maskPath);
+
+      // Two-part fix for stroke-linecap:round leakage:
+      //  1. dasharray "len, BIG" (not single `len`) — single-value dasharray
+      //     repeats forever and renders a round-cap blob at every dash
+      //     boundary; the huge gap means only the first dash is on the path.
+      //  2. hiddenOffset = len + strokeWidth (not just len) — when offset
+      //     equals dasharray exactly, the dash's end cap lands on path
+      //     position 0 and the forward half-circle (radius = strokeWidth/2)
+      //     leaks into the start of the letter. Pushing by strokeWidth
+      //     puts the cap fully into negative path space.
+      // Debug: mask-coverage overlay — uses the SAME dasharray/dashoffset as the
+      // mask stroke, so when toggle paths is on, the cyan blob progressively
+      // appears in lock-step with the actual reveal. Lets you visually confirm
+      // the can position and the unmasking are synced frame-by-frame.
+      const dbgCoverage = document.createElementNS(SVG_NS, 'path');
+      dbgCoverage.setAttribute('d', pathD);
+      dbgCoverage.setAttribute('stroke', 'rgba(0,180,200,0.30)');
+      dbgCoverage.setAttribute('stroke-width', strokeWidth);
+      dbgCoverage.setAttribute('stroke-linecap', 'round');
+      dbgCoverage.setAttribute('stroke-linejoin', 'round');
+      dbgCoverage.setAttribute('fill', 'none');
+      debugGroup.appendChild(dbgCoverage);
+
+      const len = maskPath.getTotalLength();
+      const hiddenOffset = len + strokeWidth;
+      maskPath.style.strokeDasharray = `${len} 999999`;
+      maskPath.style.strokeDashoffset = hiddenOffset;
+      // Mirror the dash pattern on the cyan debug overlay so it animates with the mask
+      dbgCoverage.style.strokeDasharray = `${len} 999999`;
+      dbgCoverage.style.strokeDashoffset = hiddenOffset;
+
+      // Debug: recorded centerline (red dashed, thin) — the actual hand path.
+      const dbg = document.createElementNS(SVG_NS, 'path');
+      dbg.setAttribute('d', pathD);
+      dbg.setAttribute('stroke', '#ff2d55');
+      dbg.setAttribute('stroke-width', 2);
+      dbg.setAttribute('stroke-dasharray', '4 3');
+      dbg.setAttribute('fill', 'none');
+      debugGroup.appendChild(dbg);
+
+      // Debug: start marker (green dot) and end marker (orange dot) for stroke direction.
+      const start = document.createElementNS(SVG_NS, 'circle');
+      start.setAttribute('cx', points[0].x);
+      start.setAttribute('cy', points[0].y);
+      start.setAttribute('r', 5);
+      start.setAttribute('fill', '#2ecc71');
+      debugGroup.appendChild(start);
+      const end = document.createElementNS(SVG_NS, 'circle');
+      end.setAttribute('cx', points[points.length - 1].x);
+      end.setAttribute('cy', points[points.length - 1].y);
+      end.setAttribute('r', 5);
+      end.setAttribute('fill', '#e67e22');
+      debugGroup.appendChild(end);
+
+      const duration = Math.max(120, points[points.length - 1].t || 400);
+
+      // Cumulative GEOMETRIC length per point — used to sync mask reveal to
+      // the can's current position along the path (not wall-clock time).
+      // Without this, recorded pauses (where time advances but position
+      // doesn't) cause the mask reveal and the can to drift apart visually.
+      const cumLen = [0];
+      for (let k = 1; k < points.length; k++) {
+        const dx = points[k].x - points[k-1].x;
+        const dy = points[k].y - points[k-1].y;
+        cumLen.push(cumLen[k-1] + Math.hypot(dx, dy));
+      }
+
+      return { points, maskPath, length: len, hiddenOffset, duration, cumLen, debugCoverage: dbgCoverage };
+    });
+
+    out.push({ ch, strokes, advance, cursorX });
+    cursorX += advance;
+  }
+
+  return out;
+}
+
+const sprayTip = document.getElementById('spray-tip');
+
+function placeCan(x, y, scale = 1, mode = 'writing') {
+  const nozzleOffsetX = CAN_W * 0.5;
+  // Target paint at the MIDDLE of the white nozzle/actuator cap (top ~7% of
+  // the can image). 0.04 = 4% from top of image, landing in the center of
+  // the white cap rather than on the yellow band below it.
+  const nozzleOffsetY = CAN_H * 0.04;
+  const tx = x - nozzleOffsetX;
+  const ty = y - nozzleOffsetY;
+  can.setAttribute(
+    'transform',
+    `translate(${tx} ${ty}) rotate(${CAN_ANGLE} ${nozzleOffsetX} ${nozzleOffsetY}) scale(${scale})`
+  );
+  // Can stays at full opacity always — no on/off flashing between writing and
+  // travel. Spray-tip indicator only shows during active writing so you can
+  // still distinguish "painting" from "moving between letters", but the can
+  // itself never fades.
+  can.style.opacity = 1;
+  if (mode === 'writing') {
+    sprayTip.style.display = '';
+    sprayTip.setAttribute('transform', `translate(${x} ${y})`);
+  } else {
+    sprayTip.style.display = 'none';
+  }
+}
+
+/* Simple tween that runs on rAF and respects cancellation. */
+function tween({ duration, from = 0, to = 1, easing = 'easeOutCubic', onUpdate, token }) {
+  return new Promise(resolve => {
+    const start = vNow();
+    const ease = EASINGS[easing] || EASINGS.linear;
+    function tick() {
+      if (token?.aborted) { resolve(); return; }
+      const elapsed = vNow() - start;
+      const t = Math.min(1, elapsed / duration);
+      const eased = ease(t);
+      onUpdate(from + (to - from) * eased, eased);
+      if (t >= 1) resolve();
+      else requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+const EASINGS = {
+  linear:      t => t,
+  easeOutCubic:t => 1 - Math.pow(1 - t, 3),
+  easeInCubic: t => t * t * t,
+  easeInOut:   t => t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2
+};
+
+/* Play a single recorded stroke: ride the points on their original timeline (scaled by speedMult)
+   while simultaneously progressing the mask reveal. */
+function playStroke(stroke, token) {
+  const pts = stroke.points;
+  const total = stroke.duration / (speedMult * SPEED_BASELINE);
+  const hiddenOffset = stroke.hiddenOffset;
+  const len = stroke.length;
+  const sw = parseFloat(stroke.maskPath.getAttribute('stroke-width')) || strokeWidth;
+  const cumLen = stroke.cumLen;
+  const lastCum = cumLen[cumLen.length - 1] || 1;
+  const lastT = pts[pts.length - 1].t;
+  return new Promise(resolve => {
+    const start = vNow();
+    function tick() {
+      if (token?.aborted) { resolve(); return; }
+      const elapsed = vNow() - start;
+      const tNorm = Math.min(1, elapsed / total);
+      const targetT = lastT * tNorm;
+
+      // Find the segment containing targetT, then interpolate smoothly
+      // between pts[i] and pts[i+1]. This avoids the discrete frame-by-frame
+      // jumping that reads as jitter at high playback speeds.
+      let i = 0;
+      while (i < pts.length - 1 && pts[i + 1].t <= targetT) i++;
+      let x, y, segCumLen;
+      if (i < pts.length - 1) {
+        const p0 = pts[i], p1 = pts[i + 1];
+        const segSpan = p1.t - p0.t;
+        const segFrac = segSpan > 0 ? (targetT - p0.t) / segSpan : 0;
+        x = p0.x + (p1.x - p0.x) * segFrac;
+        y = p0.y + (p1.y - p0.y) * segFrac;
+        segCumLen = cumLen[i] + (cumLen[i + 1] - cumLen[i]) * segFrac;
+      } else {
+        x = pts[i].x; y = pts[i].y; segCumLen = cumLen[i];
+      }
+
+      placeCan(x, y);
+      const frac = segCumLen / lastCum;
+      const off = frac > 0 ? (len * (1 - frac) + sw / 2) : hiddenOffset;
+      stroke.maskPath.style.strokeDashoffset = off.toFixed(2);
+      if (stroke.debugCoverage) stroke.debugCoverage.style.strokeDashoffset = off.toFixed(2);
+
+      if (tNorm >= 1) {
+        stroke.maskPath.style.strokeDashoffset = 0;
+        if (stroke.debugCoverage) stroke.debugCoverage.style.strokeDashoffset = 0;
+        placeCan(pts[pts.length - 1].x, pts[pts.length - 1].y);
+        resolve();
+      } else {
+        requestAnimationFrame(tick);
+      }
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+/* Straight-line travel between strokes — no arc lift, no opacity change. */
+function hopCan(fromX, fromY, toX, toY, duration, token) {
+  return tween({
+    duration, token, easing: 'easeInOut',
+    onUpdate: (_, t) => {
+      const x = fromX + (toX - fromX) * t;
+      const y = fromY + (toY - fromY) * t;
+      placeCan(x, y, 1, 'travel');
+    }
+  });
+}
+
+async function playSequence(text) {
+  if (!font || !traces) return;
+  cancelToken.aborted = true;
+  cancelToken = { aborted: false };
+  const token = cancelToken;
+
+  clearStage();
+  const letters = buildLetters(text);
+  const animated = letters.filter(l => l.strokes.length > 0);
+  if (animated.length === 0) {
+    status.textContent = 'No recorded traces for any letter in this text.';
+    return;
+  }
+
+  // ── INTRO ── can flies in from off-screen, lands above first stroke start
+  const first = animated[0].strokes[0];
+  const landX = first.points[0].x;
+  const landY = first.points[0].y;
+
+  placeCan(-300, -200, 1.1, 'travel');
+  can.style.opacity = 1;
+
+  await tween({
+    duration: 150, token,
+    onUpdate: (_, t) => {
+      const x = -300 + (landX - (-300)) * t;
+      const y = -200 + (landY - (-200)) * t;
+      const s = 1.1 - 0.1 * t;
+      placeCan(x, y, s, 'travel');
+    }
+  });
+
+  // Shake (3 quick wobbles)
+  for (let i = 0; i < 3; i++) {
+    if (token.aborted) return;
+    await tween({
+      duration: 18, token,
+      onUpdate: (_, t) => placeCan(landX + Math.sin(t * Math.PI) * 6, landY, 1, 'travel')
+    });
+    await tween({
+      duration: 18, token,
+      onUpdate: (_, t) => placeCan(landX - Math.sin(t * Math.PI) * 6, landY, 1, 'travel')
+    });
+  }
+
+  // ── LETTERS ──
+  for (let li = 0; li < animated.length; li++) {
+    if (token.aborted) return;
+    const letter = animated[li];
+
+    for (let si = 0; si < letter.strokes.length; si++) {
+      if (token.aborted) return;
+      const stroke = letter.strokes[si];
+
+      // Hop to the start of this stroke if we're not already there
+      const canPos = currentCanPos();
+      const dx = stroke.points[0].x - canPos.x;
+      const dy = stroke.points[0].y - canPos.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 20) {
+        const hopDur = Math.max(35, Math.min(90, dist * 0.11));
+        await hopCan(canPos.x, canPos.y, stroke.points[0].x, stroke.points[0].y, hopDur, token);
+      }
+
+      // Play the stroke (reveal + can motion in sync)
+      await playStroke(stroke, token);
+    }
+  }
+
+  // Snap-reveal any fallback letters (no trace) — add a full-cover rect to that letter's mask
+  for (const l of letters) {
+    if (l.strokes.length === 0 && l.filled && l.letterMask) {
+      const bb = l.filled.getBBox();
+      const cover = document.createElementNS(SVG_NS, 'rect');
+      cover.setAttribute('x', bb.x);
+      cover.setAttribute('y', bb.y);
+      cover.setAttribute('width', bb.width);
+      cover.setAttribute('height', bb.height);
+      cover.setAttribute('fill', 'white');
+      l.letterMask.el.appendChild(cover);
+    }
+  }
+
+  // ── OUTRO ──
+  const last = animated[animated.length - 1];
+  const lastStroke = last.strokes[last.strokes.length - 1];
+  const endPt = lastStroke.points[lastStroke.points.length - 1];
+  await tween({
+    duration: 200, easing: 'easeInCubic', token,
+    onUpdate: (_, t) => {
+      const x = endPt.x + 200 * t;
+      const y = endPt.y - 300 * t;
+      const s = 1 + 0.05 * t;
+      placeCan(x, y, s, 'travel');
+      can.style.opacity = 1 - t;
+    }
+  });
+}
+
+function currentCanPos() {
+  // Decode the current translate(x y) from can's transform
+  const tr = can.getAttribute('transform') || '';
+  const m = tr.match(/translate\(([-\d.]+)\s+([-\d.]+)\)/);
+  if (!m) return { x: 0, y: 0 };
+  return {
+    x: parseFloat(m[1]) + CAN_W * 0.5,
+    y: parseFloat(m[2]) + CAN_H * 0.12
+  };
+}
+
+async function loadFont() {
+  return new Promise((resolve, reject) => {
+    opentype.load(FONT_URL, (err, f) => err ? reject(err) : resolve(f));
+  });
+}
+
+async function loadTraces() {
+  const res = await fetch(TRACES_URL);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+/* ── Wiring ── */
+playBtn.addEventListener('click', () => playSequence(input.value || 'since 2008'));
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') playSequence(input.value || 'since 2008');
+});
+debugBtn.addEventListener('click', () => {
+  showDebug = !showDebug;
+  debugGroup.style.display = showDebug ? 'block' : 'none';
+});
+
+const pauseBtn = document.getElementById('pause-btn');
+pauseBtn.addEventListener('click', () => {
+  if (!isPaused) {
+    pauseStartedAt = performance.now();
+    isPaused = true;
+    pauseBtn.textContent = 'Resume';
+  } else {
+    pauseAccumDelta += performance.now() - pauseStartedAt;
+    isPaused = false;
+    pauseBtn.textContent = 'Pause';
+  }
+});
+
+const hideCanBtn = document.getElementById('hide-can-btn');
+hideCanBtn.addEventListener('click', () => {
+  const hidden = can.style.visibility === 'hidden';
+  can.style.visibility = hidden ? '' : 'hidden';
+  document.getElementById('spray-tip').style.visibility = hidden ? '' : 'hidden';
+  hideCanBtn.textContent = hidden ? 'Hide can' : 'Show can';
+});
+swSlider.addEventListener('input', () => {
+  strokeWidth = parseInt(swSlider.value, 10);
+  swVal.textContent = strokeWidth;
+  // Live-update all existing mask strokes AND their cyan debug counterparts so
+  // the visual change is immediate — without waiting for the next Replay.
+  document.querySelectorAll('#letter-defs mask path').forEach(p => {
+    p.setAttribute('stroke-width', strokeWidth);
+  });
+  document.querySelectorAll('#debug-strokes path').forEach(p => {
+    const s = p.getAttribute('stroke') || '';
+    if (s.startsWith('rgba(0,180,200')) p.setAttribute('stroke-width', strokeWidth);
+  });
+});
+speedSlider.addEventListener('input', () => {
+  speedMult = parseInt(speedSlider.value, 10) / 100;
+  speedVal.textContent = `${speedMult.toFixed(1)}×`;
+});
+
+/* ── Init ── */
+(async () => {
+  try {
+    status.textContent = 'Loading font and traces…';
+    [font, traces] = await Promise.all([loadFont(), loadTraces()]);
+    const tracedCount = Object.keys(traces.letters || {}).length;
+    status.textContent = `Ready · font loaded · ${tracedCount} traced letters`;
+    playSequence('since 2008');
+  } catch (e) {
+    console.error(e);
+    status.textContent = `Init failed: ${e.message}`;
+  }
+})();
+</script>
+
+</body>
+</html>

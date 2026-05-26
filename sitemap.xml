@@ -161,19 +161,13 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://graffitiplus.io/gal/complexcon-hong-kong-2025</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://graffitiplus.io/gal/chanel-soho-2010</loc>
-    <lastmod>2026-05-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://graffitiplus.io/gal/designercon-3d-models</loc>
-    <lastmod>2026-05-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://graffitiplus.io/gal/designercon-ar-characters</loc>
     <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -228,12 +222,6 @@
   </url>
   <url>
     <loc>https://graffitiplus.io/gal/nba-all-star-2025</loc>
-    <lastmod>2026-05-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://graffitiplus.io/gal/netflix-custom-assets</loc>
     <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

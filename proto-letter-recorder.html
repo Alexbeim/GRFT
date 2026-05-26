@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GRFT+ Letter Path Recorder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+
+<style>
+  @font-face {
+    font-family: "GraffitiPlus Display";
+    src: url("Fonts/GraffitiPlusDisplay-Regular.woff2?v=3") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+  }
+
+  :root {
+    --obsidian: #000d10;
+    --canvas:   #ffffff;
+    --accent:   #FEBD17;
+    --trace:    #ff2d55;
+    --active:   #00a3ff;
+    --start:    #2ecc71;
+    --end:      #e74c3c;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; font-family: "Inter", system-ui, sans-serif; color: var(--obsidian); background: #fafafa; }
+
+  .page {
+    min-height: 100vh;
+    display: grid;
+    gap: 18px;
+    padding: 24px 28px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+  header p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    opacity: 0.65;
+    line-height: 1.45;
+  }
+
+  .letter-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 14px 20px;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 14px;
+  }
+  .letter-nav button {
+    width: 44px; height: 44px;
+    border-radius: 999px;
+    border: 1px solid #ddd;
+    background: white;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .letter-nav .char-block { text-align: center; min-width: 100px; }
+  .letter-nav .char {
+    font-family: "GraffitiPlus Display", sans-serif;
+    font-size: 64px;
+    line-height: 1;
+    color: var(--obsidian);
+  }
+  .letter-nav .meta {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.55;
+    margin-top: 6px;
+  }
+
+  .tracer-wrap {
+    display: grid;
+    place-items: center;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .tracer {
+    background: white;
+    border: 1px dashed #ddd;
+    border-radius: 10px;
+    cursor: crosshair;
+    touch-action: none;
+    user-select: none;
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .tracer.idle   { cursor: not-allowed; background: #fafafa; }
+  .tracer.armed  { border-color: var(--end); border-style: solid; box-shadow: 0 0 0 4px rgba(231,76,60,0.08); }
+
+  .ref-letter {
+    font-family: "GraffitiPlus Display", sans-serif;
+    fill: var(--obsidian);
+    opacity: 0.10;
+    pointer-events: none;
+  }
+  .bbox {
+    fill: none;
+    stroke: #ddd;
+    stroke-dasharray: 4 4;
+    stroke-width: 1;
+    pointer-events: none;
+  }
+  .recorded {
+    fill: none;
+    stroke: var(--trace);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  .active {
+    fill: none;
+    stroke: var(--active);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  .dot { pointer-events: none; }
+  .dot.start { fill: var(--start); }
+  .dot.end   { fill: var(--end); }
+  .stroke-label {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    fill: #555;
+    pointer-events: none;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .controls button {
+    padding: 10px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .controls button.primary {
+    background: var(--obsidian);
+    color: white;
+    border-color: var(--obsidian);
+  }
+  .controls button.danger {
+    color: var(--end);
+    border-color: var(--end);
+  }
+  .controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .alphabet-grid {
+    display: grid;
+    grid-template-columns: repeat(13, 1fr);
+    gap: 4px;
+    padding: 14px;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 14px;
+  }
+  .alphabet-grid button {
+    aspect-ratio: 1;
+    border: 1px solid #e5e5e7;
+    background: white;
+    font-family: "GraffitiPlus Display", sans-serif;
+    font-size: 22px;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    line-height: 1;
+    position: relative;
+  }
+  .alphabet-grid button.has-data {
+    background: #e8f7e9;
+    border-color: #4caf50;
+  }
+  .alphabet-grid button.current {
+    background: var(--accent);
+    border-color: var(--obsidian);
+    border-width: 2px;
+  }
+  .alphabet-grid button .count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-family: ui-monospace, monospace;
+    font-size: 9px;
+    background: #2ecc71;
+    color: white;
+    border-radius: 999px;
+    min-width: 14px;
+    height: 14px;
+    padding: 0 4px;
+    display: grid;
+    place-items: center;
+  }
+  .alphabet-grid .group-label {
+    grid-column: 1 / -1;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.55;
+    padding-top: 6px;
+  }
+
+  .status {
+    font-size: 12px;
+    opacity: 0.6;
+    text-align: center;
+    margin: 0;
+  }
+  .legend {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    font-size: 11px;
+    opacity: 0.7;
+    margin: -4px 0 0;
+  }
+  .legend .swatch {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 999px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header>
+    <h1>GRFT+ Letter Path Recorder</h1>
+    <p>Trace each letter the way you'd write it with a spray can. Multiple strokes per letter are fine
+       (lift between i-stem and dot, two loops for 8, etc.). The path you draw becomes the can's motion at
+       playback. Order matters — start where a writer would start.</p>
+  </header>
+
+  <div class="letter-nav">
+    <button id="prev" title="Previous letter (←)">←</button>
+    <div class="char-block">
+      <div class="char" id="current-char">s</div>
+      <div class="meta" id="meta">no strokes yet</div>
+    </div>
+    <button id="next" title="Next letter (→)">→</button>
+  </div>
+
+  <div class="tracer-wrap">
+    <svg id="tracer" class="tracer" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet">
+      <rect id="bbox-rect" class="bbox" />
+      <text id="ref-letter" class="ref-letter" x="300" y="470" text-anchor="middle" font-size="500">s</text>
+      <g id="recorded-strokes"></g>
+      <g id="active-stroke"></g>
+      <g id="markers"></g>
+    </svg>
+  </div>
+
+  <p class="legend">
+    <span><span class="swatch" style="background:var(--start)"></span>start</span>
+    <span><span class="swatch" style="background:var(--end)"></span>end</span>
+    <span><span class="swatch" style="background:var(--trace)"></span>recorded</span>
+    <span><span class="swatch" style="background:var(--active)"></span>active</span>
+  </p>
+
+  <div class="controls" id="controls-idle">
+    <button id="start" class="primary">▶ Start Tracing</button>
+    <button id="preview-existing">▶ Preview Saved</button>
+    <button id="skip">Skip →</button>
+  </div>
+
+  <div class="controls" id="controls-recording" style="display:none;">
+    <button id="redo" class="danger">↺ Redo</button>
+    <button id="preview">▶ Preview</button>
+    <button id="save" class="primary">✓ Save & Continue →</button>
+  </div>
+
+  <div class="controls" style="margin-top: 4px;">
+    <button id="export">Export JSON</button>
+    <button id="import">Import JSON</button>
+    <input type="file" id="import-file" accept="application/json" style="display:none;">
+  </div>
+
+  <div class="alphabet-grid" id="alphabet-grid"></div>
+
+  <p class="status" id="status">Loading font…</p>
+
+</div>
+
+<script>
+const FONT_URL    = 'Fonts/GraffitiPlusDisplay-Regular.woff2?v=3';
+const STORAGE_KEY = 'grft-traced-paths-v1';
+const VIEW_W = 600, VIEW_H = 600;
+
+// Priority order: "since 2008" letters first, then the rest of the alphabet & digits
+const PRIORITY = ['s','i','n','c','e','2','0','8'];
+const REST = []
+  .concat('abdfghjklmopqrtuvwxyz'.split(''))
+  .concat('13456789'.split(''));
+const ALL = PRIORITY.concat(REST);
+
+let recordings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let currentIdx = 0;
+let state = 'idle'; // 'idle' | 'recording'
+let isDrawing = false;
+let currentStrokePoints = [];
+let strokeStartTime = 0;
+let activePathEl = null;
+let previewing = false;
+
+const tracerEl       = document.getElementById('tracer');
+const refLetterEl    = document.getElementById('ref-letter');
+const bboxEl         = document.getElementById('bbox-rect');
+const recordedEl     = document.getElementById('recorded-strokes');
+const activeEl       = document.getElementById('active-stroke');
+const markersEl      = document.getElementById('markers');
+const currentCharEl  = document.getElementById('current-char');
+const metaEl         = document.getElementById('meta');
+const statusEl       = document.getElementById('status');
+const gridEl         = document.getElementById('alphabet-grid');
+
+function currentChar() { return ALL[currentIdx]; }
+
+function showLetter() {
+  const ch = currentChar();
+  currentCharEl.textContent = ch;
+  refLetterEl.textContent = ch;
+
+  // Measure bbox after the text element has rendered
+  requestAnimationFrame(() => {
+    try {
+      const bb = refLetterEl.getBBox();
+      bboxEl.setAttribute('x', bb.x);
+      bboxEl.setAttribute('y', bb.y);
+      bboxEl.setAttribute('width', bb.width);
+      bboxEl.setAttribute('height', bb.height);
+    } catch (e) {}
+  });
+
+  setState('idle');
+  redrawRecorded();
+  updateMeta();
+  updateGrid();
+}
+
+function setState(next) {
+  state = next;
+  const idleCtrls = document.getElementById('controls-idle');
+  const recCtrls  = document.getElementById('controls-recording');
+  const startBtn  = document.getElementById('start');
+  const previewExisting = document.getElementById('preview-existing');
+  const ch = currentChar();
+  const hasData = !!recordings[ch];
+
+  if (state === 'idle') {
+    tracerEl.classList.add('idle');
+    tracerEl.classList.remove('armed');
+    idleCtrls.style.display = 'flex';
+    recCtrls.style.display  = 'none';
+    startBtn.textContent = hasData ? '↺ Re-record' : '▶ Start Tracing';
+    previewExisting.style.display = hasData ? '' : 'none';
+    statusEl.textContent = hasData
+      ? `"${ch}" already has ${recordings[ch].strokes.length} stroke${recordings[ch].strokes.length>1?'s':''}. Re-record to replace, or Skip.`
+      : `Ready for "${ch}". Press Start when you're ready to trace.`;
+  } else if (state === 'recording') {
+    tracerEl.classList.remove('idle');
+    tracerEl.classList.add('armed');
+    idleCtrls.style.display = 'none';
+    recCtrls.style.display  = 'flex';
+    statusEl.textContent = `Recording "${ch}" — draw it now. Multi-stroke letters: lift and draw again. ↺ Redo to start over.`;
+  }
+}
+
+function redrawRecorded() {
+  recordedEl.replaceChildren();
+  markersEl.replaceChildren();
+  activeEl.replaceChildren();
+
+  const ch = currentChar();
+  const data = recordings[ch];
+  if (!data) return;
+
+  data.strokes.forEach((stroke, i) => {
+    const pts = stroke.points;
+    if (pts.length < 2) return;
+
+    const d = 'M ' + pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('class', 'recorded');
+    recordedEl.appendChild(path);
+
+    const start = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    start.setAttribute('cx', pts[0].x);
+    start.setAttribute('cy', pts[0].y);
+    start.setAttribute('r', 6);
+    start.setAttribute('class', 'dot start');
+    markersEl.appendChild(start);
+
+    const end = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    end.setAttribute('cx', pts[pts.length-1].x);
+    end.setAttribute('cy', pts[pts.length-1].y);
+    end.setAttribute('r', 6);
+    end.setAttribute('class', 'dot end');
+    markersEl.appendChild(end);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', pts[0].x + 10);
+    label.setAttribute('y', pts[0].y - 8);
+    label.setAttribute('class', 'stroke-label');
+    label.textContent = `#${i+1}`;
+    markersEl.appendChild(label);
+  });
+}
+
+function updateMeta() {
+  const ch = currentChar();
+  const data = recordings[ch];
+  if (!data || data.strokes.length === 0) {
+    metaEl.textContent = 'no strokes yet';
+  } else {
+    const totalPts = data.strokes.reduce((s, st) => s + st.points.length, 0);
+    const dur = data.strokes.reduce((s, st) => s + (st.points[st.points.length-1]?.t || 0), 0);
+    metaEl.textContent = `${data.strokes.length} stroke${data.strokes.length>1?'s':''} · ${totalPts} pts · ${Math.round(dur)}ms`;
+  }
+}
+
+function buildGrid() {
+  gridEl.replaceChildren();
+
+  const priorityLabel = document.createElement('div');
+  priorityLabel.className = 'group-label';
+  priorityLabel.textContent = '"since 2008" — start here';
+  gridEl.appendChild(priorityLabel);
+
+  PRIORITY.forEach((ch, i) => addGridBtn(ch, i));
+
+  const restLabel = document.createElement('div');
+  restLabel.className = 'group-label';
+  restLabel.textContent = 'rest of alphabet (optional, for any text)';
+  gridEl.appendChild(restLabel);
+
+  REST.forEach((ch, i) => addGridBtn(ch, i + PRIORITY.length));
+}
+
+function addGridBtn(ch, i) {
+  const btn = document.createElement('button');
+  btn.textContent = ch;
+  if (recordings[ch]) btn.classList.add('has-data');
+  if (i === currentIdx) btn.classList.add('current');
+  if (recordings[ch]) {
+    const c = document.createElement('span');
+    c.className = 'count';
+    c.textContent = recordings[ch].strokes.length;
+    btn.appendChild(c);
+  }
+  btn.addEventListener('click', () => { currentIdx = i; showLetter(); });
+  gridEl.appendChild(btn);
+}
+
+function updateGrid() { buildGrid(); }
+
+function svgPoint(evt) {
+  const rect = tracerEl.getBoundingClientRect();
+  const x = (evt.clientX - rect.left) * (VIEW_W / rect.width);
+  const y = (evt.clientY - rect.top)  * (VIEW_H / rect.height);
+  return { x, y };
+}
+
+function startStroke(evt) {
+  if (previewing || state !== 'recording') return;
+  evt.preventDefault();
+  tracerEl.setPointerCapture?.(evt.pointerId);
+  isDrawing = true;
+  currentStrokePoints = [];
+  strokeStartTime = performance.now();
+  const p = svgPoint(evt);
+  currentStrokePoints.push({ x: p.x, y: p.y, t: 0 });
+  activePathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  activePathEl.setAttribute('class', 'active');
+  activeEl.appendChild(activePathEl);
+  updateActivePath();
+}
+
+function moveStroke(evt) {
+  if (!isDrawing) return;
+  evt.preventDefault();
+  const p = svgPoint(evt);
+  currentStrokePoints.push({ x: p.x, y: p.y, t: performance.now() - strokeStartTime });
+  updateActivePath();
+}
+
+function endStroke(evt) {
+  if (!isDrawing) return;
+  evt.preventDefault();
+  isDrawing = false;
+  if (currentStrokePoints.length < 2) {
+    activeEl.replaceChildren();
+    return;
+  }
+  const ch = currentChar();
+  if (!recordings[ch]) recordings[ch] = { strokes: [] };
+  recordings[ch].strokes.push({ points: currentStrokePoints });
+  saveToStorage();
+  currentStrokePoints = [];
+  activeEl.replaceChildren();
+  redrawRecorded();
+  updateMeta();
+  updateGrid();
+}
+
+function updateActivePath() {
+  if (currentStrokePoints.length < 2 || !activePathEl) return;
+  const d = 'M ' + currentStrokePoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ');
+  activePathEl.setAttribute('d', d);
+}
+
+function saveToStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(recordings));
+}
+
+function startRecording() {
+  const ch = currentChar();
+  // Wipe any existing strokes for a fresh recording
+  delete recordings[ch];
+  saveToStorage();
+  redrawRecorded();
+  updateMeta();
+  updateGrid();
+  setState('recording');
+}
+
+function redoRecording() {
+  const ch = currentChar();
+  delete recordings[ch];
+  saveToStorage();
+  redrawRecorded();
+  updateMeta();
+  updateGrid();
+  // Stay in recording state — user can immediately try again
+  statusEl.textContent = `Cleared. Trace "${ch}" again.`;
+}
+
+function saveAndNext() {
+  currentIdx = (currentIdx + 1) % ALL.length;
+  showLetter();
+}
+
+function skip() {
+  currentIdx = (currentIdx + 1) % ALL.length;
+  showLetter();
+}
+
+function prev() {
+  currentIdx = (currentIdx - 1 + ALL.length) % ALL.length;
+  showLetter();
+}
+
+/* Preview: animate the can's would-be motion using the recorded points & timestamps. */
+async function previewPlayback() {
+  const ch = currentChar();
+  const data = recordings[ch];
+  if (!data || data.strokes.length === 0) return;
+
+  previewing = true;
+  document.getElementById('preview').disabled = true;
+  document.getElementById('preview').textContent = '■ Stop';
+
+  // Hide recorded strokes, replay them progressively
+  recordedEl.style.display = 'none';
+  markersEl.style.display = 'none';
+
+  // Create replay paths
+  const replayGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  tracerEl.appendChild(replayGroup);
+
+  const cursor = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  cursor.setAttribute('r', 14);
+  cursor.setAttribute('fill', 'var(--accent, #FEBD17)');
+  cursor.setAttribute('stroke', 'var(--obsidian, #000)');
+  cursor.setAttribute('stroke-width', 2);
+  tracerEl.appendChild(cursor);
+
+  for (const stroke of data.strokes) {
+    const pts = stroke.points;
+    if (pts.length < 2) continue;
+
+    const replayPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    replayPath.setAttribute('class', 'recorded');
+    replayGroup.appendChild(replayPath);
+
+    const startT = performance.now();
+    const totalT = pts[pts.length-1].t;
+    let i = 0;
+
+    await new Promise(resolve => {
+      function tick() {
+        const elapsed = performance.now() - startT;
+        while (i < pts.length - 1 && pts[i+1].t <= elapsed) i++;
+        const cur = pts[i];
+        cursor.setAttribute('cx', cur.x);
+        cursor.setAttribute('cy', cur.y);
+        const d = 'M ' + pts.slice(0, i+1).map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ');
+        replayPath.setAttribute('d', d);
+        if (elapsed >= totalT) {
+          const dFull = 'M ' + pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ');
+          replayPath.setAttribute('d', dFull);
+          resolve();
+        } else requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+
+    // Brief pause between strokes
+    await new Promise(r => setTimeout(r, 200));
+  }
+
+  // Cleanup
+  await new Promise(r => setTimeout(r, 600));
+  replayGroup.remove();
+  cursor.remove();
+  recordedEl.style.display = '';
+  markersEl.style.display = '';
+  previewing = false;
+  document.getElementById('preview').disabled = false;
+  document.getElementById('preview').textContent = '▶ Preview';
+}
+
+/* Export — also include normalized form for player consumption */
+function exportJSON() {
+  const out = {
+    version: 1,
+    captureSize: { width: VIEW_W, height: VIEW_H, fontSize: 500, baselineY: 470 },
+    letters: {}
+  };
+
+  for (const ch of Object.keys(recordings)) {
+    // Re-measure each letter's GRFT+ bbox so we can include normalized coords
+    refLetterEl.textContent = ch;
+    let bb = null;
+    try { bb = refLetterEl.getBBox(); } catch (e) {}
+    refLetterEl.textContent = currentChar();
+
+    if (!bb || bb.width === 0 || bb.height === 0) {
+      out.letters[ch] = { ...recordings[ch], bbox: null };
+      continue;
+    }
+
+    const strokes = recordings[ch].strokes.map(s => ({
+      points: s.points.map(p => ({
+        x: p.x, y: p.y, t: p.t,
+        nx: (p.x - bb.x) / bb.width,
+        ny: (p.y - bb.y) / bb.height
+      }))
+    }));
+
+    out.letters[ch] = {
+      bbox: { x: bb.x, y: bb.y, width: bb.width, height: bb.height },
+      strokes
+    };
+  }
+
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'grft-traced-paths.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  statusEl.textContent = `Exported ${Object.keys(out.letters).length} letters.`;
+}
+
+function importJSON(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      // Accept either { letters: {...} } or raw { 'a': {strokes: ...} }
+      const letters = data.letters || data;
+      // Strip computed normalized fields, keep just x/y/t
+      const stripped = {};
+      for (const ch of Object.keys(letters)) {
+        stripped[ch] = {
+          strokes: letters[ch].strokes.map(s => ({
+            points: s.points.map(p => ({ x: p.x, y: p.y, t: p.t }))
+          }))
+        };
+      }
+      recordings = stripped;
+      saveToStorage();
+      showLetter();
+      statusEl.textContent = `Imported ${Object.keys(recordings).length} letters.`;
+    } catch (err) {
+      statusEl.textContent = `Import failed: ${err.message}`;
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ── Wiring ── */
+tracerEl.addEventListener('pointerdown', startStroke);
+tracerEl.addEventListener('pointermove', moveStroke);
+tracerEl.addEventListener('pointerup', endStroke);
+tracerEl.addEventListener('pointercancel', endStroke);
+
+document.getElementById('prev').addEventListener('click', prev);
+document.getElementById('next').addEventListener('click', saveAndNext);
+document.getElementById('start').addEventListener('click', startRecording);
+document.getElementById('preview-existing').addEventListener('click', previewPlayback);
+document.getElementById('redo').addEventListener('click', redoRecording);
+document.getElementById('save').addEventListener('click', () => {
+  const ch = currentChar();
+  if (!recordings[ch] || recordings[ch].strokes.length === 0) {
+    statusEl.textContent = `Nothing recorded for "${ch}" — draw something first or press Skip.`;
+    return;
+  }
+  saveAndNext();
+});
+document.getElementById('skip').addEventListener('click', skip);
+document.getElementById('preview').addEventListener('click', previewPlayback);
+document.getElementById('export').addEventListener('click', exportJSON);
+document.getElementById('import').addEventListener('click', () => document.getElementById('import-file').click());
+document.getElementById('import-file').addEventListener('change', e => {
+  if (e.target.files[0]) importJSON(e.target.files[0]);
+  e.target.value = '';
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft')  { prev(); e.preventDefault(); }
+  if (e.key === 'ArrowRight') {
+    if (state === 'recording' && recordings[currentChar()]) saveAndNext();
+    else skip();
+    e.preventDefault();
+  }
+  if (e.key === 'Enter') {
+    if (state === 'idle') startRecording();
+    else if (recordings[currentChar()]) saveAndNext();
+    e.preventDefault();
+  }
+  if (e.key === 'z' || e.key === 'Z') {
+    if (state === 'recording') redoRecording();
+    e.preventDefault();
+  }
+  if (e.key === ' ') { previewPlayback(); e.preventDefault(); }
+});
+
+document.fonts.ready.then(() => {
+  statusEl.textContent = `Ready. ${Object.keys(recordings).length}/${ALL.length} letters traced. Trace where you'd start a real S — top-right curve down to bottom-left.`;
+  showLetter();
+});
+</script>
+
+</body>
+</html>
+</parameter>
