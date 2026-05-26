@@ -2838,6 +2838,8 @@ footer {
   background: var(--accent);
   color: var(--obsidian);
 }
+/* `display: grid` above would otherwise override the UA `[hidden]` rule. */
+.gallery-search-clear[hidden] { display: none; }
 
 /* Empty-state shown when a search query yields zero matches. */
 .gallery-empty {
@@ -2927,12 +2929,38 @@ footer {
   cursor: pointer;
   color: rgba(255,255,255,0.5);
   transition: background 0.15s ease, color 0.15s ease;
+  /* Mobile Safari: ensure tap is registered immediately and the system tap
+     highlight doesn't visually swallow the press. */
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  touch-action: manipulation;
 }
-.view-btn svg { fill: currentColor; }
+.view-btn svg {
+  fill: currentColor;
+  /* Make sure the inner SVG never blocks touches from reaching the button —
+     belt-and-suspenders for mobile Safari quirks with nested SVG hit-testing. */
+  pointer-events: none;
+}
 .view-btn:hover { color: var(--canvas); }
 .view-btn.active {
   background: var(--accent);
   color: var(--obsidian);
+}
+
+/* On mobile the icon-only toggle is too small to reliably tap (Apple HIG
+   recommends a 44×44 minimum). Bump the buttons up and slightly widen the
+   pill so they're easier to find and hit. */
+@media (max-width: 720px) {
+  .gallery-view-toggle {
+    padding: 4px;
+  }
+  .view-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .view-btn svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 /* ── GALLERY LIST VIEW — minimal directory layout, image reveal on hover ──

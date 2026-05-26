@@ -12,6 +12,7 @@ MAP=(
   "designercon-3d-models|designercon_2024_(3d_model_graffiti_+_ar_experience) (1080p).mp4"
   "disney-comiccon-toronto|disney_daredevil_at_comiccon_toronto_2025 (1080p).mp4"
   "espolon-la|espolon_la (1080p).mp4"
+  "espolon-complexcon-las-vegas-2024|espolón_at_complexcon_las_vegas_2024_v1 (1080p).mp4"
   "f1-las-vegas-grand-prix|formula_1_las_vegas_grand_prix_2025 (1080p).mp4"
   "ganga-tattoo-spain|ganga_tattoo_academy (1080p).mp4"
   "hyundai-seoul|hyundai_3d_graffiti_wall_at_seoul_mobility_show (1080p).mp4"

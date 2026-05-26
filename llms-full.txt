@@ -138,7 +138,7 @@ Modular, road-tested, deployable globally. A proven interactive technology platf
 
 ## Selected Clients
 
-Nike · Jordan · Samsung · Porsche · Google · Disney · Louis Vuitton · Chanel · Hennessy · IBM · Modelo · Williams Racing F1 · Netflix · Hyundai · Dell · Mattel · Ford · Kia · Lululemon · Miss Dior · Espolòn · NASCAR · Formula 1 · NBA · NFL · NHL · MLB · Jabil · SHiFT
+Nike · Jordan · Samsung · Porsche · Google · Disney · Louis Vuitton · Chanel · Hennessy · IBM · Modelo · Williams Racing F1 · Netflix · Hyundai · Dell · Mattel · Ford · Kia · Lululemon · Miss Dior · Espolón · NASCAR · Formula 1 · NBA · NFL · NHL · MLB · Jabil · SHiFT
 
 ---
 
@@ -191,7 +191,7 @@ A multi-year project to rebuild the core platform from the ground up. Supported 
 - [Mattel — LA](https://graffitiplus.io/gal/mattel-la)
 - [Jabil — OFC LA](https://graffitiplus.io/gal/jabil-ofc-la)
 - [SHiFT Midtown — NYC](https://graffitiplus.io/gal/shift-midtown-nyc)
-- [Espolòn — LA](https://graffitiplus.io/gal/espolon-la)
+- [Espolón — LA](https://graffitiplus.io/gal/espolon-la)
 - [Modelo — NACS](https://graffitiplus.io/gal/modelo-nacs)
 - [Lululemon — Vancouver](https://graffitiplus.io/gal/lululemon-vancouver)
 
