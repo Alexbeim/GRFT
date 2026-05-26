@@ -31,11 +31,42 @@
   .page {
     min-height: 100vh;
     display: grid;
-    gap: 18px;
-    padding: 24px 28px 40px;
+    gap: 14px;
+    padding: 14px 18px 18px;
     max-width: 900px;
     margin: 0 auto;
   }
+
+  /* iPad fit: keep everything visible without page-scroll.
+     On screens up to 1100px tall (typical iPad portrait/landscape),
+     shrink gaps + cap tracer height so all controls stay on screen. */
+  @media (max-height: 1100px) {
+    .page { gap: 10px; padding: 8px 14px 12px; }
+    .tracer-wrap { padding: 8px; }
+    .letter-nav { padding: 6px 14px; }
+    .letter-nav .char { font-size: 38px; }
+    .letter-nav .meta { display: none; }
+    header { display: none; }   /* claw back vertical space on iPad */
+  }
+  /* Tracer area is the elastic core — let it grab whatever vertical room
+     is left over after the fixed-size controls above and below. */
+  .tracer {
+    height: auto !important;
+    max-height: min(58vh, 70vw);
+  }
+
+  .size-btn {
+    background: white;
+    border: none;
+    border-right: 1px solid #ddd;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 700;
+    color: #555;
+    min-width: 36px;
+  }
+  .size-btn:last-child { border-right: none; }
+  .size-btn.active { background: var(--obsidian); color: white; }
 
   header h1 {
     margin: 0;
@@ -109,8 +140,18 @@
 
   .ref-letter {
     font-family: "GraffitiPlus Display", sans-serif;
+    /* GRFT+ glyphs use self-intersecting paths (e.g. the "s" is a figure-8).
+       evenodd fills the central crossing region instead of leaving it as a
+       hole. The thick stroke also outlines the full path outline so even
+       glyphs where evenodd doesn't help still read as a continuous shape. */
     fill: var(--obsidian);
-    opacity: 0.10;
+    fill-opacity: 0.22;
+    fill-rule: evenodd;
+    stroke: var(--obsidian);
+    stroke-width: 8;
+    stroke-opacity: 0.45;
+    stroke-linejoin: round;
+    paint-order: stroke fill;
     pointer-events: none;
   }
   .bbox {
@@ -277,7 +318,7 @@
   <div class="tracer-wrap">
     <svg id="tracer" class="tracer" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet">
       <rect id="bbox-rect" class="bbox" />
-      <text id="ref-letter" class="ref-letter" x="300" y="470" text-anchor="middle" font-size="500">s</text>
+      <text id="ref-letter" class="ref-letter" x="300" y="470" text-anchor="middle" font-size="440">s</text>
       <g id="recorded-strokes"></g>
       <g id="active-stroke"></g>
       <g id="markers"></g>
@@ -303,10 +344,26 @@
     <button id="save" class="primary">✓ Save & Continue →</button>
   </div>
 
-  <div class="controls" style="margin-top: 4px;">
-    <button id="export">Export JSON</button>
-    <button id="import">Import JSON</button>
+  <div class="controls" style="margin-top: 4px; flex-wrap: wrap;">
+    <label style="display:inline-flex;align-items:center;gap:8px;font-size:13px;">
+      <span style="white-space:nowrap;">Smoothing</span>
+      <input type="range" id="smoothing" min="0" max="60" value="8" style="width:140px;">
+      <span id="smoothing-val" style="font-family:ui-monospace,Menlo,monospace;width:24px;text-align:right;">8</span>
+    </label>
+    <div class="size-group" style="display:inline-flex;border:1px solid #ddd;border-radius:999px;overflow:hidden;font-size:12px;">
+      <button type="button" class="size-btn" data-size="260">S</button>
+      <button type="button" class="size-btn active" data-size="400">M</button>
+      <button type="button" class="size-btn" data-size="520">L</button>
+    </div>
+    <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+      <input type="checkbox" id="pen-only" checked>
+      Pencil-only
+    </label>
+    <button id="send-mac" class="primary" style="background:#0a84ff;color:white;">↑ Send to Mac</button>
+    <button id="export">Export</button>
+    <button id="import">Import</button>
     <input type="file" id="import-file" accept="application/json" style="display:none;">
+    <span id="pointer-readout" style="font-size:11px;color:#888;font-family:ui-monospace,Menlo,monospace;"></span>
   </div>
 
   <div class="alphabet-grid" id="alphabet-grid"></div>
@@ -315,10 +372,12 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
 <script>
 const FONT_URL    = 'Fonts/GraffitiPlusDisplay-Regular.woff2?v=3';
 const STORAGE_KEY = 'grft-traced-paths-v1';
 const VIEW_W = 600, VIEW_H = 600;
+let currentBBox = null;          // glyph bbox at trace time — stamped into recording
 
 // Priority order: "since 2008" letters first, then the rest of the alphabet & digits
 const PRIORITY = ['s','i','n','c','e','2','0','8'];
@@ -349,23 +408,118 @@ const gridEl         = document.getElementById('alphabet-grid');
 
 function currentChar() { return ALL[currentIdx]; }
 
+// Measure a glyph's TRUE ink bbox.  Prefer opentype.js (exact font outline
+// math, no canvas font-fallback risk).  Fall back to canvas pixel-scanning
+// only if opentype isn't loaded yet.  Cached per (char, fontSize).
+const _inkBBoxCache = new Map();
+function measureGlyphInkBBox(ch, fontSize, cx, by) {
+  const key = `${ch}|${fontSize}`;
+  let inkLocal = _inkBBoxCache.get(key);
+  if (!inkLocal) {
+    if (otFont) {
+      // Opentype: scale unit is fontSize / unitsPerEm. getBoundingBox()
+      // returns the outline bbox in those scaled units, anchored so the
+      // baseline is at y=0 and x=0 is the glyph's pen position.
+      const path = otFont.charToGlyph(ch).getPath(0, 0, fontSize);
+      const bb = path.getBoundingBox();
+      if (bb && isFinite(bb.x1) && isFinite(bb.x2)) {
+        inkLocal = {
+          left:  -bb.x1,   // x1 is negative if ink extends left of pen
+          right:  bb.x2,
+          asc:   -bb.y1,   // y1 is negative (above baseline)
+          desc:   bb.y2,
+        };
+        _inkBBoxCache.set(key, inkLocal);
+        return {
+          x: cx - inkLocal.left,
+          y: by - inkLocal.asc,
+          width:  inkLocal.left + inkLocal.right,
+          height: inkLocal.asc + inkLocal.desc,
+        };
+      }
+    }
+    // Fallback: pixel-scan (risk of sans-serif fallback if canvas font fails)
+    const PAD = Math.ceil(fontSize);          // generous so tails always fit
+    const W = fontSize * 2 + PAD * 2;
+    const H = fontSize * 2 + PAD * 2;
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+    ctx.font = `${fontSize}px "GraffitiPlus Display", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#000';
+    ctx.fillText(ch, W / 2, H / 2);
+    const data = ctx.getImageData(0, 0, W, H).data;
+    let minX = W, minY = H, maxX = -1, maxY = -1;
+    for (let y = 0; y < H; y++) {
+      const rowOff = y * W * 4;
+      for (let x = 0; x < W; x++) {
+        if (data[rowOff + x * 4 + 3] > 8) {
+          if (x < minX) minX = x; if (x > maxX) maxX = x;
+          if (y < minY) minY = y; if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX < 0) {
+      // Glyph didn't render — fallback guess
+      inkLocal = { left: fontSize*0.4, right: fontSize*0.4, asc: fontSize*0.7, desc: fontSize*0.1 };
+    } else {
+      inkLocal = {
+        left:  W / 2 - minX,
+        right: maxX - W / 2,
+        asc:   H / 2 - minY,
+        desc:  maxY - H / 2,
+      };
+    }
+    _inkBBoxCache.set(key, inkLocal);
+  }
+  return {
+    x: cx - inkLocal.left,
+    y: by - inkLocal.asc,
+    width:  inkLocal.left + inkLocal.right,
+    height: inkLocal.asc + inkLocal.desc,
+  };
+}
+
 function showLetter() {
   const ch = currentChar();
   currentCharEl.textContent = ch;
   refLetterEl.textContent = ch;
 
-  // Measure bbox after the text element has rendered
+  // Center the glyph in the viewBox using the REAL ink bbox.
+  refLetterEl.removeAttribute('transform');
   requestAnimationFrame(() => {
     try {
-      const bb = refLetterEl.getBBox();
+      const fontSize = +refLetterEl.getAttribute('font-size');
+      const baselineY = +refLetterEl.getAttribute('y');     // 470 (default)
+      const anchorX   = +refLetterEl.getAttribute('x');     // 300 (center)
+      // Pre-translate ink bbox
+      const inkBB = measureGlyphInkBBox(ch, fontSize, anchorX, baselineY);
+      // Shift so the ink centre sits at the viewBox centre
+      const dx = VIEW_W / 2 - (inkBB.x + inkBB.width / 2);
+      const dy = VIEW_H / 2 - (inkBB.y + inkBB.height / 2);
+      refLetterEl.setAttribute('transform', `translate(${dx}, ${dy})`);
+      // The bbox after translation
+      const bb = {
+        x: inkBB.x + dx,
+        y: inkBB.y + dy,
+        width:  inkBB.width,
+        height: inkBB.height,
+      };
       bboxEl.setAttribute('x', bb.x);
       bboxEl.setAttribute('y', bb.y);
       bboxEl.setAttribute('width', bb.width);
       bboxEl.setAttribute('height', bb.height);
+      currentBBox = bb;
     } catch (e) {}
   });
 
-  setState('idle');
+  // Always armed — switching letters drops you straight into "recording" so
+  // you can just put the Pencil down. (Old idle/recording split required a
+  // tap on "Start Tracing" between each letter, which was friction.)
+  setState('recording');
+  freshLetterSession = true;     // first pencil-down here will replace existing data
   redrawRecorded();
   updateMeta();
   updateGrid();
@@ -399,6 +553,30 @@ function setState(next) {
   }
 }
 
+/* Moving-average smoothing.
+   strength = window radius in samples.  0 = raw.  ~5 = gentle.  ~15 = heavy.
+   The first/last point are anchored so the trace endpoints stay exact. */
+function smoothPoints(points, strength) {
+  if (!points || points.length < 3 || strength <= 0) return points;
+  const r = Math.min(strength, Math.floor((points.length - 1) / 2));
+  const out = new Array(points.length);
+  out[0] = points[0];
+  out[points.length - 1] = points[points.length - 1];
+  for (let i = 1; i < points.length - 1; i++) {
+    const lo = Math.max(0, i - r);
+    const hi = Math.min(points.length - 1, i + r);
+    let sx = 0, sy = 0, n = 0;
+    for (let j = lo; j <= hi; j++) { sx += points[j].x; sy += points[j].y; n++; }
+    out[i] = { x: sx / n, y: sy / n, t: points[i].t };
+  }
+  return out;
+}
+
+function getSmoothing() {
+  const el = document.getElementById('smoothing');
+  return el ? +el.value : 5;
+}
+
 function redrawRecorded() {
   recordedEl.replaceChildren();
   markersEl.replaceChildren();
@@ -408,8 +586,9 @@ function redrawRecorded() {
   const data = recordings[ch];
   if (!data) return;
 
+  const sm = getSmoothing();
   data.strokes.forEach((stroke, i) => {
-    const pts = stroke.points;
+    const pts = smoothPoints(stroke.points, sm);
     if (pts.length < 2) return;
 
     const d = 'M ' + pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ');
@@ -495,10 +674,39 @@ function svgPoint(evt) {
   return { x, y };
 }
 
+// Track which pointer "owns" the current stroke. While a stroke is in flight,
+// other pointers (palm contact, second finger) are ignored.
+let activePointerId = null;
+// True right after switching to a letter — first stroke wipes existing data
+// so you cleanly REPLACE the old trace rather than append to it. After the
+// first stroke, additional strokes in the same session add (multi-stroke
+// letters like "i", "j", "t").
+let freshLetterSession = true;
+const penOnlyEl = () => document.getElementById('pen-only');
+const readoutEl = () => document.getElementById('pointer-readout');
+
+function shouldAcceptPointer(evt) {
+  if (penOnlyEl().checked && evt.pointerType !== 'pen') return false;
+  return true;
+}
+
 function startStroke(evt) {
   if (previewing || state !== 'recording') return;
+  if (!shouldAcceptPointer(evt)) {
+    readoutEl().textContent = `ignored ${evt.pointerType}`;
+    return;
+  }
   evt.preventDefault();
+  // First pencil-down after a letter switch → wipe existing trace so the
+  // new stroke replaces (rather than appends to) old data.
+  if (freshLetterSession) {
+    const ch = currentChar();
+    if (recordings[ch]) { delete recordings[ch]; saveToStorage(); redrawRecorded(); }
+    freshLetterSession = false;
+  }
   tracerEl.setPointerCapture?.(evt.pointerId);
+  activePointerId = evt.pointerId;
+  readoutEl().textContent = `${evt.pointerType} ▸ recording`;
   isDrawing = true;
   currentStrokePoints = [];
   strokeStartTime = performance.now();
@@ -511,16 +719,30 @@ function startStroke(evt) {
 }
 
 function moveStroke(evt) {
-  if (!isDrawing) return;
+  if (!isDrawing || evt.pointerId !== activePointerId) return;
   evt.preventDefault();
-  const p = svgPoint(evt);
-  currentStrokePoints.push({ x: p.x, y: p.y, t: performance.now() - strokeStartTime });
+  // Apple Pencil reports up to ~240Hz. Browsers downsample pointermove to the
+  // refresh rate (~60Hz), but expose the missed samples via getCoalescedEvents.
+  // Capture them all for the smoothest trace possible.
+  const samples = evt.getCoalescedEvents ? evt.getCoalescedEvents() : [evt];
+  const now = performance.now();
+  // Coalesced events lack timestamps relative to ours; distribute uniformly
+  // across the gap between the previous sample and now.
+  const lastT = currentStrokePoints[currentStrokePoints.length - 1]?.t ?? 0;
+  const nowT = now - strokeStartTime;
+  for (let i = 0; i < samples.length; i++) {
+    const p = svgPoint(samples[i]);
+    const t = lastT + ((i + 1) / samples.length) * (nowT - lastT);
+    currentStrokePoints.push({ x: p.x, y: p.y, t });
+  }
   updateActivePath();
 }
 
 function endStroke(evt) {
-  if (!isDrawing) return;
+  if (!isDrawing || evt.pointerId !== activePointerId) return;
   evt.preventDefault();
+  activePointerId = null;
+  readoutEl().textContent = `${evt.pointerType} ▸ saved`;
   isDrawing = false;
   if (currentStrokePoints.length < 2) {
     activeEl.replaceChildren();
@@ -529,6 +751,9 @@ function endStroke(evt) {
   const ch = currentChar();
   if (!recordings[ch]) recordings[ch] = { strokes: [] };
   recordings[ch].strokes.push({ points: currentStrokePoints });
+  // Stamp the glyph bbox at trace time so export normalises against the
+  // exact letter the user was drawing on top of.
+  if (currentBBox) recordings[ch].bbox = currentBBox;
   saveToStorage();
   currentStrokePoints = [];
   activeEl.replaceChildren();
@@ -539,7 +764,9 @@ function endStroke(evt) {
 
 function updateActivePath() {
   if (currentStrokePoints.length < 2 || !activePathEl) return;
-  const d = 'M ' + currentStrokePoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ');
+  // Live-smooth the active trace so you SEE the slider's effect while drawing.
+  const pts = smoothPoints(currentStrokePoints, getSmoothing());
+  const d = 'M ' + pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ');
   activePathEl.setAttribute('d', d);
 }
 
@@ -655,27 +882,32 @@ async function previewPlayback() {
 }
 
 /* Export — also include normalized form for player consumption */
-function exportJSON() {
+// Build the exported JSON object (used by both Export and Send to Mac).
+function buildExportData() {
   const out = {
-    version: 1,
+    // v2 = stored bbox is the TRUE ink bbox (canvas pixel-scanned).
+    //   Player should normalize directly without the legacy double-conversion
+    //   it used for v1 (which stored SVG layout box).
+    version: 2,
     captureSize: { width: VIEW_W, height: VIEW_H, fontSize: 500, baselineY: 470 },
     letters: {}
   };
 
   for (const ch of Object.keys(recordings)) {
-    // Re-measure each letter's GRFT+ bbox so we can include normalized coords
-    refLetterEl.textContent = ch;
-    let bb = null;
-    try { bb = refLetterEl.getBBox(); } catch (e) {}
-    refLetterEl.textContent = currentChar();
-
+    let bb = recordings[ch].bbox || null;
+    if (!bb) {
+      refLetterEl.textContent = ch;
+      try { bb = refLetterEl.getBBox(); } catch (e) {}
+      refLetterEl.textContent = currentChar();
+    }
     if (!bb || bb.width === 0 || bb.height === 0) {
       out.letters[ch] = { ...recordings[ch], bbox: null };
       continue;
     }
 
+    const sm = getSmoothing();
     const strokes = recordings[ch].strokes.map(s => ({
-      points: s.points.map(p => ({
+      points: smoothPoints(s.points, sm).map(p => ({
         x: p.x, y: p.y, t: p.t,
         nx: (p.x - bb.x) / bb.width,
         ny: (p.y - bb.y) / bb.height
@@ -687,6 +919,35 @@ function exportJSON() {
       strokes
     };
   }
+  return out;
+}
+
+async function sendToMac() {
+  const btn = document.getElementById('send-mac');
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '↑ Sending…';
+  try {
+    const out = buildExportData();
+    const r = await fetch('/save-traces', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(out),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + await r.text());
+    const j = await r.json();
+    btn.textContent = `✓ Sent ${j.letters} letters`;
+    statusEl.textContent = `Sent to Mac: ${j.letters} letters, ${(j.bytes/1024).toFixed(0)} KB → animator skill`;
+  } catch (e) {
+    btn.textContent = '✗ Failed';
+    statusEl.textContent = 'Send failed: ' + e.message;
+  } finally {
+    setTimeout(() => { btn.disabled = false; btn.textContent = orig; }, 2200);
+  }
+}
+
+function exportJSON() {
+  const out = buildExportData();
 
   const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -747,10 +1008,30 @@ document.getElementById('save').addEventListener('click', () => {
 document.getElementById('skip').addEventListener('click', skip);
 document.getElementById('preview').addEventListener('click', previewPlayback);
 document.getElementById('export').addEventListener('click', exportJSON);
+document.getElementById('send-mac').addEventListener('click', sendToMac);
 document.getElementById('import').addEventListener('click', () => document.getElementById('import-file').click());
 document.getElementById('import-file').addEventListener('change', e => {
   if (e.target.files[0]) importJSON(e.target.files[0]);
   e.target.value = '';
+});
+
+// Live smoothing — re-render the current letter whenever the slider moves
+document.getElementById('smoothing').addEventListener('input', e => {
+  document.getElementById('smoothing-val').textContent = e.target.value;
+  redrawRecorded();
+  updateActivePath();    // also affects the in-flight stroke if you're drawing
+});
+
+// Reference-letter size picker (S/M/L). Smaller glyph = easier to trace
+// because the Pencil's natural arc covers more letter per movement.
+document.querySelectorAll('.size-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    refLetterEl.setAttribute('font-size', btn.dataset.size);
+    // Re-run showLetter to re-measure the glyph's bbox at the new size
+    showLetter();
+  });
 });
 
 document.addEventListener('keydown', e => {
@@ -771,6 +1052,18 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
   }
   if (e.key === ' ') { previewPlayback(); e.preventDefault(); }
+});
+
+// Load the GRFT+ font into opentype so we can compute TRUE ink bboxes
+// without depending on canvas measureText (which silently falls back to
+// sans-serif if the @font-face hasn't been pushed into the canvas context).
+let otFont = null;
+opentype.load(FONT_URL, (err, font) => {
+  if (err) console.warn('opentype load failed:', err);
+  else otFont = font;
+  // Bust the cache so any pre-load measurements get retaken with the real font.
+  _inkBBoxCache.clear();
+  if (state) showLetter();
 });
 
 document.fonts.ready.then(() => {
