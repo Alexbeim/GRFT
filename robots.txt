@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+# Unlisted experiment + private trace data — keep out of indexing
+Disallow: /lab.html
+Disallow: /grft-traced-paths.json
 
 # AI crawlers — explicitly welcome (improves citation in ChatGPT, Claude, Perplexity, Gemini, etc.)
 User-agent: GPTBot
