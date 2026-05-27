@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GRFT+ · Tag designer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Unlisted experiment — keep search engines + social previews away. -->
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta name="referrer" content="no-referrer">
+
+<script src="opentype.min.js"></script>
+
+<style>
+  @font-face {
+    font-family: "GraffitiPlus Display";
+    src: url("Fonts/GraffitiPlusDisplay-Regular.woff2?v=3") format("woff2"),
+         url("Fonts/GraffitiPlusDisplay-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+  }
+  :root { --bg: #1a1410; --ink: #fafafa; --accent: #ffc800; --sel: #4cc9ff; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; overscroll-behavior: none; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", system-ui, sans-serif;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 10px;
+    padding: 14px;
+  }
+  header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  header h1 {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.7;
+    margin: 0 auto 0 0;
+  }
+  input[type=text], textarea, select {
+    background: rgba(255,255,255,0.08);
+    color: var(--ink);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font: 700 14px/1.25 "Inter", system-ui, sans-serif;
+    outline: none;
+    resize: none;
+  }
+  input[type=text]:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); }
+  input[type=text] { min-width: 200px; flex: 1; max-width: 360px; }
+  textarea {
+    min-width: 200px; flex: 1; max-width: 360px;
+    min-height: 36px;
+    height: 36px;        /* JS auto-grows up to a max */
+    max-height: 120px;
+    overflow-y: auto;
+    font-family: "Inter", system-ui, sans-serif;
+    line-height: 1.25;
+  }
+  select { min-width: 140px; }
+  .pill-group {
+    display: inline-flex;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .pill-group button {
+    background: transparent;
+    color: var(--ink);
+    border: none;
+    border-right: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px;
+    cursor: pointer;
+    font: 700 11px/1 "Inter", system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .pill-group button:last-child { border-right: none; }
+  .pill-group button.active { background: var(--accent); color: var(--bg); }
+  button.btn, button.go {
+    background: rgba(255,255,255,0.08);
+    color: var(--ink);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font: 700 11px/1 "Inter", system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  button.btn:hover { background: rgba(255,255,255,0.15); }
+  button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.go { background: var(--accent); color: var(--bg); border-color: transparent; padding: 10px 20px; font-size: 12px; font-weight: 800; }
+  button.go:hover { background: #fff; }
+
+  /* Selection toolbar — always occupies its grid row (so the stage row
+     stays in the right place), but collapses to invisible+0-height when
+     no selection is active. */
+  .sel-toolbar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(76, 201, 255, 0.08);
+    border: 1px solid rgba(76, 201, 255, 0.3);
+    border-radius: 999px;
+    padding: 6px 12px;
+    width: fit-content;
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    border-width: 0;
+    padding-top: 0; padding-bottom: 0;
+    transition: height 0.18s, padding 0.18s;
+  }
+  .sel-toolbar.visible {
+    visibility: visible;
+    height: 42px;
+    padding: 6px 12px;
+    border-width: 1px;
+  }
+  .sel-toolbar .label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.75;
+    margin-right: 4px;
+  }
+  .sel-toolbar button {
+    background: rgba(255,255,255,0.08);
+    color: var(--ink);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    width: 30px; height: 30px;
+    cursor: pointer;
+    font: 800 14px/1 "Inter", system-ui, sans-serif;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .sel-toolbar button:hover { background: rgba(255,255,255,0.18); }
+  .sel-toolbar .danger { color: #ff7373; border-color: rgba(255,115,115,0.3); }
+
+  .stage {
+    position: relative;
+    background-color: #2a1b14;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='120'><rect width='240' height='120' fill='%23271710'/><g><rect x='3' y='3' width='112' height='52' fill='%239c4a2f'/><rect x='119' y='3' width='118' height='52' fill='%23b35836'/><rect x='-55' y='63' width='112' height='54' fill='%23a64f30'/><rect x='61' y='63' width='112' height='54' fill='%2394462a'/><rect x='177' y='63' width='118' height='54' fill='%23aa5232'/></g><g fill='%23000' fill-opacity='0.18'><rect x='3' y='49' width='112' height='6'/><rect x='119' y='49' width='118' height='6'/><rect x='-55' y='109' width='112' height='8'/><rect x='61' y='109' width='112' height='8'/><rect x='177' y='109' width='118' height='8'/></g><g fill='%23fff' fill-opacity='0.05'><rect x='3' y='3' width='112' height='5'/><rect x='119' y='3' width='118' height='5'/><rect x='-55' y='63' width='112' height='5'/><rect x='61' y='63' width='112' height='5'/><rect x='177' y='63' width='118' height='5'/></g></svg>");
+    background-size: 240px 120px;
+    background-repeat: repeat;
+    border: 1px solid rgba(0,0,0,0.4);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 0 180px rgba(0,0,0,0.65);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;          /* let us own all pointer events on the stage */
+    cursor: default;
+  }
+  #paint, #overlay, #marquee-svg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+  }
+  #paint { display: block; pointer-events: none; }            /* canvas under the overlay */
+  #overlay { pointer-events: none; }                          /* container; chars opt in */
+  #marquee-svg { pointer-events: none; }
+  #writer {
+    position: absolute;
+    pointer-events: none;
+    transform-origin: 50% 0;
+    transform: translate(-50%, 0);
+    will-change: transform, left, top;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,0.6));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  /* Per-character draggable element. Positioned via translate3d so we can
+     compose with rotate/scale and never thrash layout. */
+  .char {
+    position: absolute;
+    left: 0; top: 0;
+    color: var(--accent);
+    font-family: "GraffitiPlus Display", system-ui, sans-serif;
+    line-height: 1;
+    cursor: grab;
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-text-stroke: 2px rgba(0,0,0,0.4);
+    text-shadow: 0 4px 14px rgba(0,0,0,0.55);
+    transition: text-shadow 0.18s;
+    /* The element's anchor (its top-left after translate) is the GLYPH
+       BASELINE — see js for the math. */
+  }
+  .char.selected {
+    outline: 2px solid var(--sel);
+    outline-offset: 6px;
+    border-radius: 4px;
+    text-shadow: 0 0 16px rgba(76, 201, 255, 0.6), 0 4px 14px rgba(0,0,0,0.55);
+  }
+  .char.dragging { cursor: grabbing; }
+
+  /* Marquee selection rectangle */
+  .marquee {
+    fill: rgba(76, 201, 255, 0.12);
+    stroke: rgba(76, 201, 255, 0.7);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+  }
+
+  footer {
+    font-size: 11px;
+    opacity: 0.55;
+    text-align: center;
+  }
+  footer code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; }
+  footer kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    font: 700 10px/1 ui-monospace, Menlo, monospace;
+  }
+
+  /* While paint engine is playing OR after Paint It finishes, hide & disable
+     the design overlay so the painted canvas is uninterrupted. Click "Edit"
+     (or just edit the text) to flip back. */
+  body.painting #overlay .char { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  body.painting #marquee-svg { display: none; }
+  body.painting .sel-toolbar { visibility: hidden; }
+  /* Show the Edit button only while painted; hide it during design. */
+  #edit-btn { display: none; }
+  body.painting #edit-btn { display: inline-flex; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Tag designer</h1>
+  <textarea id="text" rows="1" maxlength="60" autocomplete="off" spellcheck="false" placeholder="type your tag… ⏎ for new line">grft+</textarea>
+  <div class="pill-group">
+    <button id="b-spray" class="active">Spray</button>
+    <button id="b-marker">Marker</button>
+  </div>
+  <label style="display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;opacity:0.85;">
+    Speed
+    <input type="range" id="speed" min="1" max="15" step="0.5" value="8" style="width:110px;accent-color:var(--accent);">
+    <span id="speed-val" style="font:700 11px/1 ui-monospace,Menlo,monospace;width:30px;text-align:right;">8×</span>
+  </label>
+  <button class="btn" id="reset">↺ Reset</button>
+  <select id="saved-tags" title="Load a saved arrangement">
+    <option value="">— Saved tags —</option>
+  </select>
+  <button class="btn" id="save">💾 Save</button>
+  <button class="btn" id="delete-saved" title="Delete loaded tag">🗑</button>
+  <button class="btn" id="edit-btn">✏ Edit</button>
+  <button class="go" id="play">▶ Paint it</button>
+</header>
+
+<div id="sel-toolbar" class="sel-toolbar">
+  <span class="label" id="sel-count">0 selected</span>
+  <button title="Rotate left 5°"  data-act="rot-l">⟲</button>
+  <button title="Rotate right 5°" data-act="rot-r">⟳</button>
+  <button title="Bigger"          data-act="up">＋</button>
+  <button title="Smaller"         data-act="down">−</button>
+  <button title="Bring to front"  data-act="front">⤴</button>
+  <button title="Send to back"    data-act="back">⤵</button>
+  <button class="danger" title="Delete" data-act="del">✕</button>
+</div>
+
+<div class="stage" id="stage">
+  <canvas id="paint"></canvas>
+  <div id="overlay"></div>
+  <svg id="marquee-svg"><rect id="marquee" class="marquee" style="display:none"></rect></svg>
+  <img id="writer" alt="">
+</div>
+
+<footer id="status">
+  Click a letter to select · <kbd>Shift</kbd>+click to multi-select · drag empty space to box-select · drag a letter to move ·
+  arrows or toolbar to rotate / scale
+</footer>
+
+<script src="paint-engine.js"></script>
+<script>
+//
+// ── Tag designer ─────────────────────────────────────────────────────────────
+//
+// State shape:
+//   layout: [{ char, x, y, scale, rotation }]  — same as engine.playLayout input
+//   selected: Set<index> of layout
+//   fontSize: number — the base font size used to seed auto-layout
+//   The stage uses canvas pixel coords throughout. We keep one source of
+//   truth (`state.layout`) and re-render the DOM overlay from it.
+//
+
+const stage    = document.getElementById('stage');
+const overlay  = document.getElementById('overlay');
+const writer   = document.getElementById('writer');
+const canvas   = document.getElementById('paint');
+const textInput= document.getElementById('text');
+const status   = document.getElementById('status');
+const selToolbar = document.getElementById('sel-toolbar');
+const selCount   = document.getElementById('sel-count');
+const marqueeRect= document.getElementById('marquee');
+const savedSel   = document.getElementById('saved-tags');
+
+const state = {
+  layout: [],
+  selected: new Set(),
+  fontSize: 480,
+  currentName: null,   // name of the currently-loaded saved tag (if any)
+};
+
+// LocalStorage key prefix; "grft-tags" holds the index, individual tags
+// live at "grft-tag/<name>".
+const STORAGE_INDEX = 'grft-tag-index';
+const STORAGE_TAG   = (name) => 'grft-tag/' + name;
+
+// ── Engine init ──────────────────────────────────────────────────────────────
+GraffitiPaint.init({
+  canvas,
+  writer,
+  color: '#ffc800',
+  speed: 5.0,
+  writerConfig: {
+    spray:  { brushSize: 50, imgHeight: 220 },
+    marker: { brushSize: 26, imgHeight: 180 },
+  },
+  fontSizeRef: 480,
+  maxHeightPx: 240,
+});
+
+function setCap(name) {
+  GraffitiPaint.setCap(name);
+  document.getElementById('b-spray').classList.toggle('active',  name === 'spray');
+  document.getElementById('b-marker').classList.toggle('active', name === 'marker');
+}
+
+// ── Layout rendering ─────────────────────────────────────────────────────────
+// We need pixel positions for each char's DOM element. The engine stores
+// (x, y) as the glyph's BASELINE anchor. To translate that into a CSS
+// translate for the <div>, we offset upward by the glyph's typographic
+// ascent (approximated as 0.78 × fontSize × scale for GRFT+ display).
+//
+// We also size each <div> to the glyph's advance width × fontSize so the
+// click target lines up with the visible ink.
+const FONT_ASCENT_FRAC = 0.78;
+const FONT_DESCENT_FRAC = 0.22;
+
+function renderOverlay() {
+  overlay.innerHTML = '';
+  const font = GraffitiPaint._internal.getFont();
+  if (!font) return;
+  state.layout.forEach((item, i) => {
+    const ch = item.char;
+    if (ch === ' ') return;            // spaces have no element
+    const scale = item.scale || 1;
+    const charFontSize = state.fontSize * scale;
+
+    const advance = font.charToGlyph(ch).advanceWidth / font.unitsPerEm * charFontSize;
+    const ascent  = charFontSize * FONT_ASCENT_FRAC;
+    const descent = charFontSize * FONT_DESCENT_FRAC;
+
+    const el = document.createElement('div');
+    el.className = 'char';
+    el.dataset.idx = i;
+    el.textContent = ch;
+    el.style.fontSize = charFontSize + 'px';
+    el.style.width    = advance + 'px';
+    el.style.height   = (ascent + descent) + 'px';
+    // Anchor: convert engine's (baseline x, baseline y) to top-left.
+    const left = item.x;
+    const top  = item.y - ascent;
+    el.style.transform = `translate(${left}px, ${top}px) rotate(${item.rotation || 0}deg)`;
+    el.style.transformOrigin = `${advance/2}px ${ascent}px`;   // around the glyph's baseline-center
+    if (state.selected.has(i)) el.classList.add('selected');
+    overlay.appendChild(el);
+  });
+  updateSelToolbar();
+}
+
+function updateSelToolbar() {
+  const n = state.selected.size;
+  if (n === 0) {
+    selToolbar.classList.remove('visible');
+  } else {
+    selToolbar.classList.add('visible');
+    selCount.textContent = n + (n === 1 ? ' selected' : ' selected');
+  }
+}
+
+// ── Auto-layout from text input ──────────────────────────────────────────────
+function applyAutoLayout(text) {
+  const { layout, fontSize } = GraffitiPaint.computeAutoLayout(text);
+  state.layout = layout;
+  state.fontSize = fontSize;
+  state.selected.clear();
+  state.currentName = null;
+  renderOverlay();
+}
+
+function ensureAssetsThen(fn) {
+  // Asset loading retry harness: don't render the overlay until font + traces
+  // resolved (overlay measurements depend on font).
+  const try1 = () => {
+    if (GraffitiPaint._internal.getFont() && GraffitiPaint._internal.getTraces()) fn();
+    else setTimeout(try1, 80);
+  };
+  try1();
+}
+
+// ── Selection + drag ─────────────────────────────────────────────────────────
+let dragSession = null;
+// dragSession: { mode: 'move'|'marquee', startCanvas: {x,y}, snapshot, marqueeStart }
+
+function canvasCoords(e) {
+  const r = stage.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+function indicesInRect(rect) {
+  // rect: { x, y, w, h } in canvas coords.  Hit-test against each char's
+  // baseline anchor (simple + fast; collides with the visible ink reasonably).
+  const out = [];
+  state.layout.forEach((item, i) => {
+    if (item.char === ' ') return;
+    if (item.x >= rect.x && item.x <= rect.x + rect.w &&
+        item.y >= rect.y && item.y <= rect.y + rect.h) {
+      out.push(i);
+    }
+  });
+  return out;
+}
+
+function startDrag(idx, e) {
+  if (!state.selected.has(idx)) {
+    if (!e.shiftKey) state.selected.clear();
+    state.selected.add(idx);
+    renderOverlay();
+  } else if (e.shiftKey) {
+    // shift-click on already-selected = remove from selection (but don't drag)
+    state.selected.delete(idx);
+    renderOverlay();
+    return;
+  }
+  const start = canvasCoords(e);
+  dragSession = {
+    mode: 'move',
+    startCanvas: start,
+    snapshot: new Map([...state.selected].map(i => [i, { x: state.layout[i].x, y: state.layout[i].y }])),
+  };
+  document.body.style.cursor = 'grabbing';
+}
+
+function startMarquee(e) {
+  if (!e.shiftKey) {
+    state.selected.clear();
+    renderOverlay();
+  }
+  const start = canvasCoords(e);
+  dragSession = { mode: 'marquee', marqueeStart: start, baseSelection: new Set(state.selected) };
+  marqueeRect.style.display = '';
+  marqueeRect.setAttribute('x', start.x);
+  marqueeRect.setAttribute('y', start.y);
+  marqueeRect.setAttribute('width', 0);
+  marqueeRect.setAttribute('height', 0);
+}
+
+function onPointerMove(e) {
+  if (!dragSession) return;
+  const cur = canvasCoords(e);
+  if (dragSession.mode === 'move') {
+    const dx = cur.x - dragSession.startCanvas.x;
+    const dy = cur.y - dragSession.startCanvas.y;
+    for (const [i, base] of dragSession.snapshot) {
+      state.layout[i].x = base.x + dx;
+      state.layout[i].y = base.y + dy;
+    }
+    renderOverlay();
+  } else if (dragSession.mode === 'marquee') {
+    const s = dragSession.marqueeStart;
+    const x = Math.min(s.x, cur.x), y = Math.min(s.y, cur.y);
+    const w = Math.abs(cur.x - s.x), h = Math.abs(cur.y - s.y);
+    marqueeRect.setAttribute('x', x);
+    marqueeRect.setAttribute('y', y);
+    marqueeRect.setAttribute('width', w);
+    marqueeRect.setAttribute('height', h);
+    const hit = indicesInRect({ x, y, w, h });
+    state.selected = new Set([...dragSession.baseSelection, ...hit]);
+    renderOverlay();
+  }
+}
+
+function onPointerUp() {
+  if (!dragSession) return;
+  if (dragSession.mode === 'marquee') {
+    marqueeRect.style.display = 'none';
+  }
+  dragSession = null;
+  document.body.style.cursor = '';
+}
+
+stage.addEventListener('pointerdown', e => {
+  // While painted, the stage is a "view" — ignore pointer input so the user
+  // can admire the result without accidentally marquee-selecting.
+  if (document.body.classList.contains('painting')) return;
+  if (e.target.classList && e.target.classList.contains('char')) {
+    const idx = +e.target.dataset.idx;
+    startDrag(idx, e);
+  } else {
+    startMarquee(e);
+  }
+  e.preventDefault();
+});
+window.addEventListener('pointermove', onPointerMove);
+window.addEventListener('pointerup',   onPointerUp);
+window.addEventListener('pointercancel', onPointerUp);
+
+// ── Selection actions (rotate / scale / front / back / delete) ───────────────
+function actOnSelection(act) {
+  if (state.selected.size === 0) return;
+  if (act === 'del') {
+    // Remove in reverse so indices remain valid.
+    const sortedDesc = [...state.selected].sort((a, b) => b - a);
+    for (const i of sortedDesc) state.layout.splice(i, 1);
+    state.selected.clear();
+  } else if (act === 'front' || act === 'back') {
+    // Reorder: pluck selected chars out, re-insert at front or back of array.
+    // Front = drawn LAST in overlay (highest stacking via DOM order) AND
+    // painted last by the engine. Back = drawn first.
+    const sortedDesc = [...state.selected].sort((a, b) => b - a);
+    const plucked = sortedDesc.map(i => state.layout.splice(i, 1)[0]).reverse();
+    if (act === 'front') state.layout = state.layout.concat(plucked);
+    else                 state.layout = plucked.concat(state.layout);
+    // Rebuild selection indices to match new positions.
+    state.selected.clear();
+    if (act === 'front') {
+      for (let i = state.layout.length - plucked.length; i < state.layout.length; i++) state.selected.add(i);
+    } else {
+      for (let i = 0; i < plucked.length; i++) state.selected.add(i);
+    }
+  } else {
+    const delta = { 'rot-l': -5, 'rot-r': +5 }[act];
+    const factor = { 'up': 1.1, 'down': 1 / 1.1 }[act];
+    for (const i of state.selected) {
+      if (delta != null) state.layout[i].rotation = (state.layout[i].rotation || 0) + delta;
+      if (factor != null) state.layout[i].scale    = Math.max(0.15, Math.min(6, (state.layout[i].scale || 1) * factor));
+    }
+  }
+  renderOverlay();
+}
+selToolbar.addEventListener('click', e => {
+  const b = e.target.closest('button[data-act]');
+  if (b) actOnSelection(b.dataset.act);
+});
+// Keyboard: arrow keys → rotate ±5°; +/− → scale; Delete/Backspace → delete
+window.addEventListener('keydown', e => {
+  // Don't hijack arrows while typing in the text input.
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (state.selected.size === 0) return;
+  const map = { ArrowLeft: 'rot-l', ArrowRight: 'rot-r',
+                '=': 'up', '+': 'up', '-': 'down', '_': 'down',
+                Delete: 'del', Backspace: 'del' };
+  const act = map[e.key];
+  if (act) { actOnSelection(act); e.preventDefault(); }
+});
+
+// ── Text input → auto-layout ─────────────────────────────────────────────────
+// Auto-grow the textarea height to fit its line count (so multi-line entry
+// doesn't force the user to scroll inside the input).
+function autosizeTextarea() {
+  textInput.style.height = 'auto';
+  textInput.style.height = Math.min(120, Math.max(36, textInput.scrollHeight)) + 'px';
+}
+textInput.addEventListener('input', () => {
+  autosizeTextarea();
+  // Editing the text snaps us back to design mode if we were painted.
+  if (document.body.classList.contains('painting')) returnToDesign();
+  ensureAssetsThen(() => applyAutoLayout(textInput.value || ''));
+});
+autosizeTextarea();
+
+// ── Speed slider ─────────────────────────────────────────────────────────────
+const speedEl    = document.getElementById('speed');
+const speedValEl = document.getElementById('speed-val');
+const getSpeed   = () => +speedEl.value;
+speedEl.addEventListener('input', () => {
+  speedValEl.textContent = (+speedEl.value).toFixed(1).replace(/\.0$/, '') + '×';
+});
+
+// ── Brush toggle ─────────────────────────────────────────────────────────────
+function brushClicked(name) {
+  setCap(name);
+  // If we're showing a painted result, repaint with the new brush so the
+  // toggle gives an immediate before/after comparison without an extra tap.
+  if (document.body.classList.contains('painting') && state.layout.length) {
+    GraffitiPaint.playLayout(state.layout, { fontSize: state.fontSize, speed: getSpeed() });
+  }
+}
+document.getElementById('b-spray').addEventListener('click',  () => brushClicked('spray'));
+document.getElementById('b-marker').addEventListener('click', () => brushClicked('marker'));
+
+// ── Reset layout ─────────────────────────────────────────────────────────────
+document.getElementById('reset').addEventListener('click', () => {
+  ensureAssetsThen(() => applyAutoLayout(textInput.value || ''));
+});
+
+// ── Paint it (stays painted; Edit returns to design) ───────────────────────
+function returnToDesign() {
+  document.body.classList.remove('painting');
+  GraffitiPaint.clear();
+  renderOverlay();
+}
+document.getElementById('play').addEventListener('click', () => {
+  if (!state.layout.length) return;
+  document.body.classList.add('painting');
+  state.selected.clear();
+  renderOverlay();
+  // Aborts any in-flight playback before starting fresh (engine's stop +
+  // re-arm via abortToken handles this internally).
+  GraffitiPaint.playLayout(state.layout, {
+    fontSize: state.fontSize,
+    speed: getSpeed(),
+  });
+});
+document.getElementById('edit-btn').addEventListener('click', returnToDesign);
+
+// ── Save / Load / Delete ─────────────────────────────────────────────────────
+function getIndex() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_INDEX) || '[]'); }
+  catch { return []; }
+}
+function setIndex(names) {
+  localStorage.setItem(STORAGE_INDEX, JSON.stringify(names));
+}
+function refreshSavedDropdown() {
+  const names = getIndex();
+  savedSel.innerHTML = '<option value="">— Saved tags —</option>' +
+    names.map(n => `<option value="${n}"${n === state.currentName ? ' selected' : ''}>${n}</option>`).join('');
+}
+document.getElementById('save').addEventListener('click', () => {
+  const suggested = state.currentName || (textInput.value || 'untitled').slice(0, 30);
+  const name = prompt('Name this tag:', suggested);
+  if (!name) return;
+  const payload = {
+    text: textInput.value,
+    fontSize: state.fontSize,
+    layout: state.layout,
+    savedAt: new Date().toISOString(),
+  };
+  localStorage.setItem(STORAGE_TAG(name), JSON.stringify(payload));
+  const names = getIndex();
+  if (!names.includes(name)) { names.push(name); setIndex(names); }
+  state.currentName = name;
+  refreshSavedDropdown();
+  status.textContent = `Saved as "${name}" ✓`;
+});
+savedSel.addEventListener('change', () => {
+  const name = savedSel.value;
+  if (!name) return;
+  const raw = localStorage.getItem(STORAGE_TAG(name));
+  if (!raw) { status.textContent = `No saved tag "${name}"`; return; }
+  try {
+    const payload = JSON.parse(raw);
+    textInput.value = payload.text || '';
+    state.fontSize  = payload.fontSize || 480;
+    state.layout    = payload.layout || [];
+    state.selected.clear();
+    state.currentName = name;
+    renderOverlay();
+    status.textContent = `Loaded "${name}"`;
+  } catch (err) {
+    status.textContent = `Load failed: ${err.message}`;
+  }
+});
+document.getElementById('delete-saved').addEventListener('click', () => {
+  if (!state.currentName) { status.textContent = 'Nothing to delete — load a saved tag first.'; return; }
+  if (!confirm(`Delete tag "${state.currentName}"?`)) return;
+  const name = state.currentName;
+  localStorage.removeItem(STORAGE_TAG(name));
+  setIndex(getIndex().filter(n => n !== name));
+  state.currentName = null;
+  refreshSavedDropdown();
+  status.textContent = `Deleted "${name}"`;
+});
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+setCap('spray');
+refreshSavedDropdown();
+
+GraffitiPaint.loadAssets({
+  tracesFull: 'grft-traced-paths.json',
+  font:       'Fonts/GraffitiPlusDisplay-Regular.ttf',
+  sprayImg:   'images/grft_branded_can.png',
+  markerImg:  'images/grft_marker_true_top_down.png',
+}).then(() => {
+  applyAutoLayout(textInput.value || 'grft+');
+}).catch(err => {
+  status.textContent = 'Load failed: ' + err.message;
+});
+
+// Re-layout on resize (only when no manual arrangement is in progress — we
+// don't want to nuke a tag the user just composed). Heuristic: if every char
+// is still at its auto-layout default rotation/scale, treat it as fresh.
+window.addEventListener('resize', () => {
+  if (!state.layout.length) return;
+  const allDefault = state.layout.every(c => (!c.rotation && (c.scale || 1) === 1));
+  if (allDefault) applyAutoLayout(textInput.value || '');
+});
+</script>
+</body>
+</html>
