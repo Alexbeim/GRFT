@@ -201,8 +201,10 @@
   @media (max-width: 520px) {
     .nf-tag-row { flex-wrap: wrap; border-radius: 18px; padding: 6px; max-width: calc(100% - 32px); }
     .nf-tag-row input { width: 100%; flex-basis: 100%; }
-    .nf-pills { border: none; flex: 1; justify-content: center; }
-    .nf-go { flex: 1; }
+    /* The icons pop up 36px above the pill — give the wrapped row enough
+       top spacing so they don't crash into the input field above. */
+    .nf-pills { border: none; flex: 1; justify-content: center; margin-top: 32px; }
+    .nf-go { flex: 1; margin-top: 32px; }
   }
 
   /* The site's nav uses a translucent dark bar by default. Make sure it
