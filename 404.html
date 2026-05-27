@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>404 · Graffiti+</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="That page got tagged over. Head back to graffitiplus.io.">
+
+<link rel="stylesheet" href="style.css?v=design-2026-05-22-s">
+<link rel="stylesheet" href="style-v4.css?v=design-2026-05-22-s">
+<link rel="icon" type="image/png" href="images/favicon.png">
+
+<!-- opentype.js — vendored locally so privacy-strict browsers (DuckDuckGo,
+     Brave, Firefox tracking-protection) that block jsdelivr can still load it. -->
+<script src="opentype.min.js"></script>
+
+<style>
+  /* 404 SCENE — full-bleed brick wall under nav, painted "404" in the middle */
+  html, body { height: 100%; }
+  body { overflow: hidden; background: #2a1b14; }
+
+  .nf-wall {
+    position: fixed; inset: 0;
+    z-index: 0;
+    background-color: #2a1b14;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='120'><rect width='240' height='120' fill='%23271710'/><g><rect x='3' y='3' width='112' height='52' fill='%239c4a2f'/><rect x='119' y='3' width='118' height='52' fill='%23b35836'/><rect x='-55' y='63' width='112' height='54' fill='%23a64f30'/><rect x='61' y='63' width='112' height='54' fill='%2394462a'/><rect x='177' y='63' width='118' height='54' fill='%23aa5232'/></g><g fill='%23000' fill-opacity='0.18'><rect x='3' y='49' width='112' height='6'/><rect x='119' y='49' width='118' height='6'/><rect x='-55' y='109' width='112' height='8'/><rect x='61' y='109' width='112' height='8'/><rect x='177' y='109' width='118' height='8'/></g><g fill='%23fff' fill-opacity='0.05'><rect x='3' y='3' width='112' height='5'/><rect x='119' y='3' width='118' height='5'/><rect x='-55' y='63' width='112' height='5'/><rect x='61' y='63' width='112' height='5'/><rect x='177' y='63' width='118' height='5'/></g></svg>");
+    background-size: 240px 120px;
+    background-repeat: repeat;
+    box-shadow: inset 0 0 240px rgba(0,0,0,0.75);
+  }
+
+  /* "Buff" patch — gray paint blotched over the brick where old tags used
+     to be. Two overlapping tones + a turbulence filter for rough sprayed
+     edges. Sits between the brick wall (z:0) and the live paint canvas (z:1).
+     Spreads + scales to fit any viewport via preserveAspectRatio. */
+  .nf-buff {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+  }
+  .nf-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  #nf-paint { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #nf-writer {
+    position: absolute;
+    pointer-events: none;
+    transform-origin: 50% 4%;
+    transform: translate(-50%, 0);
+    will-change: transform, left, top;
+    filter: drop-shadow(0 12px 22px rgba(0,0,0,0.7));
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  /* Bottom-of-screen copy: branded headline + CTA back home */
+  .nf-overlay {
+    position: fixed;
+    left: 0; right: 0; bottom: clamp(24px, 4vh, 56px);
+    z-index: 2;
+    text-align: center;
+    color: #fff;
+    pointer-events: auto;
+    padding: 0 18px;
+  }
+  /* On very short viewports (mobile landscape) tuck the overlay tighter */
+  @media (max-height: 520px) {
+    .nf-overlay { bottom: 12px; }
+    .nf-overlay .eyebrow { margin-bottom: 4px; font-size: 10px; }
+    .nf-overlay h1 { margin-bottom: 44px; font-size: 16px; }
+    .nf-btn { padding: 9px 16px; font-size: 11px; }
+  }
+  .nf-overlay .eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--yellow, #ffc800);
+    margin-bottom: 8px;
+  }
+  .nf-overlay h1 {
+    font-family: inherit;
+    font-size: clamp(20px, 2.4vw, 28px);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    /* 56px = 36px clearance for the popped-out implements + 20px breathing */
+    margin: 0 0 56px;
+  }
+  .nf-actions { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .nf-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--yellow, #ffc800);
+    color: #000d10;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .nf-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,0.4); }
+  .nf-btn.ghost {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .nf-btn.ghost:hover { background: #fff; color: #000d10; }
+
+  .nf-tag-row {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 8px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 6px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+    max-width: 100%;
+  }
+  .nf-tag-row input {
+    background: transparent;
+    color: #fff;
+    border: none;
+    outline: none;
+    font: 700 14px/1 inherit;
+    padding: 8px 14px;
+    min-width: 0;
+    width: 200px;
+    flex: 1;
+  }
+  .nf-tag-row input::placeholder { color: rgba(255,255,255,0.45); }
+  .nf-pills {
+    display: inline-flex;
+    border-left: 1px solid rgba(255,255,255,0.15);
+    border-right: 1px solid rgba(255,255,255,0.15);
+    overflow: visible;            /* let the implements punch out of the pill */
+    position: relative;
+  }
+  .nf-pills button {
+    position: relative;           /* anchor the underline marker */
+    background: transparent;
+    border: none;
+    padding: 0 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: flex-end;        /* anchor implement to the pill's baseline */
+    justify-content: center;
+    min-width: 44px;
+    overflow: visible;
+  }
+  .nf-pills button img {
+    height: 68px;                 /* much bigger than the 36-px pill */
+    width: auto;
+    display: block;
+    margin-top: -36px;            /* pop UP out of the pill */
+    margin-bottom: -4px;
+    opacity: 0.78;
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,0.55))
+            drop-shadow(0 2px 3px rgba(0,0,0,0.45));
+    transition: opacity 0.18s, filter 0.18s;
+  }
+  .nf-pills button:hover img { opacity: 1; }
+  .nf-pills button.active img { opacity: 1; }
+  /* Tiny yellow underline under the active implement — sits BELOW the
+     pill so it reads as a tab indicator without overlapping the icon's
+     bottom (which extends past the pill via negative margin-bottom). */
+  .nf-pills button::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -12px;
+    transform: translateX(-50%) scaleX(0);
+    width: 22px;
+    height: 2.5px;
+    border-radius: 2px;
+    background: var(--yellow, #ffc800);
+    transition: transform 0.18s ease;
+  }
+  .nf-pills button.active::after {
+    transform: translateX(-50%) scaleX(1);
+  }
+  .nf-go {
+    padding: 8px 18px;
+    font-size: 12px;
+    border-radius: 999px;
+  }
+  /* Phone tweaks — let the tag row wrap if needed */
+  @media (max-width: 520px) {
+    .nf-tag-row { flex-wrap: wrap; border-radius: 18px; padding: 6px; max-width: calc(100% - 32px); }
+    .nf-tag-row input { width: 100%; flex-basis: 100%; }
+    .nf-pills { border: none; flex: 1; justify-content: center; }
+    .nf-go { flex: 1; }
+  }
+
+  /* The site's nav uses a translucent dark bar by default. Make sure it
+     sits above the brick wall + scene. */
+  nav { z-index: 3; }
+</style>
+</head>
+<body>
+
+<!-- Site nav (verbatim from index.html so the page feels like part of the site) -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="images/logo-v4.webp" alt="Graffiti+">
+  </a>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="rentals.html">Rentals</a></li>
+    <li><a href="add-ons.html">Add-ons</a></li>
+    <li><a href="gallery.html">Gallery</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="index.html#contact">Contact</a></li>
+  </ul>
+  <button class="nav-hamburger" aria-label="Menu" id="nav-hamburger">☰</button>
+</nav>
+
+<div class="nf-wall"></div>
+
+<!-- Buff layer: gray paint blotches over the brick, like a real wall that
+     was "buffed" (painted over) to remove old graffiti.  Pure SVG so it
+     scales without any pixel artefacts.  feTurbulence + feDisplacementMap
+     roughens the patch edges so they read as sprayed/rolled rather than
+     geometric. -->
+<svg class="nf-buff" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <filter id="nfBuffRough" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="9" result="t"/>
+      <feDisplacementMap in="SourceGraphic" in2="t" scale="60"/>
+    </filter>
+    <filter id="nfBuffRough2" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="17" result="t"/>
+      <feDisplacementMap in="SourceGraphic" in2="t" scale="40"/>
+    </filter>
+    <!-- Subtle paint texture overlay for the patch interior -->
+    <filter id="nfBuffNoise" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="2.4" numOctaves="2" seed="3"/>
+      <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.08 0"/>
+    </filter>
+  </defs>
+
+  <!-- Buff paint colours: deliberately CLOSE to the brick reds but a few
+       hue/luma points off — exactly the way real property owners try to
+       paint over tags with whatever red they have on hand. Never matches.
+       Patches are intentionally off-centre + different shapes (no concentric
+       blobs) so it looks like multiple ad-hoc cover-ups over the years. -->
+
+  <!-- Patch A: big lighter cover-up, biased LEFT, tall + wide -->
+  <path filter="url(#nfBuffRough)" fill="#b86643" opacity="0.94"
+        d="M 100 280
+           C 350 220, 580 240, 760 200
+           C 880 240, 920 360, 880 500
+           C 860 600, 800 690, 660 720
+           C 460 740, 270 700, 140 640
+           C 50 540, 60 380, 100 280 Z"/>
+
+  <!-- Patch B: smaller, older/darker coat, biased RIGHT, partially overlaps A -->
+  <path filter="url(#nfBuffRough2)" fill="#8c4530" opacity="0.88"
+        d="M 720 320
+           C 920 290, 1180 310, 1340 350
+           C 1430 440, 1410 580, 1300 640
+           C 1100 670, 880 660, 740 620
+           C 680 530, 660 410, 720 320 Z"/>
+
+  <!-- Patch C: tall narrow roller streak, isolated on the right -->
+  <path filter="url(#nfBuffRough2)" fill="#a85a3c" opacity="0.86"
+        d="M 1380 180
+           C 1440 220, 1460 350, 1450 480
+           C 1430 580, 1400 660, 1370 700
+           C 1330 660, 1310 540, 1320 410
+           C 1340 290, 1360 220, 1380 180 Z"/>
+
+  <!-- Stray flicks + drips scattered around the patches — overspray + roller dribbles -->
+  <g filter="url(#nfBuffRough2)" fill="#b86643">
+    <ellipse cx="60"   cy="660" rx="38" ry="14" opacity="0.7"/>
+    <ellipse cx="220"  cy="780" rx="26" ry="9"  opacity="0.6"/>
+    <ellipse cx="980"  cy="780" rx="22" ry="8"  opacity="0.55"/>
+    <ellipse cx="1490" cy="730" rx="30" ry="11" opacity="0.7"/>
+    <ellipse cx="820"  cy="170" rx="18" ry="7"  opacity="0.5"/>
+    <!-- Drip from patch C bottom edge -->
+    <rect x="1395" y="700" width="14" height="46" rx="6" opacity="0.55"/>
+    <!-- Drip from patch A bottom edge -->
+    <rect x="380"  y="720" width="11" height="38" rx="5" opacity="0.5"/>
+  </g>
+
+  <!-- Subtle paint-grain texture on top -->
+  <rect width="1600" height="900" filter="url(#nfBuffNoise)" opacity="0.6"/>
+</svg>
+
+<div class="nf-stage" id="nf-stage">
+  <canvas id="nf-paint"></canvas>
+  <img id="nf-writer" alt="" src="images/grft_branded_can.png" style="height:220px;">
+</div>
+
+<div class="nf-overlay">
+  <span class="eyebrow">Wall not found</span>
+  <h1>Looks like this wall got buffed.</h1>
+
+  <div class="nf-tag-row">
+    <input id="nf-text" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="tag the wall yourself…">
+    <div class="nf-pills">
+      <button id="nf-spray" class="active" type="button" aria-label="Spray">
+        <img src="images/grft_branded_can.png" alt="">
+      </button>
+      <button id="nf-marker" type="button" aria-label="Marker">
+        <!-- Upright marker just for the picker UI; the painting itself uses
+             the top-down version (see WRITER_CONFIG.marker.img). -->
+        <img src="images/grft_marker_isolated.png" alt="">
+      </button>
+    </div>
+    <button class="nf-btn nf-go" id="nf-go" type="button">▶ Tag it</button>
+  </div>
+
+</div>
+
+<script>
+//
+// Paint engine with two brushes (spray + marker) — same code as lab.html
+// just inlined here so the 404 page is self-contained.
+//
+const COLOR = '#ffc800';
+const SPEED = 5.0;       // fixed fastest playback
+
+const cap = { current: 'spray' };  // 'spray' | 'marker'
+const WRITER_CONFIG = {
+  spray:  { img: 'images/grft_branded_can.png',
+            anchorY: 0.04, imgHeight: 220, brushSize: 60 },
+  marker: { img: 'images/grft_marker_true_top_down.png',
+            anchorY: 0.95, imgHeight: 180, brushSize: 30 },
+};
+
+const stampCache = new Map();
+const sizeBucket = (s) => Math.max(2, Math.round(s/2)*2);
+const hexA = (h, a) => {
+  const n = parseInt(h.slice(1), 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+};
+
+function buildStamp(capName, size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const x = c.getContext('2d');
+  const r = size/2;
+  x.translate(r, r);
+  if (capName === 'spray') {
+    const cx = (Math.random()-0.5) * r * 0.16;
+    const cy = (Math.random()-0.5) * r * 0.16;
+    const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0,    hexA(COLOR, 0.55));
+    g.addColorStop(0.35, hexA(COLOR, 0.18));
+    g.addColorStop(0.75, hexA(COLOR, 0.04));
+    g.addColorStop(1,    hexA(COLOR, 0));
+    x.fillStyle = g;
+    x.beginPath(); x.arc(0, 0, r, 0, Math.PI*2); x.fill();
+    const grain = Math.min(700, Math.round(r*r*0.55));
+    for (let i = 0; i < grain; i++) {
+      const a = Math.random()*Math.PI*2;
+      const rr = Math.pow(Math.random(), 1.5) * r;
+      const dx = Math.cos(a)*rr, dy = Math.sin(a)*rr;
+      const edge = rr/r;
+      const sz = (0.35 + Math.random()*0.9) * (1 - edge*0.5);
+      const al = (0.05 + Math.random()*0.18) * (1 - edge*0.7);
+      x.fillStyle = hexA(COLOR, al);
+      x.beginPath(); x.arc(dx, dy, sz, 0, Math.PI*2); x.fill();
+    }
+  } else {
+    // marker: bold solid ink with a soft 15%-edge feather
+    const g = x.createRadialGradient(0, 0, r*0.85, 0, 0, r);
+    g.addColorStop(0,    hexA(COLOR, 1));
+    g.addColorStop(0.85, hexA(COLOR, 1));
+    g.addColorStop(1,    hexA(COLOR, 0));
+    x.fillStyle = g;
+    x.beginPath(); x.arc(0, 0, r, 0, Math.PI*2); x.fill();
+  }
+  return c;
+}
+function getStamp(capName, size) {
+  const b = sizeBucket(size);
+  const k = capName + '|' + b;
+  let s = stampCache.get(k);
+  if (!s) { s = buildStamp(capName, b); stampCache.set(k, s); }
+  return s;
+}
+const SPACING = { spray: 0.06, marker: 0.16 };
+function stampAt(pctx, x, y, size) {
+  const s = getStamp(cap.current, size);
+  pctx.drawImage(s, x - size/2, y - size/2, size, size);
+}
+function strokeSegment(pctx, x0, y0, x1, y1, size) {
+  const dx = x1-x0, dy = y1-y0;
+  const dist = Math.hypot(dx, dy);
+  const spacing = Math.max(1, size * (SPACING[cap.current] || 0.12));
+  const steps = Math.max(1, Math.ceil(dist/spacing));
+  for (let i = 1; i <= steps; i++) {
+    const t = i/steps;
+    stampAt(pctx, x0+dx*t, y0+dy*t, size);
+  }
+}
+
+const paint = document.getElementById('nf-paint');
+const writer = document.getElementById('nf-writer');
+const stage = document.getElementById('nf-stage');
+let pctx = paint.getContext('2d');
+let abortToken = { aborted: false };
+
+function resizeCanvas() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const r = stage.getBoundingClientRect();
+  paint.width  = r.width  * dpr;
+  paint.height = r.height * dpr;
+  pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  // On viewport size changes (rotation, mobile chrome collapse, etc.)
+  // re-play so the painted text re-fits the new dimensions.
+  if (font && traces) playOnce();
+});
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => { if (font && traces) playOnce(); }, 200);
+});
+
+function clearCanvas() {
+  pctx.save(); pctx.setTransform(1,0,0,1,0,0);
+  pctx.clearRect(0, 0, paint.width, paint.height);
+  pctx.restore();
+}
+
+// Subtle per-stroke grip angle — not a continuous wobble.
+let currentTilt = 0, targetTilt = 0;
+function setStrokeTilt() {
+  const r = Math.random()*2 - 1;
+  targetTilt = Math.sign(r) * Math.pow(Math.abs(r), 2.2) * 4;
+}
+// writerImgHeight is set per-playback by playOnce(); start at the spray default
+// so positionWriter doesn't ever see undefined.
+let writerImgHeight = WRITER_CONFIG.spray.imgHeight;
+function positionWriter(x, y) {
+  const cfg = WRITER_CONFIG[cap.current];
+  currentTilt += (targetTilt - currentTilt) * 0.08;
+  writer.style.left = x + 'px';
+  writer.style.top  = (y - cfg.anchorY * writerImgHeight) + 'px';
+  writer.style.transform = `translate(-50%, 0) rotate(${currentTilt.toFixed(2)}deg)`;
+}
+
+let traces = null, font = null;
+async function loadAssets() {
+  // Two-stage load: tiny 67KB file with just '0' + '4' first (animation
+  // starts almost instantly), then full slim file with every letter
+  // loaded lazily so the input box works for arbitrary text.
+  const [, fontResult] = await Promise.all([
+    fetch('grft-traced-paths-404.json', { cache: 'force-cache' })
+      .then(r => { if (!r.ok) throw new Error('404 traces ' + r.status); return r.json(); })
+      .then(j => { traces = j; }),
+    new Promise((resolve, reject) => {
+      opentype.load('Fonts/GraffitiPlusDisplay-Regular.ttf', (err, f) => {
+        if (err) reject(new Error('opentype: ' + (err.message || err)));
+        else { font = f; resolve(f); }
+      });
+    }),
+  ]);
+
+  // Background-load the full letter set so the input box can paint
+  // anything the user types — doesn't block initial paint.
+  fetch('grft-traced-paths-slim.json', { cache: 'force-cache' })
+    .then(r => r.ok ? r.json() : null)
+    .then(full => { if (full) traces = full; })
+    .catch(() => {});
+}
+
+async function playOnce(textOverride) {
+  // Guard: if assets haven't finished loading, queue a retry shortly.
+  // Without this, clicking Tag-it before the font/traces arrive throws.
+  if (!font || !traces) {
+    setTimeout(() => playOnce(textOverride), 200);
+    return;
+  }
+  abortToken.aborted = true;
+  abortToken = { aborted: false };
+  const token = abortToken;
+  clearCanvas();
+  resizeCanvas();
+
+  const text = (textOverride || (document.getElementById('nf-text').value || '404')).slice(0, 20);
+  const cfg = WRITER_CONFIG[cap.current];
+
+  const r = stage.getBoundingClientRect();
+  const STAGE_W = r.width, STAGE_H = r.height;
+
+  const heightCap = Math.min(STAGE_H * 0.5, 360);
+  let fontSize = heightCap * 2;
+  let scale = fontSize / font.unitsPerEm;
+  let totalAdvance = 0;
+  for (const ch of text) totalAdvance += font.charToGlyph(ch).advanceWidth * scale;
+  const maxWidth = STAGE_W * 0.84;
+  if (totalAdvance > maxWidth) {
+    const k = maxWidth / totalAdvance;
+    fontSize *= k; scale *= k; totalAdvance *= k;
+  }
+
+  // Reference: at fontSize 720 desktop defaults from WRITER_CONFIG apply.
+  const sf = fontSize / 720;
+  const brushSize = Math.max(14, cfg.brushSize * sf);
+  const imgHeight = Math.max(80, cfg.imgHeight * sf);
+  writer.style.height = imgHeight + 'px';
+  writerImgHeight = imgHeight;
+
+  let cursorX = (STAGE_W - totalAdvance) / 2;
+  const baselineY = STAGE_H * 0.62;
+
+  const INK_TIME_PER_POINT = 6;
+  const actions = [];
+  let timeline = 0;
+  for (const ch of text) {
+    const glyph = font.charToGlyph(ch);
+    const advance = glyph.advanceWidth * scale;
+    const data = traces?.letters?.[ch.toLowerCase()];
+    if (!data || !(data.strokes||[]).length) { cursorX += advance; continue; }
+    const otPath = glyph.getPath(cursorX, baselineY, fontSize);
+    const obb = otPath.getBoundingBox();
+    if (!obb || !isFinite(obb.x1)) { cursorX += advance; continue; }
+    const tBox = { x: obb.x1, y: obb.y1, w: obb.x2-obb.x1, h: obb.y2-obb.y1 };
+    for (const stroke of data.strokes) {
+      const pts = stroke.points;
+      if (!pts.length) continue;
+      const t0 = pts[0].t;
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        actions.push({
+          x: tBox.x + p.nx * tBox.w,
+          y: tBox.y + p.ny * tBox.h,
+          t: timeline + (p.t - t0) + i * INK_TIME_PER_POINT,
+          first: i === 0,
+        });
+      }
+      const last = pts[pts.length-1];
+      timeline += (last.t - t0) + pts.length * INK_TIME_PER_POINT + 60;
+    }
+    cursorX += advance;
+  }
+  if (!actions.length) return;
+
+  writer.style.opacity = 1;
+  const startWall = performance.now();
+  let lastIdx = -1, prev = null;
+  await new Promise(resolve => {
+    function tick(now) {
+      if (token.aborted) { resolve(); return; }
+      const elapsed = (now - startWall) * SPEED;
+      let idx = lastIdx;
+      while (idx + 1 < actions.length && actions[idx+1].t <= elapsed) idx++;
+      if (idx > lastIdx) {
+        for (let i = lastIdx + 1; i <= idx; i++) {
+          const a = actions[i];
+          if (a.first || !prev) { setStrokeTilt(); stampAt(pctx, a.x, a.y, brushSize); }
+          else strokeSegment(pctx, prev.x, prev.y, a.x, a.y, brushSize);
+          prev = a;
+        }
+        positionWriter(prev.x, prev.y);
+        lastIdx = idx;
+      }
+      if (lastIdx >= actions.length - 1) {
+        writer.style.opacity = 0;
+        resolve(); return;
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+function setCap(name) {
+  cap.current = name;
+  document.getElementById('nf-spray').classList.toggle('active',  name === 'spray');
+  document.getElementById('nf-marker').classList.toggle('active', name === 'marker');
+  writer.src = WRITER_CONFIG[name].img;
+  writer.style.transformOrigin = `50% ${(WRITER_CONFIG[name].anchorY * 100).toFixed(1)}%`;
+}
+// Toggling brushes also re-plays the current text so you can immediately
+// compare how spray vs marker handles the same letters — no extra tap.
+document.getElementById('nf-spray').addEventListener('click',  () => { setCap('spray');  if (font && traces) playOnce(); });
+document.getElementById('nf-marker').addEventListener('click', () => { setCap('marker'); if (font && traces) playOnce(); });
+document.getElementById('nf-go').addEventListener('click', () => playOnce());
+document.getElementById('nf-text').addEventListener('keydown', e => {
+  if (e.key === 'Enter') playOnce();
+});
+
+// Diagnostic: surface lifecycle to the headline so we can see remotely
+// exactly where (if anywhere) loading stalls.
+const headline = document.querySelector('.nf-overlay h1');
+const setStatus = (s) => { if (headline) headline.textContent = s; };
+
+setStatus('Booting…');
+setCap('spray');
+
+const loadDeadline = setTimeout(() => {
+  if (!font || !traces) setStatus('TIMEOUT: assets did not load in 10s (check console)');
+}, 10000);
+
+loadAssets().then(() => {
+  clearTimeout(loadDeadline);
+  resizeCanvas();
+  setStatus('Looks like this wall got buffed.');
+  playOnce('404');
+}).catch(err => {
+  clearTimeout(loadDeadline);
+  console.error('404 page load failed:', err);
+  setStatus('Load error: ' + (err.message || err));
+});
+
+// Catch any synchronous error after script start
+window.addEventListener('error', e => setStatus('JS ERR: ' + e.message));
+</script>
+
+</body>
+</html>
