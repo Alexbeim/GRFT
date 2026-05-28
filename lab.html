@@ -140,12 +140,13 @@
   <input id="text" type="text" value="hello" maxlength="40" autocomplete="off" spellcheck="false">
   <div class="pill-group">
     <button id="b-spray" class="active">Spray</button>
-    <button id="b-marker">Marker</button>
+    <button id="b-chisel">Chisel</button>
+    <button id="b-mop">Mop</button>
   </div>
   <label style="display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.85;">
     Speed
-    <input type="range" id="speed" min="30" max="500" step="10" value="100" style="width:140px;accent-color:var(--accent);">
-    <span id="speed-val" style="font:700 12px/1 ui-monospace,Menlo,monospace;width:34px;text-align:right;">1.0×</span>
+    <input type="range" id="speed" min="30" max="500" step="10" value="300" style="width:140px;accent-color:var(--accent);">
+    <span id="speed-val" style="font:700 12px/1 ui-monospace,Menlo,monospace;width:34px;text-align:right;">3.0×</span>
   </label>
   <button id="clear" class="go" style="background:transparent;color:var(--ink);border:1px solid rgba(255,255,255,0.25);">Clear</button>
   <button id="go" class="go">▶ Play</button>
@@ -170,14 +171,16 @@ GraffitiPaint.init({
   canvas: document.getElementById('paint'),
   writer: document.getElementById('writer'),
   color:  '#ffc800',
-  // Speed is read live from the slider on every rAF tick so dragging the
-  // slider mid-playback changes speed immediately.
-  speed:  () => (+speedEl.value) / 100,
+  // Speed reads live from slider; air-travel between strokes is locked at
+  // 1/3 of the paint speed — the rhythm Alex confirmed feels natural.
+  speed:       () => (+speedEl.value) / 100,
+  travelSpeed: () => (+speedEl.value) / 100 / 3,
   // Lab's original tuning: brushes slightly smaller than 404 defaults,
   // reference fontSize 480 (the lab stage is taller than the 404 hero).
   writerConfig: {
     spray:  { brushSize: 50, imgHeight: 220 },
-    marker: { brushSize: 26, imgHeight: 180 },
+    chisel: { brushSize: 34, imgHeight: 180 },
+    mop:    { brushSize: 26, imgHeight: 180 },
   },
   fontSizeRef: 480,
   maxHeightPx: 240,
@@ -186,11 +189,13 @@ GraffitiPaint.init({
 function setCap(name) {
   GraffitiPaint.setCap(name);
   document.getElementById('b-spray').classList.toggle('active',  name === 'spray');
-  document.getElementById('b-marker').classList.toggle('active', name === 'marker');
+  document.getElementById('b-chisel').classList.toggle('active', name === 'chisel');
+  document.getElementById('b-mop').classList.toggle('active', name === 'mop');
 }
 
 document.getElementById('b-spray').addEventListener('click',  () => setCap('spray'));
-document.getElementById('b-marker').addEventListener('click', () => setCap('marker'));
+document.getElementById('b-chisel').addEventListener('click', () => setCap('chisel'));
+document.getElementById('b-mop').addEventListener('click', () => setCap('mop'));
 document.getElementById('go').addEventListener('click', () => {
   GraffitiPaint.play(textEl.value.trim() || 'hello');
 });

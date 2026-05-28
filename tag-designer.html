@@ -28,7 +28,7 @@
     color: var(--ink);
     font-family: "Inter", system-ui, sans-serif;
     display: grid;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto 1fr auto;
     gap: 10px;
     padding: 14px;
   }
@@ -98,30 +98,33 @@
   button.go { background: var(--accent); color: var(--bg); border-color: transparent; padding: 10px 20px; font-size: 12px; font-weight: 800; }
   button.go:hover { background: #fff; }
 
-  /* Selection toolbar — always occupies its grid row (so the stage row
-     stays in the right place), but collapses to invisible+0-height when
-     no selection is active. */
+  /* Selection toolbar — floats over the top of the stage (absolute), so
+     showing/hiding it never reflows the layout. Translucent backdrop keeps
+     it readable over the brick wall. */
   .sel-toolbar {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    z-index: 10;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(76, 201, 255, 0.08);
-    border: 1px solid rgba(76, 201, 255, 0.3);
+    background: rgba(15, 18, 24, 0.78);
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    border: 1px solid rgba(76, 201, 255, 0.45);
     border-radius: 999px;
     padding: 6px 12px;
-    width: fit-content;
-    visibility: hidden;
-    height: 0;
-    overflow: hidden;
-    border-width: 0;
-    padding-top: 0; padding-bottom: 0;
-    transition: height 0.18s, padding 0.18s;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -6px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4);
   }
   .sel-toolbar.visible {
-    visibility: visible;
-    height: 42px;
-    padding: 6px 12px;
-    border-width: 1px;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
   }
   .sel-toolbar .label {
     font-size: 10px;
@@ -147,7 +150,7 @@
     position: relative;
     background-color: #2a1b14;
     background-image:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='120'><rect width='240' height='120' fill='%23271710'/><g><rect x='3' y='3' width='112' height='52' fill='%239c4a2f'/><rect x='119' y='3' width='118' height='52' fill='%23b35836'/><rect x='-55' y='63' width='112' height='54' fill='%23a64f30'/><rect x='61' y='63' width='112' height='54' fill='%2394462a'/><rect x='177' y='63' width='118' height='54' fill='%23aa5232'/></g><g fill='%23000' fill-opacity='0.18'><rect x='3' y='49' width='112' height='6'/><rect x='119' y='49' width='118' height='6'/><rect x='-55' y='109' width='112' height='8'/><rect x='61' y='109' width='112' height='8'/><rect x='177' y='109' width='118' height='8'/></g><g fill='%23fff' fill-opacity='0.05'><rect x='3' y='3' width='112' height='5'/><rect x='119' y='3' width='118' height='5'/><rect x='-55' y='63' width='112' height='5'/><rect x='61' y='63' width='112' height='5'/><rect x='177' y='63' width='118' height='5'/></g></svg>");
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='120'><defs><linearGradient id='v' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23ffffff' stop-opacity='0.18'/><stop offset='0.35' stop-color='%23ffffff' stop-opacity='0'/><stop offset='0.7' stop-color='%23000000' stop-opacity='0'/><stop offset='1' stop-color='%23000000' stop-opacity='0.4'/></linearGradient><linearGradient id='h' x1='0' y1='0' x2='1' y2='0'><stop offset='0' stop-color='%23ffffff' stop-opacity='0.12'/><stop offset='0.2' stop-color='%23ffffff' stop-opacity='0'/><stop offset='0.8' stop-color='%23000000' stop-opacity='0'/><stop offset='1' stop-color='%23000000' stop-opacity='0.28'/></linearGradient></defs><rect width='240' height='120' fill='%23170a05'/><g><rect x='3' y='3' width='112' height='52' fill='%239c4a2f'/><rect x='119' y='3' width='118' height='52' fill='%23b35836'/><rect x='-55' y='63' width='112' height='54' fill='%23a64f30'/><rect x='61' y='63' width='112' height='54' fill='%2394462a'/><rect x='177' y='63' width='118' height='54' fill='%23aa5232'/></g><g><rect x='3' y='3' width='112' height='52' fill='url(%23v)'/><rect x='119' y='3' width='118' height='52' fill='url(%23v)'/><rect x='-55' y='63' width='112' height='54' fill='url(%23v)'/><rect x='61' y='63' width='112' height='54' fill='url(%23v)'/><rect x='177' y='63' width='118' height='54' fill='url(%23v)'/></g><g><rect x='3' y='3' width='112' height='52' fill='url(%23h)'/><rect x='119' y='3' width='118' height='52' fill='url(%23h)'/><rect x='-55' y='63' width='112' height='54' fill='url(%23h)'/><rect x='61' y='63' width='112' height='54' fill='url(%23h)'/><rect x='177' y='63' width='118' height='54' fill='url(%23h)'/></g></svg>");
     background-size: 240px 120px;
     background-repeat: repeat;
     border: 1px solid rgba(0,0,0,0.4);
@@ -162,7 +165,14 @@
   #paint, #overlay, #marquee-svg {
     position: absolute; inset: 0; width: 100%; height: 100%;
   }
-  #paint { display: block; pointer-events: none; }            /* canvas under the overlay */
+  #paint {
+    display: block;
+    pointer-events: none;       /* canvas under the overlay */
+    /* Blend the paint with the brick wall beneath so it picks up the 3D
+       shading — recessed mortar darkens the paint, lit brick faces keep
+       it bright. hard-light preserves paint color better than multiply. */
+    mix-blend-mode: hard-light;
+  }
   #overlay { pointer-events: none; }                          /* container; chars opt in */
   #marquee-svg { pointer-events: none; }
   #writer {
@@ -176,31 +186,40 @@
     transition: opacity 0.2s;
   }
 
-  /* Per-character draggable element. Positioned via translate3d so we can
-     compose with rotate/scale and never thrash layout. */
+  /* Per-character draggable element. Sized to the actual glyph INK bbox
+     (not the em box) so the hit target + selection outline hug the visible
+     letter — no more wrong selections from oversized hitboxes. The inner
+     .char-glyph span renders the text, offset so its ink aligns with the
+     div bounds (see renderOverlay for the math). */
   .char {
     position: absolute;
     left: 0; top: 0;
-    color: var(--accent);
-    font-family: "GraffitiPlus Display", system-ui, sans-serif;
-    line-height: 1;
     cursor: grab;
     pointer-events: auto;
     user-select: none;
     -webkit-user-select: none;
-    -webkit-text-stroke: 2px rgba(0,0,0,0.4);
-    text-shadow: 0 4px 14px rgba(0,0,0,0.55);
-    transition: text-shadow 0.18s;
-    /* The element's anchor (its top-left after translate) is the GLYPH
-       BASELINE — see js for the math. */
   }
   .char.selected {
     outline: 2px solid var(--sel);
-    outline-offset: 6px;
+    outline-offset: 2px;
     border-radius: 4px;
-    text-shadow: 0 0 16px rgba(76, 201, 255, 0.6), 0 4px 14px rgba(0,0,0,0.55);
+    box-shadow: 0 0 14px rgba(76, 201, 255, 0.55);
   }
   .char.dragging { cursor: grabbing; }
+  .char-glyph {
+    position: absolute;
+    color: var(--accent);
+    font-family: "GraffitiPlus Display", system-ui, sans-serif;
+    line-height: 1;
+    white-space: pre;
+    pointer-events: none;        /* clicks hit the parent .char div */
+    -webkit-text-stroke: 2px rgba(0,0,0,0.4);
+    text-shadow: 0 4px 14px rgba(0,0,0,0.55);
+    transition: text-shadow 0.18s;
+  }
+  .char.selected .char-glyph {
+    text-shadow: 0 0 16px rgba(76, 201, 255, 0.6), 0 4px 14px rgba(0,0,0,0.55);
+  }
 
   /* Marquee selection rectangle */
   .marquee {
@@ -231,6 +250,27 @@
   body.painting #overlay .char { opacity: 0; pointer-events: none; transition: opacity 0.2s; }
   body.painting #marquee-svg { display: none; }
   body.painting .sel-toolbar { visibility: hidden; }
+
+  /* Animation-path edit layer — shown when the user toggles the Paths
+     button. Two bezier curves (entry + exit) plus draggable control-point
+     handles. Read-only anchor dots mark the first/last paint points. */
+  #paths-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    display: none;
+    z-index: 9;
+    overflow: visible;   /* handles can be off-stage (that's the point) */
+  }
+  body.paths-on #paths-svg { display: block; }
+  body.paths-on #paths-svg .handle {
+    pointer-events: auto;
+    cursor: grab;
+  }
+  body.paths-on #paths-svg .handle.dragging { cursor: grabbing; }
+  body.paths-on .paint-btn-disabled-paths-mode { opacity: 0.5; }
+  #paths-btn.active { background: var(--sel); color: var(--bg); border-color: transparent; }
   /* Show the Edit button only while painted; hide it during design. */
   #edit-btn { display: none; }
   body.painting #edit-btn { display: inline-flex; }
@@ -243,12 +283,13 @@
   <textarea id="text" rows="1" maxlength="60" autocomplete="off" spellcheck="false" placeholder="type your tag… ⏎ for new line">grft+</textarea>
   <div class="pill-group">
     <button id="b-spray" class="active">Spray</button>
-    <button id="b-marker">Marker</button>
+    <button id="b-chisel">Chisel</button>
+    <button id="b-mop">Mop</button>
   </div>
   <label style="display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;opacity:0.85;">
     Speed
-    <input type="range" id="speed" min="1" max="15" step="0.5" value="8" style="width:110px;accent-color:var(--accent);">
-    <span id="speed-val" style="font:700 11px/1 ui-monospace,Menlo,monospace;width:30px;text-align:right;">8×</span>
+    <input type="range" id="speed" min="1" max="15" step="0.5" value="3" style="width:110px;accent-color:var(--accent);">
+    <span id="speed-val" style="font:700 11px/1 ui-monospace,Menlo,monospace;width:30px;text-align:right;">3×</span>
   </label>
   <button class="btn" id="reset">↺ Reset</button>
   <select id="saved-tags" title="Load a saved arrangement">
@@ -257,24 +298,25 @@
   <button class="btn" id="save">💾 Save</button>
   <button class="btn" id="delete-saved" title="Delete loaded tag">🗑</button>
   <button class="btn" id="edit-btn">✏ Edit</button>
+  <button class="btn" id="paths-btn" title="Show animation entry/exit paths (drag handles to tune)">🪄 Paths</button>
   <button class="go" id="play">▶ Paint it</button>
 </header>
 
-<div id="sel-toolbar" class="sel-toolbar">
-  <span class="label" id="sel-count">0 selected</span>
-  <button title="Rotate left 5°"  data-act="rot-l">⟲</button>
-  <button title="Rotate right 5°" data-act="rot-r">⟳</button>
-  <button title="Bigger"          data-act="up">＋</button>
-  <button title="Smaller"         data-act="down">−</button>
-  <button title="Bring to front"  data-act="front">⤴</button>
-  <button title="Send to back"    data-act="back">⤵</button>
-  <button class="danger" title="Delete" data-act="del">✕</button>
-</div>
-
 <div class="stage" id="stage">
+  <div id="sel-toolbar" class="sel-toolbar">
+    <span class="label" id="sel-count">0 selected</span>
+    <button title="Rotate left 5°"  data-act="rot-l">⟲</button>
+    <button title="Rotate right 5°" data-act="rot-r">⟳</button>
+    <button title="Bigger"          data-act="up">＋</button>
+    <button title="Smaller"         data-act="down">−</button>
+    <button title="Bring to front"  data-act="front">⤴</button>
+    <button title="Send to back"    data-act="back">⤵</button>
+    <button class="danger" title="Delete" data-act="del">✕</button>
+  </div>
   <canvas id="paint"></canvas>
   <div id="overlay"></div>
   <svg id="marquee-svg"><rect id="marquee" class="marquee" style="display:none"></rect></svg>
+  <svg id="paths-svg"></svg>
   <img id="writer" alt="">
 </div>
 
@@ -324,10 +366,14 @@ GraffitiPaint.init({
   canvas,
   writer,
   color: '#ffc800',
-  speed: 5.0,
+  // Air-travel between strokes locked at 1/3 of paint speed (the rhythm
+  // Alex confirmed feels natural).
+  speed:       () => +document.getElementById('speed').value,
+  travelSpeed: () => +document.getElementById('speed').value / 3,
   writerConfig: {
     spray:  { brushSize: 50, imgHeight: 220 },
-    marker: { brushSize: 26, imgHeight: 180 },
+    chisel: { brushSize: 34, imgHeight: 180 },
+    mop:    { brushSize: 26, imgHeight: 180 },
   },
   fontSizeRef: 480,
   maxHeightPx: 240,
@@ -336,46 +382,68 @@ GraffitiPaint.init({
 function setCap(name) {
   GraffitiPaint.setCap(name);
   document.getElementById('b-spray').classList.toggle('active',  name === 'spray');
-  document.getElementById('b-marker').classList.toggle('active', name === 'marker');
+  document.getElementById('b-chisel').classList.toggle('active', name === 'chisel');
+  document.getElementById('b-mop').classList.toggle('active', name === 'mop');
 }
 
 // ── Layout rendering ─────────────────────────────────────────────────────────
-// We need pixel positions for each char's DOM element. The engine stores
-// (x, y) as the glyph's BASELINE anchor. To translate that into a CSS
-// translate for the <div>, we offset upward by the glyph's typographic
-// ascent (approximated as 0.78 × fontSize × scale for GRFT+ display).
-//
-// We also size each <div> to the glyph's advance width × fontSize so the
-// click target lines up with the visible ink.
-const FONT_ASCENT_FRAC = 0.78;
-const FONT_DESCENT_FRAC = 0.22;
+// Each char becomes a div sized to its TRUE INK BBOX (from opentype) — the
+// hit target hugs the visible letter, not the em box. An inner <span>
+// renders the actual glyph text, positioned via negative top/left offsets so
+// the ink lands exactly inside the div's bounds. The engine's (item.x, item.y)
+// is the GLYPH BASELINE ANCHOR in canvas coords, so:
+//   div top-left = (item.x + obb.x1,  item.y + obb.y1)
+//   glyph baseline inside div = at y = -obb.y1 (because obb.y1 is negative)
+//   span top = -obb.y1 - (font.ascender * fontSize)  — pulls the glyph's
+//              typographic baseline up to land at the right inner-y.
 
 function renderOverlay() {
   overlay.innerHTML = '';
   const font = GraffitiPaint._internal.getFont();
   if (!font) return;
+  // Typographic ascender as a fraction of em (for inner-span vertical alignment).
+  const ascenderFrac = (font.ascender || font.tables?.os2?.sTypoAscender || 0)
+                       / font.unitsPerEm;
   state.layout.forEach((item, i) => {
     const ch = item.char;
     if (ch === ' ') return;            // spaces have no element
     const scale = item.scale || 1;
     const charFontSize = state.fontSize * scale;
 
-    const advance = font.charToGlyph(ch).advanceWidth / font.unitsPerEm * charFontSize;
-    const ascent  = charFontSize * FONT_ASCENT_FRAC;
-    const descent = charFontSize * FONT_DESCENT_FRAC;
+    // True ink bbox in glyph-local coords (baseline at y=0).
+    const glyph = font.charToGlyph(ch);
+    const otPath = glyph.getPath(0, 0, charFontSize);
+    const obb = otPath.getBoundingBox();
+    if (!obb || !isFinite(obb.x1)) return;
+    const inkW = Math.max(1, obb.x2 - obb.x1);
+    const inkH = Math.max(1, obb.y2 - obb.y1);
 
     const el = document.createElement('div');
     el.className = 'char';
     el.dataset.idx = i;
-    el.textContent = ch;
-    el.style.fontSize = charFontSize + 'px';
-    el.style.width    = advance + 'px';
-    el.style.height   = (ascent + descent) + 'px';
-    // Anchor: convert engine's (baseline x, baseline y) to top-left.
-    const left = item.x;
-    const top  = item.y - ascent;
+    el.style.width  = inkW + 'px';
+    el.style.height = inkH + 'px';
+    // Div top-left lands on the ink-top-left in canvas coords.
+    const left = item.x + obb.x1;
+    const top  = item.y + obb.y1;
+    el.style.transformOrigin = `${inkW / 2}px ${inkH / 2}px`;
     el.style.transform = `translate(${left}px, ${top}px) rotate(${item.rotation || 0}deg)`;
-    el.style.transformOrigin = `${advance/2}px ${ascent}px`;   // around the glyph's baseline-center
+
+    // Inner glyph — sized to fontSize, positioned so its ink lands inside the
+    // div bounds. Horizontal: nudge by -obb.x1 to align ink-left with div-left.
+    // Vertical: typographic baseline in a line-height:1 span sits at
+    // (ascenderFrac * fontSize) below the span's top edge → we want the
+    // baseline at (-obb.y1) below the div's top, so span_top = -obb.y1 -
+    // ascenderFrac * fontSize (usually negative — the span extends above
+    // the div, but the rendered ink stays inside).
+    const span = document.createElement('span');
+    span.className = 'char-glyph';
+    span.textContent = ch;
+    span.style.fontSize = charFontSize + 'px';
+    span.style.left = (-obb.x1) + 'px';
+    span.style.top  = (-obb.y1 - ascenderFrac * charFontSize) + 'px';
+    el.appendChild(span);
+
     if (state.selected.has(i)) el.classList.add('selected');
     overlay.appendChild(el);
   });
@@ -435,6 +503,28 @@ function indicesInRect(rect) {
   return out;
 }
 
+// ── Undo stack ───────────────────────────────────────────────────────────────
+// Pushed BEFORE any layout-mutating action (drag completed with movement,
+// toolbar rotate/scale/front/back/delete, keyboard equivalents). Ctrl/Cmd+Z
+// pops the top snapshot and restores it. Selection is not part of undo state
+// — it's a transient UI thing that just resets to empty on undo.
+const undoStack = [];
+const MAX_UNDO = 50;
+function snapshotLayout() {
+  return JSON.parse(JSON.stringify(state.layout));
+}
+function pushUndo() {
+  undoStack.push(snapshotLayout());
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+}
+function undo() {
+  if (undoStack.length === 0) return;
+  state.layout = undoStack.pop();
+  state.selected.clear();
+  renderOverlay();
+  status.textContent = 'Undid (' + undoStack.length + ' remaining)';
+}
+
 function startDrag(idx, e) {
   if (!state.selected.has(idx)) {
     if (!e.shiftKey) state.selected.clear();
@@ -451,6 +541,8 @@ function startDrag(idx, e) {
     mode: 'move',
     startCanvas: start,
     snapshot: new Map([...state.selected].map(i => [i, { x: state.layout[i].x, y: state.layout[i].y }])),
+    undoSnapshot: snapshotLayout(),
+    moved: false,
   };
   document.body.style.cursor = 'grabbing';
 }
@@ -475,6 +567,7 @@ function onPointerMove(e) {
   if (dragSession.mode === 'move') {
     const dx = cur.x - dragSession.startCanvas.x;
     const dy = cur.y - dragSession.startCanvas.y;
+    if (Math.abs(dx) > 1 || Math.abs(dy) > 1) dragSession.moved = true;
     for (const [i, base] of dragSession.snapshot) {
       state.layout[i].x = base.x + dx;
       state.layout[i].y = base.y + dy;
@@ -496,6 +589,12 @@ function onPointerMove(e) {
 
 function onPointerUp() {
   if (!dragSession) return;
+  if (dragSession.mode === 'move' && dragSession.moved) {
+    // Commit the pre-drag snapshot to the undo stack ONLY if the drag
+    // actually moved something — a pure click shouldn't pollute history.
+    undoStack.push(dragSession.undoSnapshot);
+    if (undoStack.length > MAX_UNDO) undoStack.shift();
+  }
   if (dragSession.mode === 'marquee') {
     marqueeRect.style.display = 'none';
   }
@@ -507,6 +606,9 @@ stage.addEventListener('pointerdown', e => {
   // While painted, the stage is a "view" — ignore pointer input so the user
   // can admire the result without accidentally marquee-selecting.
   if (document.body.classList.contains('painting')) return;
+  // The floating selection toolbar lives INSIDE the stage now — clicks on
+  // it should go to the toolbar handler, not start a marquee.
+  if (e.target.closest('.sel-toolbar')) return;
   if (e.target.classList && e.target.classList.contains('char')) {
     const idx = +e.target.dataset.idx;
     startDrag(idx, e);
@@ -522,6 +624,7 @@ window.addEventListener('pointercancel', onPointerUp);
 // ── Selection actions (rotate / scale / front / back / delete) ───────────────
 function actOnSelection(act) {
   if (state.selected.size === 0) return;
+  pushUndo();                          // snapshot BEFORE every mutation
   if (act === 'del') {
     // Remove in reverse so indices remain valid.
     const sortedDesc = [...state.selected].sort((a, b) => b - a);
@@ -556,10 +659,21 @@ selToolbar.addEventListener('click', e => {
   const b = e.target.closest('button[data-act]');
   if (b) actOnSelection(b.dataset.act);
 });
-// Keyboard: arrow keys → rotate ±5°; +/− → scale; Delete/Backspace → delete
+// Keyboard: Ctrl/Cmd+Z = undo (works everywhere except text inputs); arrow
+// keys rotate ±5°; +/− scale; Delete/Backspace = delete (selection-aware).
 window.addEventListener('keydown', e => {
-  // Don't hijack arrows while typing in the text input.
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  const inField = e.target.tagName === 'TEXTAREA'
+               || e.target.tagName === 'INPUT'
+               || e.target.tagName === 'SELECT';
+  // Ctrl/Cmd+Z: undo. Skip in text inputs so the browser's native undo
+  // handles those edits.
+  if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+    if (inField) return;
+    undo();
+    e.preventDefault();
+    return;
+  }
+  if (inField) return;
   if (state.selected.size === 0) return;
   const map = { ArrowLeft: 'rot-l', ArrowRight: 'rot-r',
                 '=': 'up', '+': 'up', '-': 'down', '_': 'down',
@@ -601,7 +715,8 @@ function brushClicked(name) {
   }
 }
 document.getElementById('b-spray').addEventListener('click',  () => brushClicked('spray'));
-document.getElementById('b-marker').addEventListener('click', () => brushClicked('marker'));
+document.getElementById('b-chisel').addEventListener('click', () => brushClicked('chisel'));
+document.getElementById('b-mop').addEventListener('click', () => brushClicked('mop'));
 
 // ── Reset layout ─────────────────────────────────────────────────────────────
 document.getElementById('reset').addEventListener('click', () => {
@@ -686,6 +801,197 @@ document.getElementById('delete-saved').addEventListener('click', () => {
   refreshSavedDropdown();
   status.textContent = `Deleted "${name}"`;
 });
+
+// ── Animation-path edit mode ────────────────────────────────────────────────
+// Two bezier curves (entry + exit) drawn over the stage as SVG, with
+// 4 draggable handles for the editable points (entry start, entry control,
+// exit control, exit end). The first/last paint anchors are read-only dots
+// (their position is computed from the current layout).
+// State is persisted to localStorage so Alex's tunings survive reloads.
+const PATHS_STORAGE = 'grft-tag-anim-paths';
+const animPaths = {
+  entry: Object.assign({}, GraffitiPaint.DEFAULT_ENTRY_CONFIG),
+  exit:  Object.assign({}, GraffitiPaint.DEFAULT_EXIT_CONFIG),
+};
+try {
+  const raw = localStorage.getItem(PATHS_STORAGE);
+  if (raw) {
+    const saved = JSON.parse(raw);
+    if (saved.entry) Object.assign(animPaths.entry, saved.entry);
+    if (saved.exit)  Object.assign(animPaths.exit,  saved.exit);
+  }
+} catch {}
+
+function pushAnimToEngine() {
+  GraffitiPaint.setEntryConfig(animPaths.entry);
+  GraffitiPaint.setExitConfig(animPaths.exit);
+}
+function saveAnimPaths() {
+  try { localStorage.setItem(PATHS_STORAGE, JSON.stringify(animPaths)); } catch {}
+}
+pushAnimToEngine();   // apply the loaded values immediately
+
+const pathsSvg = document.getElementById('paths-svg');
+const pathsBtn = document.getElementById('paths-btn');
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function firstPaintPoint() {
+  // The engine paints from the first non-space char's baseline anchor.
+  for (const c of state.layout) if (c.char !== ' ') return { x: c.x, y: c.y };
+  return null;
+}
+function lastPaintPoint() {
+  // Approximation: the last non-space char's baseline anchor + ~half its
+  // advance (the engine actually ends at the last stroke point, but for a
+  // visual handle this is close enough).
+  for (let i = state.layout.length - 1; i >= 0; i--) {
+    const c = state.layout[i];
+    if (c.char !== ' ') return { x: c.x, y: c.y };
+  }
+  return null;
+}
+
+function renderPaths() {
+  if (!document.body.classList.contains('paths-on')) {
+    pathsSvg.innerHTML = '';
+    return;
+  }
+  const stage = document.getElementById('stage').getBoundingClientRect();
+  const W = stage.width, H = stage.height;
+  const firstP = firstPaintPoint();
+  const lastP  = lastPaintPoint();
+  if (!firstP || !lastP) { pathsSvg.innerHTML = ''; return; }
+
+  pathsSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  // Compute pixel positions from the fractional config.
+  const e = animPaths.entry;
+  const x = animPaths.exit;
+  const entryStartPx = { x: e.startXFrac * W, y: e.startYFrac * H };
+  const entryCtrlPx  = { x: e.ctrlXFrac  * W, y: firstP.y + e.ctrlYOffsetFrac * H };
+  const exitEndPx    = { x: x.endXFrac   * W, y: x.endYFrac    * H };
+  const exitCtrlPx   = { x: x.ctrlXFrac  * W, y: lastP.y  + x.ctrlYOffsetFrac * H };
+
+  // For DISPLAY only, clamp handle positions to within the stage edges so
+  // the user can always grab them. The underlying fractional values are
+  // unchanged — dragging updates them based on cursor position (which can
+  // freely go off-stage thanks to pointer capture). A dashed line from the
+  // clamped handle to the actual position shows where it "really" is.
+  const PAD = 16;
+  const clamp = (p) => ({
+    x: Math.max(PAD, Math.min(W - PAD, p.x)),
+    y: Math.max(PAD, Math.min(H - PAD, p.y)),
+    clamped: (p.x < PAD || p.x > W - PAD || p.y < PAD || p.y > H - PAD),
+  });
+  const esD = clamp(entryStartPx);
+  const ecD = clamp(entryCtrlPx);
+  const xcD = clamp(exitCtrlPx);
+  const eeD = clamp(exitEndPx);
+
+  const colorEntry = '#7cd3ff';
+  const colorExit  = '#ff9b6b';
+
+  // Helper for a "ghost trail" line from clamped → actual position.
+  const ghost = (from, to, color) => from.clamped
+    ? `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="${color}" stroke-width="1" stroke-dasharray="3 3" opacity="0.45"/>`
+    : '';
+
+  pathsSvg.innerHTML = `
+    <path d="M ${entryStartPx.x} ${entryStartPx.y} Q ${entryCtrlPx.x} ${entryCtrlPx.y} ${firstP.x} ${firstP.y}"
+          fill="none" stroke="${colorEntry}" stroke-width="2" stroke-dasharray="6 4" opacity="0.9"/>
+    <line x1="${entryStartPx.x}" y1="${entryStartPx.y}" x2="${entryCtrlPx.x}" y2="${entryCtrlPx.y}"
+          stroke="${colorEntry}" stroke-width="1" opacity="0.25"/>
+    <line x1="${firstP.x}" y1="${firstP.y}" x2="${entryCtrlPx.x}" y2="${entryCtrlPx.y}"
+          stroke="${colorEntry}" stroke-width="1" opacity="0.25"/>
+
+    <path d="M ${lastP.x} ${lastP.y} Q ${exitCtrlPx.x} ${exitCtrlPx.y} ${exitEndPx.x} ${exitEndPx.y}"
+          fill="none" stroke="${colorExit}" stroke-width="2" stroke-dasharray="6 4" opacity="0.9"/>
+    <line x1="${lastP.x}" y1="${lastP.y}" x2="${exitCtrlPx.x}" y2="${exitCtrlPx.y}"
+          stroke="${colorExit}" stroke-width="1" opacity="0.25"/>
+    <line x1="${exitEndPx.x}" y1="${exitEndPx.y}" x2="${exitCtrlPx.x}" y2="${exitCtrlPx.y}"
+          stroke="${colorExit}" stroke-width="1" opacity="0.25"/>
+
+    ${ghost(esD, entryStartPx, colorEntry)}
+    ${ghost(ecD, entryCtrlPx,  colorEntry)}
+    ${ghost(xcD, exitCtrlPx,   colorExit)}
+    ${ghost(eeD, exitEndPx,    colorExit)}
+
+    <!-- Read-only paint anchors -->
+    <circle cx="${firstP.x}" cy="${firstP.y}" r="8" fill="${colorEntry}" opacity="0.7"/>
+    <circle cx="${firstP.x}" cy="${firstP.y}" r="3" fill="#000" opacity="0.6"/>
+    <circle cx="${lastP.x}"  cy="${lastP.y}"  r="8" fill="${colorExit}"  opacity="0.7"/>
+    <circle cx="${lastP.x}"  cy="${lastP.y}"  r="3" fill="#000" opacity="0.6"/>
+
+    <!-- Draggable handles (positioned at CLAMPED display coords) -->
+    <circle class="handle" data-h="entryStart" cx="${esD.x}" cy="${esD.y}" r="13"
+            fill="${colorEntry}" stroke="#fff" stroke-width="2" opacity="${esD.clamped ? 0.7 : 1}"/>
+    <circle class="handle" data-h="entryCtrl"  cx="${ecD.x}" cy="${ecD.y}" r="11"
+            fill="${colorEntry}" stroke="#fff" stroke-width="2" opacity="${ecD.clamped ? 0.7 : 0.85}"/>
+    <circle class="handle" data-h="exitCtrl"   cx="${xcD.x}" cy="${xcD.y}" r="11"
+            fill="${colorExit}"  stroke="#fff" stroke-width="2" opacity="${xcD.clamped ? 0.7 : 0.85}"/>
+    <circle class="handle" data-h="exitEnd"    cx="${eeD.x}" cy="${eeD.y}" r="13"
+            fill="${colorExit}"  stroke="#fff" stroke-width="2" opacity="${eeD.clamped ? 0.7 : 1}"/>
+  `;
+}
+
+// Drag the SVG handles. We attach a pointerdown listener on the SVG and
+// figure out which handle was clicked.
+let pathDrag = null;
+pathsSvg.addEventListener('pointerdown', e => {
+  if (!e.target.classList || !e.target.classList.contains('handle')) return;
+  const handle = e.target.dataset.h;
+  const stage = document.getElementById('stage').getBoundingClientRect();
+  pathDrag = { handle, stageW: stage.width, stageH: stage.height, stageRect: stage };
+  e.target.classList.add('dragging');
+  e.target.setPointerCapture(e.pointerId);
+  e.stopPropagation();
+});
+pathsSvg.addEventListener('pointermove', e => {
+  if (!pathDrag) return;
+  const x = e.clientX - pathDrag.stageRect.left;
+  const y = e.clientY - pathDrag.stageRect.top;
+  const xFrac = x / pathDrag.stageW;
+  const yFrac = y / pathDrag.stageH;
+  const firstP = firstPaintPoint();
+  const lastP  = lastPaintPoint();
+  switch (pathDrag.handle) {
+    case 'entryStart':
+      animPaths.entry.startXFrac = xFrac;
+      animPaths.entry.startYFrac = yFrac;
+      break;
+    case 'entryCtrl':
+      animPaths.entry.ctrlXFrac = xFrac;
+      animPaths.entry.ctrlYOffsetFrac = firstP ? (y - firstP.y) / pathDrag.stageH : -0.28;
+      break;
+    case 'exitCtrl':
+      animPaths.exit.ctrlXFrac = xFrac;
+      animPaths.exit.ctrlYOffsetFrac = lastP ? (y - lastP.y) / pathDrag.stageH : -0.28;
+      break;
+    case 'exitEnd':
+      animPaths.exit.endXFrac = xFrac;
+      animPaths.exit.endYFrac = yFrac;
+      break;
+  }
+  pushAnimToEngine();
+  renderPaths();
+});
+function endPathDrag(e) {
+  if (!pathDrag) return;
+  document.querySelectorAll('.handle.dragging').forEach(el => el.classList.remove('dragging'));
+  pathDrag = null;
+  saveAnimPaths();
+}
+pathsSvg.addEventListener('pointerup',     endPathDrag);
+pathsSvg.addEventListener('pointercancel', endPathDrag);
+
+pathsBtn.addEventListener('click', () => {
+  document.body.classList.toggle('paths-on');
+  pathsBtn.classList.toggle('active', document.body.classList.contains('paths-on'));
+  renderPaths();
+});
+// Re-render paths whenever the layout changes (so the anchors track text edits).
+const _origRenderOverlay = renderOverlay;
+renderOverlay = function() { _origRenderOverlay(); renderPaths(); };
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
 setCap('spray');

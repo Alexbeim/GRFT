@@ -426,11 +426,11 @@
 
     // Empty-state. Only show on search (not bare category filter).
     const emptyEl = document.getElementById('gallery-empty');
-    const emptyQ  = emptyEl.querySelector('.gallery-empty-q');
+    const emptyQ  = emptyEl?.querySelector('.gallery-empty-q');
     if (visibleCount === 0 && searchTerms.length) {
-      emptyQ.textContent = '"' + searchTerms.join(' ') + '"';
-      emptyEl.hidden = false;
-    } else {
+      if (emptyQ) emptyQ.textContent = '"' + searchTerms.join(' ') + '"';
+      if (emptyEl) emptyEl.hidden = false;
+    } else if (emptyEl) {
       emptyEl.hidden = true;
     }
   }
