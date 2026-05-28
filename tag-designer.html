@@ -271,6 +271,8 @@
   body.paths-on #paths-svg .handle.dragging { cursor: grabbing; }
   body.paths-on .paint-btn-disabled-paths-mode { opacity: 0.5; }
   #paths-btn.active { background: var(--sel); color: var(--bg); border-color: transparent; }
+  .paths-ctrl { display: none !important; }
+  body.paths-on .paths-ctrl { display: inline-flex !important; }
   /* Show the Edit button only while painted; hide it during design. */
   #edit-btn { display: none; }
   body.painting #edit-btn { display: inline-flex; }
@@ -279,7 +281,7 @@
 <body>
 
 <header>
-  <h1>Tag designer</h1>
+  <h1><a href="lab.html" style="color:inherit;text-decoration:none;opacity:0.55;font-weight:400;" title="Back to Lab">←&nbsp;Lab&nbsp;·&nbsp;</a>Tag designer</h1>
   <textarea id="text" rows="1" maxlength="60" autocomplete="off" spellcheck="false" placeholder="type your tag… ⏎ for new line">grft+</textarea>
   <div class="pill-group">
     <button id="b-spray" class="active">Spray</button>
@@ -299,6 +301,14 @@
   <button class="btn" id="delete-saved" title="Delete loaded tag">🗑</button>
   <button class="btn" id="edit-btn">✏ Edit</button>
   <button class="btn" id="paths-btn" title="Show animation entry/exit paths (drag handles to tune)">🪄 Paths</button>
+  <!-- Controls visible only while Paths mode is on. -->
+  <label class="paths-ctrl" style="display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;opacity:0.85;">
+    Size
+    <input type="range" id="size-slider" min="50" max="250" step="5" value="140" style="width:90px;accent-color:var(--sel);">
+    <span id="size-val" style="font:700 11px/1 ui-monospace,Menlo,monospace;width:32px;text-align:right;">1.4×</span>
+  </label>
+  <button class="btn paths-ctrl" id="copy-config" title="Copy current paths + size to clipboard">📋 Copy</button>
+  <button class="btn paths-ctrl" id="reset-paths" title="Restore engine defaults">↺ Reset</button>
   <button class="go" id="play">▶ Paint it</button>
 </header>
 
@@ -371,7 +381,7 @@ GraffitiPaint.init({
   speed:       () => +document.getElementById('speed').value,
   travelSpeed: () => +document.getElementById('speed').value / 3,
   writerConfig: {
-    spray:  { brushSize: 50, imgHeight: 220 },
+    spray:  { img: 'images/grft_branded_can_final_v6.png', brushSize: 50, imgHeight: 220 },
     chisel: { brushSize: 34, imgHeight: 180 },
     mop:    { brushSize: 26, imgHeight: 180 },
   },
@@ -812,6 +822,7 @@ const PATHS_STORAGE = 'grft-tag-anim-paths';
 const animPaths = {
   entry: Object.assign({}, GraffitiPaint.DEFAULT_ENTRY_CONFIG),
   exit:  Object.assign({}, GraffitiPaint.DEFAULT_EXIT_CONFIG),
+  writerScale: 1.4,
 };
 try {
   const raw = localStorage.getItem(PATHS_STORAGE);
@@ -819,12 +830,14 @@ try {
     const saved = JSON.parse(raw);
     if (saved.entry) Object.assign(animPaths.entry, saved.entry);
     if (saved.exit)  Object.assign(animPaths.exit,  saved.exit);
+    if (typeof saved.writerScale === 'number') animPaths.writerScale = saved.writerScale;
   }
 } catch {}
 
 function pushAnimToEngine() {
   GraffitiPaint.setEntryConfig(animPaths.entry);
   GraffitiPaint.setExitConfig(animPaths.exit);
+  GraffitiPaint.setWriterScale(animPaths.writerScale);
 }
 function saveAnimPaths() {
   try { localStorage.setItem(PATHS_STORAGE, JSON.stringify(animPaths)); } catch {}
@@ -989,6 +1002,45 @@ pathsBtn.addEventListener('click', () => {
   pathsBtn.classList.toggle('active', document.body.classList.contains('paths-on'));
   renderPaths();
 });
+
+// ── Size slider + Copy / Reset buttons ───────────────────────────────────
+const sizeSlider = document.getElementById('size-slider');
+const sizeVal    = document.getElementById('size-val');
+// Reflect loaded writerScale into slider on boot.
+sizeSlider.value = Math.round((animPaths.writerScale || 1) * 100);
+sizeVal.textContent = (animPaths.writerScale || 1).toFixed(1) + '×';
+sizeSlider.addEventListener('input', () => {
+  const v = (+sizeSlider.value) / 100;
+  animPaths.writerScale = v;
+  sizeVal.textContent = v.toFixed(1) + '×';
+  pushAnimToEngine();
+  saveAnimPaths();
+});
+
+document.getElementById('copy-config').addEventListener('click', async () => {
+  const json = JSON.stringify(animPaths, null, 2);
+  try {
+    await navigator.clipboard.writeText(json);
+    status.textContent = '✓ Copied paths + size to clipboard';
+  } catch {
+    // Fallback: surface it inline for manual copy.
+    status.textContent = 'Copy failed — values: ' + json;
+    console.log('[grft] animPaths', json);
+  }
+});
+
+document.getElementById('reset-paths').addEventListener('click', () => {
+  if (!confirm('Reset entry/exit paths and can size to engine defaults?')) return;
+  Object.assign(animPaths.entry, GraffitiPaint.DEFAULT_ENTRY_CONFIG);
+  Object.assign(animPaths.exit,  GraffitiPaint.DEFAULT_EXIT_CONFIG);
+  animPaths.writerScale = 1.4;
+  sizeSlider.value = 140;
+  sizeVal.textContent = '1.4×';
+  pushAnimToEngine();
+  saveAnimPaths();
+  renderPaths();
+  status.textContent = 'Animation paths + size reset to defaults';
+});
 // Re-render paths whenever the layout changes (so the anchors track text edits).
 const _origRenderOverlay = renderOverlay;
 renderOverlay = function() { _origRenderOverlay(); renderPaths(); };
@@ -1000,7 +1052,7 @@ refreshSavedDropdown();
 GraffitiPaint.loadAssets({
   tracesFull: 'grft-traced-paths.json',
   font:       'Fonts/GraffitiPlusDisplay-Regular.ttf',
-  sprayImg:   'images/grft_branded_can.png',
+  sprayImg:   'images/grft_branded_can_final_v6.png',
   markerImg:  'images/grft_marker_true_top_down.png',
 }).then(() => {
   applyAutoLayout(textInput.value || 'grft+');

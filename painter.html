@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GRFT+ · Lab · Painter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Unlisted experiment — keep search engines + social previews away. -->
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta property="og:title" content="">
+<meta property="og:description" content="">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+<script src="opentype.min.js"></script>
+
+<style>
+  :root { --bg: #1a1410; --ink: #fafafa; --accent: #ffc800; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; overscroll-behavior: none; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", system-ui, sans-serif;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 14px;
+    padding: 18px;
+  }
+
+  header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  header h1 {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.7;
+    margin: 0;
+    margin-right: auto;
+  }
+  .pill-group {
+    display: inline-flex;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .pill-group button {
+    background: transparent;
+    color: var(--ink);
+    border: none;
+    border-right: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 16px;
+    cursor: pointer;
+    font: 700 12px/1 "Inter", system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .pill-group button:last-child { border-right: none; }
+  .pill-group button.active { background: var(--accent); color: var(--bg); }
+  button.go, button.ghost {
+    border-radius: 999px;
+    padding: 10px 22px;
+    font: 800 13px/1 "Inter", system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+  }
+  button.ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  button.ghost:hover { background: rgba(255,255,255,0.08); }
+
+  .stage {
+    position: relative;
+    background-color: #170a05;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='120'><defs><linearGradient id='v' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23ffffff' stop-opacity='0.18'/><stop offset='0.35' stop-color='%23ffffff' stop-opacity='0'/><stop offset='0.7' stop-color='%23000000' stop-opacity='0'/><stop offset='1' stop-color='%23000000' stop-opacity='0.4'/></linearGradient><linearGradient id='h' x1='0' y1='0' x2='1' y2='0'><stop offset='0' stop-color='%23ffffff' stop-opacity='0.12'/><stop offset='0.2' stop-color='%23ffffff' stop-opacity='0'/><stop offset='0.8' stop-color='%23000000' stop-opacity='0'/><stop offset='1' stop-color='%23000000' stop-opacity='0.28'/></linearGradient></defs><rect width='240' height='120' fill='%23170a05'/><g><rect x='3' y='3' width='112' height='52' fill='%239c4a2f'/><rect x='119' y='3' width='118' height='52' fill='%23b35836'/><rect x='-55' y='63' width='112' height='54' fill='%23a64f30'/><rect x='61' y='63' width='112' height='54' fill='%2394462a'/><rect x='177' y='63' width='118' height='54' fill='%23aa5232'/></g><g><rect x='3' y='3' width='112' height='52' fill='url(%23v)'/><rect x='119' y='3' width='118' height='52' fill='url(%23v)'/><rect x='-55' y='63' width='112' height='54' fill='url(%23v)'/><rect x='61' y='63' width='112' height='54' fill='url(%23v)'/><rect x='177' y='63' width='118' height='54' fill='url(%23v)'/></g><g><rect x='3' y='3' width='112' height='52' fill='url(%23h)'/><rect x='119' y='3' width='118' height='52' fill='url(%23h)'/><rect x='-55' y='63' width='112' height='54' fill='url(%23h)'/><rect x='61' y='63' width='112' height='54' fill='url(%23h)'/><rect x='177' y='63' width='118' height='54' fill='url(%23h)'/></g></svg>");
+    background-size: 240px 120px;
+    background-repeat: repeat;
+    border: 1px solid rgba(0,0,0,0.4);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 0 180px rgba(0,0,0,0.65);
+    touch-action: none;     /* let pointer events drive painting, no browser scroll */
+    cursor: crosshair;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #paint {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* Paint blends with brick wall lighting — same trick as tag-designer. */
+    mix-blend-mode: hard-light;
+    pointer-events: none;
+  }
+  #writer {
+    position: absolute;
+    pointer-events: none;
+    transform-origin: 50% 0;
+    transform: translate(-50%, 0);
+    will-change: transform, left, top;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,0.6));
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  footer {
+    font-size: 12px;
+    opacity: 0.55;
+    text-align: center;
+  }
+  footer kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    font: 700 10px/1 ui-monospace, Menlo, monospace;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>
+    <a href="lab.html" style="color:inherit;text-decoration:none;opacity:0.55;font-weight:400;" title="Back to Lab">←&nbsp;Lab&nbsp;·&nbsp;</a>Painter
+  </h1>
+  <div class="pill-group">
+    <button id="b-spray"  class="active">Spray</button>
+    <button id="b-chisel">Chisel</button>
+    <button id="b-mop">Mop</button>
+  </div>
+  <button id="clear" class="ghost">Clear</button>
+</header>
+
+<div class="stage" id="stage">
+  <canvas id="paint"></canvas>
+  <img id="writer" alt="">
+</div>
+
+<footer>
+  Click + drag to paint · switch brush mid-stroke · <kbd>Clear</kbd> wipes the wall · drips form automatically
+</footer>
+
+<script src="paint-engine.js"></script>
+<script>
+//
+// Painter — free paint with any of the engine's brushes. The user's pointer
+// path drives stamp calls directly; drips happen automatically because the
+// engine tracks wetness inside stampAt.
+//
+const paint  = document.getElementById('paint');
+const writer = document.getElementById('writer');
+const stage  = document.getElementById('stage');
+
+// ── Writer image animation (smooth tilt + position easing) ─────────────────
+// Declared up here (before setCap('spray') below) so updateTargetTilt can
+// access ws without a temporal-dead-zone error.
+const PER_CAP = {
+  spray:  { img: 'images/grft_branded_can_final_v6.png',  anchorY: 0.04,  imgHeight: 180, paintTilt: -5 },
+  chisel: { img: 'images/grft_marker_true_top_down.png',  anchorY: 0.985, imgHeight: 150, paintTilt:  4 },
+  mop:    { img: 'images/grft_mop_marker_top_down.png',   anchorY: 0.086, imgHeight: 150, paintTilt: -4 },
+};
+const ws = {
+  x: 0, y: 0, targetX: 0, targetY: 0,
+  tilt: 0, targetTilt: 0,
+  visible: false, painting: false,
+  rafActive: false,
+};
+function startWriterLoop() {
+  if (ws.rafActive) return;
+  ws.rafActive = true;
+  requestAnimationFrame(tickWriter);
+}
+function tickWriter() {
+  ws.x += (ws.targetX - ws.x) * 0.55;
+  ws.y += (ws.targetY - ws.y) * 0.55;
+  ws.tilt += (ws.targetTilt - ws.tilt) * 0.10;
+
+  const cap = GraffitiPaint._internal.getCap();
+  const cfg = PER_CAP[cap] || PER_CAP.spray;
+  const h = cfg.imgHeight * GraffitiPaint.getWriterScale();
+  writer.style.height = h + 'px';
+  if (writer.src.indexOf(cfg.img.split('/').pop()) === -1) writer.src = cfg.img;
+  writer.style.left = ws.x + 'px';
+  writer.style.top  = (ws.y - cfg.anchorY * h) + 'px';
+  writer.style.transform = `translate(-50%, 0) rotate(${ws.tilt.toFixed(2)}deg)`;
+
+  const moving = Math.abs(ws.targetX - ws.x) > 0.2
+              || Math.abs(ws.targetY - ws.y) > 0.2
+              || Math.abs(ws.targetTilt - ws.tilt) > 0.05;
+  if (ws.visible || moving) requestAnimationFrame(tickWriter);
+  else ws.rafActive = false;
+}
+function updateTargetTilt() {
+  const cap = GraffitiPaint._internal.getCap();
+  const cfg = PER_CAP[cap] || PER_CAP.spray;
+  ws.targetTilt = ws.painting ? cfg.paintTilt : 0;
+}
+function showWriterAt(x, y, snap) {
+  ws.targetX = x; ws.targetY = y;
+  if (snap || !ws.visible) { ws.x = x; ws.y = y; }
+  ws.visible = true;
+  updateTargetTilt();
+  writer.style.opacity = 1;
+  startWriterLoop();
+}
+function hideWriter() {
+  ws.visible = false;
+  ws.painting = false;
+  ws.targetTilt = 0;
+  writer.style.opacity = 0;
+}
+
+GraffitiPaint.init({
+  canvas: paint,
+  writer: writer,
+  color:  '#ffc800',
+  // Free-paint uses brushSize directly from writerConfig (no fontSize
+  // scaling). Pick decent base sizes for hand-painting.
+  writerConfig: {
+    spray:  { img: 'images/grft_branded_can_final_v6.png', brushSize: 56, imgHeight: 180 },
+    chisel: { brushSize: 40, imgHeight: 150 },
+    mop:    { brushSize: 32, imgHeight: 150 },
+  },
+  // Free-paint deposits FAR fewer stamps per second than recorded-trace
+  // playback (only one per pointermove ~60Hz vs hundreds inside the rAF
+  // tick loop), so we bump spawn rates so drips read at human pace.
+  // Spray loses its wetness-threshold gate so single strokes can still
+  // drip — overlap still gets MORE drips via the multiplier path.
+  dripConfig: {
+    spray:  { spawnRate: 0.05, spawnThreshold: 0.2 },
+    mop:    { spawnRate: 0.04 },
+    chisel: { enabled: false },
+  },
+});
+
+function setCap(name) {
+  GraffitiPaint.setCap(name);
+  document.getElementById('b-spray').classList.toggle('active',  name === 'spray');
+  document.getElementById('b-chisel').classList.toggle('active', name === 'chisel');
+  document.getElementById('b-mop').classList.toggle('active',    name === 'mop');
+  // Re-target tilt for the new cap so an in-flight stroke smoothly eases
+  // into the new brush's "paint angle" (or back to 0° if not painting).
+  if (typeof updateTargetTilt === 'function') {
+    updateTargetTilt();
+    startWriterLoop();
+  }
+}
+document.getElementById('b-spray').addEventListener('click',  () => setCap('spray'));
+document.getElementById('b-chisel').addEventListener('click', () => setCap('chisel'));
+document.getElementById('b-mop').addEventListener('click',    () => setCap('mop'));
+document.getElementById('clear').addEventListener('click',    () => {
+  GraffitiPaint.clear();
+  GraffitiPaint.beginFreePaint();
+  writer.style.opacity = 0;
+});
+
+setCap('spray');
+
+// Asset load — engine needs traces + font for play(), but free paint
+// doesn't strictly require them. We still load so writer image works.
+GraffitiPaint.loadAssets({
+  tracesFull: 'grft-traced-paths.json',
+  font:       'Fonts/GraffitiPlusDisplay-Regular.ttf',
+  sprayImg:   'images/grft_branded_can_final_v6.png',
+  markerImg:  'images/grft_marker_true_top_down.png',
+}).then(() => {
+  GraffitiPaint.beginFreePaint();
+}).catch(err => {
+  console.error('Asset load failed:', err);
+  GraffitiPaint.beginFreePaint();   // free paint still works without traces
+});
+
+// ── Pointer painting ────────────────────────────────────────────────────────
+let painting = false;
+let lastX = 0, lastY = 0;
+
+function localCoords(e) {
+  const r = stage.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+stage.addEventListener('pointerdown', e => {
+  painting = true;
+  ws.painting = true;
+  const p = localCoords(e);
+  lastX = p.x; lastY = p.y;
+  GraffitiPaint.paintAt(p.x, p.y);
+  showWriterAt(p.x, p.y);
+  stage.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+stage.addEventListener('pointermove', e => {
+  if (!painting) {
+    // Hover preview — writer follows cursor without painting, no tilt.
+    const p = localCoords(e);
+    showWriterAt(p.x, p.y);
+    return;
+  }
+  // Coalesced events for smoother strokes on high-rate input devices.
+  const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (const ev of events) {
+    const p = localCoords(ev);
+    GraffitiPaint.paintSegment(lastX, lastY, p.x, p.y);
+    lastX = p.x; lastY = p.y;
+  }
+  showWriterAt(lastX, lastY);
+});
+stage.addEventListener('pointerup', e => {
+  painting = false;
+  ws.painting = false;
+  updateTargetTilt();   // ease tilt back toward 0
+  stage.releasePointerCapture(e.pointerId);
+});
+stage.addEventListener('pointercancel', () => {
+  painting = false;
+  ws.painting = false;
+  updateTargetTilt();
+});
+stage.addEventListener('pointerleave',  () => hideWriter());
+</script>
+
+</body>
+</html>

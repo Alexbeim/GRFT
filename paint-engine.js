@@ -172,19 +172,24 @@
   // > 1 = off-screen right; 0 = top, 1 = bottom). ctrlYOffsetFrac is added
   // to the first/last paint point's Y (negative = above the paint point).
   // Override per-page by calling setEntryConfig() / setExitConfig().
+  // Default bezier paths tuned by Alex in the tag designer's PATHS mode.
+  // Entry sweeps from bottom-LEFT up through a control point INSIDE the
+  // stage and BELOW the paint point, hooking into the first stroke from
+  // below. Exit mirrors. (Values rounded from the designer's pixel-fine
+  // tuning to keep the source readable.)
   const DEFAULT_ENTRY_CONFIG = {
-    startXFrac: -0.25,       // off-screen LEFT
-    startYFrac:  0.98,       // BOTTOM
-    ctrlXFrac:  -0.55,       // way further off-left → bows the path outward
-    ctrlYOffsetFrac: -0.28,  // above paint point
-    scale: 2.4,              // huge at entry start (camera far)
+    startXFrac: -0.25,        // off-screen LEFT
+    startYFrac:  0.98,        // BOTTOM
+    ctrlXFrac:   0.148,       // on-stage, just left of the paint area
+    ctrlYOffsetFrac: 0.323,   // BELOW the paint point — gives the "rise from below" feel
+    scale: 1.6,               // subtly larger at entry start (camera slightly far)
   };
   const DEFAULT_EXIT_CONFIG = {
-    ctrlXFrac:   1.55,       // way off-right
-    ctrlYOffsetFrac: -0.28,
-    endXFrac:    1.25,       // off-screen RIGHT
-    endYFrac:    0.98,       // BOTTOM
-    scale: 2.4,
+    ctrlXFrac:   0.695,       // on-stage, right of the paint area
+    ctrlYOffsetFrac: 0.316,   // BELOW the paint point — mirror of entry
+    endXFrac:    1.25,        // off-screen RIGHT
+    endYFrac:    0.98,        // BOTTOM
+    scale: 1.6,
   };
 
   let cfg = {
@@ -192,7 +197,7 @@
     speed: 1.0,
     travelSpeed: null,       // null = use speed; otherwise independent rate for inter-stroke air travel
     writerConfig: DEFAULT_WRITER_CONFIG,
-    writerScale: 1.0,        // multiplier on writer image height (all phases) — lets the tag designer tune can size globally
+    writerScale: 1.4,        // multiplier on writer image height (all phases) — Alex-tuned default
     dripConfig: DEFAULT_DRIP_CONFIG,
     entryConfig: Object.assign({}, DEFAULT_ENTRY_CONFIG),
     exitConfig:  Object.assign({}, DEFAULT_EXIT_CONFIG),
@@ -319,28 +324,39 @@
     lastStampT = -1;
   }
 
+  // Cached speedScale used during synchronous stamp bursts (e.g. one
+  // pointermove triggering N stamps inside paintSegment, OR one rAF tick
+  // playing back several recorded points). We only refresh the pen-speed
+  // measurement when enough real time has passed since the last refresh
+  // — otherwise burst stamps would all see dt≈0 and collapse the scale
+  // to its "extremely fast" floor.
+  let lastSpeedScale = 1;
+  const SPEED_REFRESH_MS = 4;
+
   function stampAt(x, y, size) {
     const s = getStamp(cap.current, size);
     pctx.drawImage(s, x - size/2, y - size/2, size, size);
 
-    // Instantaneous pen speed in canvas px/ms. Pinned to 1 when this is the
-    // very first stamp of a playback (no previous reference).
+    // Pen-speed measurement for speed-dependent drip caps. First stamp of
+    // a session has no reference → use 1. Refresh only when at least
+    // SPEED_REFRESH_MS has elapsed since the last refresh.
     const now = performance.now();
-    let speedScale = 1;
-    if (lastStampT > 0) {
+    if (lastStampT > 0 && now - lastStampT >= SPEED_REFRESH_MS) {
       const dt = now - lastStampT;
       const dist = Math.hypot(x - lastStampX, y - lastStampY);
-      if (dt > 0) {
-        const pxPerMs = dist / dt;
-        // Mapping: slow (≤0.05 px/ms) → 2.0× drip rate (clamped),
-        //          normal (~0.5 px/ms) → 1.0×,
-        //          fast (≥5 px/ms) → 0.1× (clamped).
-        speedScale = Math.max(0.1, Math.min(2.0, 0.5 / Math.max(0.05, pxPerMs)));
-      }
+      const pxPerMs = dist / dt;
+      // Slow (≤0.05 px/ms) → 2.0× drip rate; normal (~0.5) → 1.0×;
+      // fast (≥5) → 0.1× (clamped both ends).
+      lastSpeedScale = Math.max(0.1, Math.min(2.0, 0.5 / Math.max(0.05, pxPerMs)));
+      lastStampT = now; lastStampX = x; lastStampY = y;
+    } else if (lastStampT < 0) {
+      // Very first stamp of a session — establish reference for next time.
+      lastStampT = now; lastStampX = x; lastStampY = y;
+      lastSpeedScale = 1;
     }
-    lastStampT = now; lastStampX = x; lastStampY = y;
+    // Synchronous burst stamps (dt < SPEED_REFRESH_MS) reuse lastSpeedScale.
 
-    maybeSpawnDrip(x, y, size, speedScale);
+    maybeSpawnDrip(x, y, size, lastSpeedScale);
   }
   function strokeSegment(x0, y0, x1, y1, size) {
     const dx = x1 - x0, dy = y1 - y0;
@@ -358,7 +374,11 @@
   // opt in via `speedDependentDrips: true` use it to scale spawn probability.
   function maybeSpawnDrip(x, y, size, speedScale) {
     const dcfg = cfg.dripConfig && cfg.dripConfig[resolveCap(cap.current)];
-    if (!dcfg || !dcfg.enabled || !wetGrid) return;
+    if (!dcfg || !dcfg.enabled) return;
+    // Only wetness-driven caps actually NEED the grid; for flat-rate caps
+    // (mop, future fire ext) it's fine to spawn without it. Lazy-init here
+    // so free-paint pages that never called beginFreePaint still get drips.
+    if (dcfg.useWetness && !wetGrid) resetDripState();
     if (speedScale == null) speedScale = 1;
     const speedMult = dcfg.speedDependentDrips ? speedScale : 1;
 
@@ -518,25 +538,26 @@
     pctx.restore();
   }
   function setStrokeTilt() {
-    // Spray-can specific: right-handed graffiti writer's grip ALWAYS leans
-    // the bottom of the can to the right (nozzle pivots near top). We
-    // guarantee a 3–7° magnitude so the lean is always visible, with a 92%
-    // bias toward positive (rightward) sign — occasional left lean stops
-    // it from looking too mechanical.
+    // Spray-can specific: right-handed graffiti writer's grip leans the
+    // BOTTOM of the can to the right. Since the can's pivot is near its
+    // TOP (anchorY=0.04), positive CSS rotation (CW) actually swings the
+    // bottom LEFT — so we want NEGATIVE rotation to put the bottom right.
+    // Guarantee a 3–7° magnitude so the lean is always visible, 92%
+    // bias toward the right-handed direction.
     // Other caps (chisel, mop) keep a softer random magnitude with no
     // sign bias since their pivot is at the bottom.
     const isSpray = resolveCap(cap.current) === 'spray';
     let magnitude, sign;
     if (isSpray) {
       magnitude = 3 + Math.random() * 4;            // 3°–7°
-      sign = Math.random() < 0.92 ? 1 : -1;
+      sign = Math.random() < 0.92 ? -1 : 1;         // bottom RIGHT (right-hand grip)
     } else {
       magnitude = Math.pow(Math.random(), 2.2) * 4; // 0°–4° soft
       sign = Math.random() < 0.5 ? -1 : 1;
     }
     targetTilt = sign * magnitude;
   }
-  function positionWriter(x, y, extraScale) {
+  function positionWriter(x, y, extraScale, overrideTilt) {
     if (!writer) return;
     const wc = cfg.writerConfig[resolveCap(cap.current)];
     const baseH = writerImgHeight || wc.imgHeight;
@@ -544,13 +565,20 @@
     // global "can size" tuning from the tag designer).
     const scale = (extraScale != null ? extraScale : 1) * (cfg.writerScale || 1);
     const h = baseH * scale;
-    // Resize on every tick — cheap and lets the fly-in/out depth animation
-    // scale the writer image without a separate transform layer.
     writer.style.height = h + 'px';
-    currentTilt += (targetTilt - currentTilt) * 0.08;
+    // overrideTilt = a fixed rotation in degrees (typically 0 for entry/exit
+    // phases where we want the writer perfectly straight). If unset, fall
+    // back to the smoothly-eased per-stroke tilt during the paint phase.
+    let tilt;
+    if (overrideTilt != null) {
+      tilt = overrideTilt;
+    } else {
+      currentTilt += (targetTilt - currentTilt) * 0.08;
+      tilt = currentTilt;
+    }
     writer.style.left = x + 'px';
     writer.style.top  = (y - wc.anchorY * h) + 'px';
-    writer.style.transform = `translate(-50%, 0) rotate(${currentTilt.toFixed(2)}deg)`;
+    writer.style.transform = `translate(-50%, 0) rotate(${tilt.toFixed(2)}deg)`;
   }
   function showWriter() { if (writer) writer.style.opacity = 1; }
   function hideWriter() { if (writer) writer.style.opacity = 0; }
@@ -918,7 +946,7 @@
           const wx = bez(k, entryStart.x, entryCtrl.x, firstA.x);
           const wy = bez(k, entryStart.y, entryCtrl.y, firstA.y);
           const wScale = entryStart.scale + (1 - entryStart.scale) * k;
-          positionWriter(wx, wy, wScale);
+          positionWriter(wx, wy, wScale, 0);    // straight during fly-in
           if (frac >= 1) {
             phase = 'preHold';
             phaseStart = now;
@@ -933,7 +961,7 @@
           const dt = (now - phaseStart);
           const floatX = Math.sin(dt * 0.006) * 4;
           const floatY = Math.cos(dt * 0.008) * 2;
-          positionWriter(firstA.x + floatX, firstA.y + floatY, 1);
+          positionWriter(firstA.x + floatX, firstA.y + floatY, 1, 0);    // straight while hovering
           if (dt >= PRE_HOLD) {
             phase = 'paint';
             lastWallT = now;     // reset for paint-phase dt
@@ -960,8 +988,18 @@
           if (idx > lastIdx) {
             for (let i = lastIdx + 1; i <= idx; i++) {
               const a = actions[i];
-              if (a.first || !prev) { setStrokeTilt(); stampAt(a.x, a.y, a.brushSize); }
-              else strokeSegment(prev.x, prev.y, a.x, a.y, a.brushSize);
+              if (a.first || !prev) {
+                const wasFirstEver = !prev;
+                setStrokeTilt();
+                // For the VERY FIRST stroke of the whole paint, snap the
+                // tilt instantly — entry held the writer at 0° so without
+                // this snap the lean would ramp in over half a second
+                // (which feels mushy after the deliberate fly-in).
+                if (wasFirstEver) currentTilt = targetTilt;
+                stampAt(a.x, a.y, a.brushSize);
+              } else {
+                strokeSegment(prev.x, prev.y, a.x, a.y, a.brushSize);
+              }
               prev = a;
             }
             lastIdx = idx;
@@ -1024,7 +1062,7 @@
           const dt = (now - phaseStart);
           const floatX = Math.sin(dt * 0.006) * 4;
           const floatY = Math.cos(dt * 0.008) * 2;
-          positionWriter(prev.x + floatX, prev.y + floatY, 1);
+          positionWriter(prev.x + floatX, prev.y + floatY, 1, 0);    // straight while hovering
           if (dt >= POST_HOLD) {
             phase = 'exit';
             phaseStart = now;
@@ -1040,7 +1078,7 @@
         const wx = bez(k, prev.x, exitCtrl.x, exitEnd.x);
         const wy = bez(k, prev.y, exitCtrl.y, exitEnd.y);
         const wScale = 1 + (exitEnd.scale - 1) * k;
-        positionWriter(wx, wy, wScale);
+        positionWriter(wx, wy, wScale, 0);    // straight during fly-out
         if (frac >= 1) {
           hideWriter();
           cfg.speed = savedSpeed;
@@ -1064,6 +1102,41 @@
     abortToken.aborted = true;
     activeDrips.length = 0;
     hideWriter();
+  }
+
+  // ── Free-paint API ────────────────────────────────────────────────────────
+  // Lets host pages drive the engine with raw pointer events — e.g. the
+  // Painter experiment where the user paints freely on the wall instead of
+  // playing back recorded letter traces. Drips still trigger automatically
+  // because they live inside stampAt; the host just feeds in pointer paths
+  // and the engine handles brush + drip physics from there.
+  //
+  // Call beginFreePaint() before the first paintAt — resets the wetness
+  // grid so drips reflect a fresh session, kills any in-flight playback +
+  // drips. Does NOT clear the canvas (use clear() for that).
+  function beginFreePaint() {
+    abortToken.aborted = true;
+    abortToken = { aborted: false };
+    activeDrips.length = 0;
+    resetDripState();
+    lastStampT = -1;
+  }
+
+  // Compute a default brush size for the current cap, scaled by writerScale.
+  function defaultBrushSize() {
+    const wc = cfg.writerConfig[resolveCap(cap.current)] || {};
+    return Math.max(8, (wc.brushSize || 30) * (cfg.writerScale || 1));
+  }
+
+  function paintAt(x, y, size) {
+    if (!pctx) return;
+    const s = size != null ? size : defaultBrushSize();
+    stampAt(x, y, s);   // also drives drip spawning + wetness tracking
+  }
+  function paintSegment(x0, y0, x1, y1, size) {
+    if (!pctx) return;
+    const s = size != null ? size : defaultBrushSize();
+    strokeSegment(x0, y0, x1, y1, s);
   }
 
   // Inject pre-loaded assets directly (skips the network path entirely).
@@ -1095,6 +1168,7 @@
   window.GraffitiPaint = {
     init, loadAssets, setAssets, play, playLayout, computeAutoLayout,
     setCap, clear, stop,
+    beginFreePaint, paintAt, paintSegment,
     setEntryConfig, setExitConfig, getEntryConfig, getExitConfig,
     setWriterScale, getWriterScale,
     DEFAULT_ENTRY_CONFIG, DEFAULT_EXIT_CONFIG,
@@ -1103,6 +1177,10 @@
       getTraces: () => traces,
       getFont:   () => font,
       getCap:    () => cap.current,
+      getActiveDrips: () => activeDrips,
+      getWetGrid:     () => wetGrid,
+      getDripConfig:  () => cfg.dripConfig,
+      getDripLoopActive: () => dripLoopActive,
     },
   };
 })();

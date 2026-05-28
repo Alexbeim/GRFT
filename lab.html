@@ -2,224 +2,89 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>GRFT+ · Paint-engine typing test</title>
+<title>GRFT+ · Lab</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- Unlisted experiment — keep search engines + social previews away. -->
+<!-- Unlisted internal experiments index — keep search engines + social previews away. -->
 <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
 <meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
 <meta property="og:title" content="">
 <meta property="og:description" content="">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 
-<script src="opentype.min.js"></script>
-
-<style>
-  @font-face {
-    font-family: "GraffitiPlus Display";
-    src: url("Fonts/GraffitiPlusDisplay-Regular.woff2?v=3") format("woff2");
-    font-weight: 400;
-    font-style: normal;
-    font-display: block;
-  }
-  :root { --bg: #1a1410; --ink: #fafafa; --accent: #ffc800; }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; height: 100%; }
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: "Inter", system-ui, sans-serif;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    gap: 14px;
-    padding: 18px;
-  }
-
-  header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  header h1 {
-    font-size: 12px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    font-weight: 700;
-    opacity: 0.7;
-    margin: 0;
-    margin-right: auto;
-  }
-  input[type=text] {
-    background: rgba(255,255,255,0.08);
-    color: var(--ink);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 8px;
-    padding: 8px 14px;
-    font: 700 16px/1 "Inter", system-ui, sans-serif;
-    min-width: 200px;
-    flex: 1;
-    max-width: 480px;
-  }
-  input[type=text]:focus { outline: 2px solid var(--accent); }
-  .pill-group {
-    display: inline-flex;
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 999px;
-    overflow: hidden;
-  }
-  .pill-group button {
-    background: transparent;
-    color: var(--ink);
-    border: none;
-    border-right: 1px solid rgba(255,255,255,0.2);
-    padding: 8px 16px;
-    cursor: pointer;
-    font: 700 12px/1 "Inter", system-ui, sans-serif;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .pill-group button:last-child { border-right: none; }
-  .pill-group button.active {
-    background: var(--accent);
-    color: var(--bg);
-  }
-  button.go {
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    border-radius: 999px;
-    padding: 10px 22px;
-    font: 800 13px/1 "Inter", system-ui, sans-serif;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-  }
-  button.go:disabled { opacity: 0.5; cursor: wait; }
-  button.go:hover:not(:disabled) { background: #fff; }
-
-  .stage {
-    position: relative;
-    background-color: #2a1b14;
-    background-image:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='120'><rect width='240' height='120' fill='%23271710'/><g><rect x='3' y='3' width='112' height='52' fill='%239c4a2f'/><rect x='119' y='3' width='118' height='52' fill='%23b35836'/><rect x='-55' y='63' width='112' height='54' fill='%23a64f30'/><rect x='61' y='63' width='112' height='54' fill='%2394462a'/><rect x='177' y='63' width='118' height='54' fill='%23aa5232'/></g><g fill='%23000' fill-opacity='0.18'><rect x='3' y='49' width='112' height='6'/><rect x='119' y='49' width='118' height='6'/><rect x='-55' y='109' width='112' height='8'/><rect x='61' y='109' width='112' height='8'/><rect x='177' y='109' width='118' height='8'/></g><g fill='%23fff' fill-opacity='0.05'><rect x='3' y='3' width='112' height='5'/><rect x='119' y='3' width='118' height='5'/><rect x='-55' y='63' width='112' height='5'/><rect x='61' y='63' width='112' height='5'/><rect x='177' y='63' width='118' height='5'/></g></svg>");
-    background-size: 240px 120px;
-    background-repeat: repeat;
-    border: 1px solid rgba(0,0,0,0.4);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: inset 0 0 180px rgba(0,0,0,0.65);
-  }
-  #paint {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-  #writer {
-    position: absolute;
-    pointer-events: none;
-    transform-origin: 50% 0;
-    transform: translate(-50%, 0);
-    will-change: transform, left, top;
-    filter: drop-shadow(0 10px 18px rgba(0,0,0,0.6));
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-  footer {
-    font-size: 12px;
-    opacity: 0.55;
-    text-align: center;
-  }
-  footer code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; }
-</style>
+<link rel="stylesheet" href="style.css?v=lab-2026-05-27">
+<link rel="stylesheet" href="style-v4.css?v=lab-2026-05-27">
+<link rel="icon" type="image/png" href="images/favicon.png">
 </head>
 <body>
 
-<header>
-  <h1>Paint-engine typing test</h1>
-  <input id="text" type="text" value="hello" maxlength="40" autocomplete="off" spellcheck="false">
-  <div class="pill-group">
-    <button id="b-spray" class="active">Spray</button>
-    <button id="b-chisel">Chisel</button>
-    <button id="b-mop">Mop</button>
-  </div>
-  <label style="display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.85;">
-    Speed
-    <input type="range" id="speed" min="30" max="500" step="10" value="300" style="width:140px;accent-color:var(--accent);">
-    <span id="speed-val" style="font:700 12px/1 ui-monospace,Menlo,monospace;width:34px;text-align:right;">3.0×</span>
-  </label>
-  <button id="clear" class="go" style="background:transparent;color:var(--ink);border:1px solid rgba(255,255,255,0.25);">Clear</button>
-  <button id="go" class="go">▶ Play</button>
-</header>
+<!-- Site nav (verbatim from gallery so the page feels part of the site). -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="images/logo-v4.webp" alt="Graffiti+">
+  </a>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="rentals.html">Rentals</a></li>
+    <li><a href="add-ons.html">Add-ons</a></li>
+    <li><a href="gallery.html">Gallery</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="index.html#contact">Contact</a></li>
+  </ul>
+  <button class="nav-hamburger" aria-label="Menu" id="nav-hamburger">☰</button>
+</nav>
 
-<div class="stage" id="stage">
-  <canvas id="paint"></canvas>
-  <img id="writer" alt="">
+<!-- Page header — matches gallery.html structure -->
+<div class="page-header">
+  <h1>Lab</h1>
+  <p>Where new ideas get prototyped. Unlisted — share the links if you want eyes on something.</p>
 </div>
 
-<footer id="status">loading…</footer>
+<!-- Experiments list — uses the gallery's list-view CSS verbatim
+     (.gallery-list, .gallery-list-row, .gl-titleblock, .gl-name, .gl-loc,
+     .gl-desc, .gl-preview, .gl-tags). Add new experiments by copy-pasting
+     a <li><a class="gallery-list-row is-in">…</a></li> block. -->
+<ul class="gallery-list" style="padding-bottom:80px">
 
-<script src="paint-engine.js"></script>
+  <li>
+    <a class="gallery-list-row is-in" href="painter.html">
+      <div class="gl-titleblock">
+        <span class="gl-name">Painter</span>
+        <span class="gl-loc">Free paint · 2026</span>
+      </div>
+      <div class="gl-desc">Pick up the spray can, the chisel marker, or the mop. Click and drag anywhere on the wall to paint. Drips form on their own when paint pools — slow strokes pool more than fast ones. No text, no recording — just a wall and three real tools.</div>
+      <div class="gl-preview">
+        <img alt="" loading="lazy" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3ClinearGradient id='v' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='0.18'/%3E%3Cstop offset='0.35' stop-color='%23ffffff' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23000000' stop-opacity='0.4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='320' height='180' fill='%23170a05'/%3E%3Cg%3E%3Crect x='4' y='4' width='100' height='44' fill='%239c4a2f'/%3E%3Crect x='108' y='4' width='100' height='44' fill='%23b35836'/%3E%3Crect x='212' y='4' width='104' height='44' fill='%23a64f30'/%3E%3Crect x='-46' y='52' width='100' height='44' fill='%23aa5232'/%3E%3Crect x='58' y='52' width='100' height='44' fill='%2394462a'/%3E%3Crect x='162' y='52' width='100' height='44' fill='%23a64f30'/%3E%3Crect x='266' y='52' width='100' height='44' fill='%239c4a2f'/%3E%3Crect x='4' y='100' width='100' height='44' fill='%23a85a3c'/%3E%3Crect x='108' y='100' width='100' height='44' fill='%239c4a2f'/%3E%3Crect x='212' y='100' width='104' height='44' fill='%23b35836'/%3E%3C/g%3E%3Crect width='320' height='180' fill='url(%23v)'/%3E%3C!--free-form squiggle--%3E%3Cpath d='M 32 70 q 16 -22 50 -8 q 30 12 14 36 q -14 22 -42 8 q -28 -16 -2 -36 q 28 -22 64 -4 q 32 16 12 38 q -22 22 -52 6 q -32 -18 -2 -38 q 28 -16 50 0' fill='none' stroke='%23ffc800' stroke-width='12' stroke-linecap='round' stroke-linejoin='round' opacity='0.95'/%3E%3Cg fill='%23ffc800' opacity='0.6'%3E%3Crect x='60' y='102' width='3' height='34'/%3E%3Crect x='130' y='112' width='3' height='30'/%3E%3Crect x='198' y='106' width='3' height='42'/%3E%3Crect x='240' y='118' width='3' height='34'/%3E%3C/g%3E%3C/svg%3E">
+      </div>
+      <div class="gl-tags">
+        <span class="gl-tag">Free paint</span>
+        <span class="gl-tag">3 tools</span>
+      </div>
+    </a>
+  </li>
+
+  <li>
+    <a class="gallery-list-row is-in" href="tag-designer.html">
+      <div class="gl-titleblock">
+        <span class="gl-name">Composer</span>
+        <span class="gl-loc">Tag designer · 2026</span>
+      </div>
+      <div class="gl-desc">Type the tag, then arrange every letter by hand — move, scale, rotate, reorder. Tune the spray can's entry and exit paths visually with draggable bezier handles. Save arrangements to the browser, copy as JSON, paint with one click.</div>
+      <div class="gl-preview">
+        <img alt="" loading="lazy" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3ClinearGradient id='v' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='0.18'/%3E%3Cstop offset='0.35' stop-color='%23ffffff' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23000000' stop-opacity='0.4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='320' height='180' fill='%23170a05'/%3E%3Cg%3E%3Crect x='4' y='4' width='100' height='44' fill='%239c4a2f'/%3E%3Crect x='108' y='4' width='100' height='44' fill='%23b35836'/%3E%3Crect x='212' y='4' width='104' height='44' fill='%23a64f30'/%3E%3Crect x='-46' y='52' width='100' height='44' fill='%23aa5232'/%3E%3Crect x='58' y='52' width='100' height='44' fill='%2394462a'/%3E%3Crect x='162' y='52' width='100' height='44' fill='%23a64f30'/%3E%3Crect x='266' y='52' width='100' height='44' fill='%239c4a2f'/%3E%3Crect x='4' y='100' width='100' height='44' fill='%23a85a3c'/%3E%3Crect x='108' y='100' width='100' height='44' fill='%239c4a2f'/%3E%3Crect x='212' y='100' width='104' height='44' fill='%23b35836'/%3E%3C/g%3E%3Crect width='320' height='180' fill='url(%23v)'/%3E%3Cg fill='%23ffc800' opacity='0.92'%3E%3Cpath d='M 70 76 q -4 30 10 50 q 12 6 24 -4 l 0 -22 l -12 0 l 0 6 l 6 0 l 0 6 q -6 4 -12 0 q -8 -6 -2 -18 q 6 -8 16 -6'/%3E%3Cpath d='M 130 74 q -4 32 0 56 l 8 0 l 0 -22 l 12 0 q 8 8 16 22 l 10 0 q -8 -14 -16 -22 q 8 -2 10 -10 q 2 -10 -6 -16 q -8 -8 -34 -8 z m 8 8 q 16 0 20 4 q 2 6 -6 8 q -10 0 -14 -2 z'/%3E%3Cpath d='M 190 74 q 12 -2 28 0 l 0 8 l -20 0 l 0 14 l 16 0 l 0 6 l -16 0 l 0 24 l -8 0 z'/%3E%3Cpath d='M 232 74 q 16 -2 28 0 l 0 8 l -10 0 l 0 44 l -8 0 l 0 -44 l -10 0 z'/%3E%3C/g%3E%3Cg fill='none' stroke='%234cc9ff' stroke-width='2' opacity='0.9'%3E%3Crect x='60' y='74' width='50' height='58' rx='3'/%3E%3Crect x='180' y='70' width='42' height='64' rx='3'/%3E%3C/g%3E%3Cpath d='M -10 178 Q 50 56 158 100' fill='none' stroke='%237cd3ff' stroke-width='1.5' stroke-dasharray='4 3' opacity='0.7'/%3E%3Ccircle cx='40' cy='170' r='5' fill='%237cd3ff' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E">
+      </div>
+      <div class="gl-tags">
+        <span class="gl-tag">Composer</span>
+        <span class="gl-tag">Drag · drop</span>
+      </div>
+    </a>
+  </li>
+
+</ul>
+
 <script>
-// Lab page = paint engine + UI glue. Engine lives in paint-engine.js.
-const statusEl = document.getElementById('status');
-const speedEl  = document.getElementById('speed');
-const speedVal = document.getElementById('speed-val');
-const textEl   = document.getElementById('text');
-
-GraffitiPaint.init({
-  canvas: document.getElementById('paint'),
-  writer: document.getElementById('writer'),
-  color:  '#ffc800',
-  // Speed reads live from slider; air-travel between strokes is locked at
-  // 1/3 of the paint speed — the rhythm Alex confirmed feels natural.
-  speed:       () => (+speedEl.value) / 100,
-  travelSpeed: () => (+speedEl.value) / 100 / 3,
-  // Lab's original tuning: brushes slightly smaller than 404 defaults,
-  // reference fontSize 480 (the lab stage is taller than the 404 hero).
-  writerConfig: {
-    spray:  { brushSize: 50, imgHeight: 220 },
-    chisel: { brushSize: 34, imgHeight: 180 },
-    mop:    { brushSize: 26, imgHeight: 180 },
-  },
-  fontSizeRef: 480,
-  maxHeightPx: 240,
-});
-
-function setCap(name) {
-  GraffitiPaint.setCap(name);
-  document.getElementById('b-spray').classList.toggle('active',  name === 'spray');
-  document.getElementById('b-chisel').classList.toggle('active', name === 'chisel');
-  document.getElementById('b-mop').classList.toggle('active', name === 'mop');
-}
-
-document.getElementById('b-spray').addEventListener('click',  () => setCap('spray'));
-document.getElementById('b-chisel').addEventListener('click', () => setCap('chisel'));
-document.getElementById('b-mop').addEventListener('click', () => setCap('mop'));
-document.getElementById('go').addEventListener('click', () => {
-  GraffitiPaint.play(textEl.value.trim() || 'hello');
-});
-textEl.addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('go').click();
-});
-speedEl.addEventListener('input', e => {
-  speedVal.textContent = (e.target.value / 100).toFixed(1) + '×';
-});
-document.getElementById('clear').addEventListener('click', () => GraffitiPaint.clear());
-
-setCap('spray');
-GraffitiPaint.loadAssets({
-  tracesFull: 'grft-traced-paths.json',
-  font:       'Fonts/GraffitiPlusDisplay-Regular.ttf',
-  sprayImg:   'images/grft_branded_can.png',
-  markerImg:  'images/grft_marker_true_top_down.png',
-}).then(() => {
-  const letterCount = Object.keys(GraffitiPaint._internal.getTraces()?.letters || {}).length;
-  statusEl.textContent = `${letterCount} letters available · type & hit Play`;
-  GraffitiPaint.play(textEl.value);
-}).catch(err => {
-  statusEl.textContent = 'load failed: ' + err.message;
-});
+  document.getElementById('nav-hamburger').addEventListener('click', () => {
+    document.getElementById('nav-links').classList.toggle('open');
+  });
 </script>
 
 </body>
