@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GRFT+ · Tag embed demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<script src="opentype.min.js"></script>
+<style>
+  :root { --bg:#1a1410; --ink:#fafafa; --accent:#ffc800; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--ink); font-family:"Inter",system-ui,sans-serif; }
+  .wrap { max-width:900px; margin:0 auto; padding:64px 24px 200px; }
+  h1 { font-size:13px; letter-spacing:.18em; text-transform:uppercase; opacity:.6; font-weight:700; }
+  p.lede { font-size:20px; line-height:1.6; max-width:60ch; opacity:.9; }
+  .spacer { height:80vh; display:flex; align-items:center; justify-content:center; opacity:.4; font-size:12px; letter-spacing:.2em; text-transform:uppercase; }
+
+  /* The element being tagged. Sized to give the paint room. The text inside
+     is what grft-tag.js hides (kept for SEO) and paints over. */
+  .grft-tag {
+    display:block;
+    width:520px;
+    max-width:100%;
+    height:260px;
+    margin:8px 0 24px;
+  }
+
+  /* Example: a headline where one phrase is the tag. */
+  .headline { font-size:40px; font-weight:800; line-height:1.2; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Tag embed demo</h1>
+  <p class="lede">
+    Below, the words <strong>since 2008</strong> are a live painted tag exported from the
+    Tag Designer. Scroll down — it paints itself when it enters view. The real text stays
+    in the DOM (hidden) so search engines still read it.
+  </p>
+
+  <div class="spacer">scroll ↓</div>
+
+  <p class="headline">The original digital graffiti wall —</p>
+  <span class="grft-tag" data-tag="images/tags/since-2008.json" data-speed="4" data-replay="click"
+        title="click to repaint">since 2008</span>
+
+  <div class="spacer">end of demo</div>
+</div>
+
+<script src="paint-engine.js"></script>
+<script src="js/grft-tag.js"></script>
+<script>
+  // Auto-mount all .grft-tag elements (paint on scroll-into-view).
+  GrftTag.auto();
+</script>
+</body>
+</html>

@@ -207,6 +207,8 @@
     maxWidthFrac: 0.86,
     inkTimePerPoint: 6,
     baselineFrac: 0.62,      // where the baseline sits in the stage vertically
+    minBrush: 12,            // floor on stroke thickness (px). Small embeds drop
+                             // this so the stroke scales down with tiny text.
   };
   const cap = { current: 'spray' };
   const stampCache = new Map();
@@ -603,6 +605,7 @@
     if (opts.maxWidthFrac != null)     cfg.maxWidthFrac = opts.maxWidthFrac;
     if (opts.inkTimePerPoint != null)  cfg.inkTimePerPoint = opts.inkTimePerPoint;
     if (opts.baselineFrac != null)     cfg.baselineFrac = opts.baselineFrac;
+    if (opts.minBrush != null)         cfg.minBrush = opts.minBrush;
     if (opts.writerConfig) {
       // Deep-merge per cap. 'marker' and 'bomber' are legacy aliases that
       // route to 'mop' so a single source of truth lives there.
@@ -794,7 +797,7 @@
 
     const fontSize = opts.fontSize || cfg.fontSizeRef;
     const sf = fontSize / cfg.fontSizeRef;
-    const baseBrush = Math.max(12, wc.brushSize * sf);
+    const baseBrush = Math.max(cfg.minBrush, wc.brushSize * sf);
     const baseImgH  = Math.max(80, wc.imgHeight * sf);
     if (writer) writer.style.height = baseImgH + 'px';
     writerImgHeight = baseImgH;
@@ -1165,12 +1168,28 @@
   function setWriterScale(s) { if (typeof s === 'number' && s > 0) cfg.writerScale = s; }
   function getWriterScale()  { return cfg.writerScale || 1; }
 
+  // Live drip tuning. setDripConfig('spray', { spawnRate: 0.01, ... }) merges
+  // partial overrides into the named cap's drip physics so a tuning UI (the
+  // Tag Designer's drip panel) can adjust drips between plays without re-init.
+  // getDripConfig('spray') returns a shallow copy of the active values.
+  function setDripConfig(capName, partial) {
+    if (!cfg.dripConfig) cfg.dripConfig = {};
+    const key = resolveCap(capName);
+    cfg.dripConfig[key] = Object.assign({}, cfg.dripConfig[key], partial || {});
+    return cfg.dripConfig[key];
+  }
+  function getDripConfig(capName) {
+    const key = resolveCap(capName);
+    return Object.assign({}, (cfg.dripConfig && cfg.dripConfig[key]) || {});
+  }
+
   window.GraffitiPaint = {
     init, loadAssets, setAssets, play, playLayout, computeAutoLayout,
     setCap, clear, stop,
     beginFreePaint, paintAt, paintSegment,
     setEntryConfig, setExitConfig, getEntryConfig, getExitConfig,
     setWriterScale, getWriterScale,
+    setDripConfig, getDripConfig,
     DEFAULT_ENTRY_CONFIG, DEFAULT_EXIT_CONFIG,
     // Exposed for tooling/debugging — host pages should not poke these.
     _internal: {

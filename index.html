@@ -235,6 +235,24 @@
 
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="style-v4.css">
+
+  <!-- Painted-tag copy: hide the styled text up front (so it doesn't flash on
+       load) ONLY when JS is present; the painted canvas replaces it. If the tag
+       never paints (scripts blocked, etc.) or JS is off, the copy stays/returns
+       as the fallback so the words always show. -->
+  <script>
+    (function () {
+      var d = document.documentElement;
+      d.classList.add('grft-js');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (!window.__grftTagPainted) d.classList.remove('grft-js');
+        }, 8000);
+      });
+    })();
+  </script>
+  <style>html.grft-js .grft-tag[data-hide-copy] { visibility: hidden; }</style>
+
   <!-- Microsoft Clarity -->
   <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
@@ -268,7 +286,7 @@
   <div class="v2-hero-overlay"></div>
   <div class="v2-hero-content">
     <p class="v2-eyebrow">The original.</p>
-    <h1>Pioneering<br>digital graffiti<br><span class="grft hero-since">s<span class="kern-shim" style="--w:0.026em"></span>i<span class="kern-shim" style="--w:0.026em"></span>n<span class="kern-shim" style="--w:0.026em"></span>c<span class="kern-shim" style="--w:0.03em"></span>e 2<span class="kern-shim" style="--w:0.026em"></span>00<span class="kern-shim" style="--w:0.026em"></span>8.</span></h1>
+    <h1 style="width:fit-content;">Pioneering<br>digital graffiti<br><span class="grft hero-since grft-tag" data-tag="images/tags/since-2008.json" data-align="left" data-fill="0.89" data-exit="browser" data-hide-copy="true" style="display:block;width:100%;margin-top:-0.14em;margin-left:0;transform:none;">s<span class="kern-shim" style="--w:0.026em"></span>i<span class="kern-shim" style="--w:0.026em"></span>n<span class="kern-shim" style="--w:0.026em"></span>c<span class="kern-shim" style="--w:0.03em"></span>e 2<span class="kern-shim" style="--w:0.026em"></span>00<span class="kern-shim" style="--w:0.026em"></span>8.</span></h1>
     <a href="#contact" class="btn-primary">Book a demo</a>
   </div>
   <div class="v2-hero-scroll">Scroll</div>
@@ -277,22 +295,22 @@
 <!-- 2. STATS BAR -->
 <div class="v2-stats-bar">
   <div class="v2-stat-item">
-    <span class="v2-stat-num grft">18</span>
+    <span class="v2-stat-num grft grft-tag" data-tag="images/tags/stat-18.json">18</span>
     <span class="v2-stat-label">Years of deployment</span>
   </div>
   <div class="v2-stat-divider"></div>
   <div class="v2-stat-item">
-    <span class="v2-stat-num grft">500+</span>
+    <span class="v2-stat-num grft grft-tag" data-tag="images/tags/stat-500plus.json">500+</span>
     <span class="v2-stat-label">Global activations</span>
   </div>
   <div class="v2-stat-divider"></div>
   <div class="v2-stat-item">
-    <span class="v2-stat-num grft">6</span>
+    <span class="v2-stat-num grft grft-tag" data-tag="images/tags/stat-6.json">6</span>
     <span class="v2-stat-label">Continents</span>
   </div>
   <div class="v2-stat-divider"></div>
   <div class="v2-stat-item">
-    <span class="v2-stat-num grft">2008</span>
+    <span class="v2-stat-num grft grft-tag" data-tag="images/tags/stat-2008.json">2008</span>
     <span class="v2-stat-label">Vancouver, BC</span>
   </div>
 </div>
@@ -848,5 +866,11 @@
     });
   }
 </script>
+
+<!-- Live painted "since 2008" tag in the hero (paints the .grft-tag element). -->
+<script src="opentype.min.js"></script>
+<script src="paint-engine.js"></script>
+<script src="js/grft-tag.js"></script>
+<script>GrftTag.auto();</script>
 </body>
 </html>

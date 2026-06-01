@@ -1,0 +1,40 @@
+{
+  "v": 1,
+  "text": "500+",
+  "fontSize": 349.375,
+  "cap": "spray",
+  "color": "#ffc800",
+  "speed": 12,
+  "drip": {
+    "enabled": false,
+    "useWetness": true,
+    "wetnessPerStamp": 0.05,
+    "spawnThreshold": 0.95,
+    "spawnRate": 0.009,
+    "maxRateMultiplier": 2,
+    "initialVelocity": 5,
+    "gravity": 200,
+    "drag": 0.985,
+    "wetnessDrain": 0.05,
+    "thicknessDrain": 0.005,
+    "initialWetness": 0.85,
+    "initialThicknessFrac": 0.45,
+    "minThicknessFrac": 0.18,
+    "stampSpacingFrac": 0.18,
+    "spreadX": 6,
+    "wanderChance": 0.55,
+    "vxMax": 5,
+    "swayAmpMax": 7,
+    "swayFreqMin": 0.25,
+    "swayFreqMax": 0.65
+  },
+  "stage": { "w": 715, "h": 552 },
+  "inkBox": { "x": 23.84687500000001, "y": 115.30507232666017, "w": 630.6437109375001, "h": 220.7238165437183 },
+  "layout": [
+    { "char": "5", "x": 50.05000000000001, "y": 342.24, "scale": 1, "rotation": 0 },
+    { "char": "0", "x": 214.605625, "y": 342.24, "scale": 1, "rotation": 0 },
+    { "char": "0", "x": 344.573125, "y": 342.24, "scale": 1, "rotation": 0 },
+    { "char": "+", "x": 474.540625, "y": 342.24, "scale": 1, "rotation": 0 }
+  ],
+  "savedAt": "2026-06-01T05:20:32.229Z"
+}
