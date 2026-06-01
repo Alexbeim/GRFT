@@ -356,7 +356,7 @@
       <button type="button" class="size-btn" data-size="520">L</button>
     </div>
     <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
-      <input type="checkbox" id="pen-only">
+      <input type="checkbox" id="pen-only" checked>
       Pencil-only
     </label>
     <button id="send-mac" class="primary" style="background:#0a84ff;color:white;">↑ Send to Mac</button>
@@ -379,13 +379,12 @@ const STORAGE_KEY = 'grft-traced-paths-v1';
 const VIEW_W = 600, VIEW_H = 600;
 let currentBBox = null;          // glyph bbox at trace time — stamped into recording
 
-// Symbols first (the brand "+" and "%"), then "since 2008", then the rest.
-const SYMBOLS = ['+','%'];
+// Priority order: "since 2008" letters first, then the rest of the alphabet & digits
 const PRIORITY = ['s','i','n','c','e','2','0','8'];
 const REST = []
   .concat('abdfghjklmopqrtuvwxyz'.split(''))
   .concat('13456789'.split(''));
-const ALL = SYMBOLS.concat(PRIORITY).concat(REST);
+const ALL = PRIORITY.concat(REST);
 
 let recordings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 let currentIdx = 0;
@@ -636,26 +635,19 @@ function updateMeta() {
 function buildGrid() {
   gridEl.replaceChildren();
 
-  const symLabel = document.createElement('div');
-  symLabel.className = 'group-label';
-  symLabel.textContent = 'symbols — record these  ( +   % )';
-  gridEl.appendChild(symLabel);
-
-  SYMBOLS.forEach((ch, i) => addGridBtn(ch, i));
-
   const priorityLabel = document.createElement('div');
   priorityLabel.className = 'group-label';
-  priorityLabel.textContent = '"since 2008"';
+  priorityLabel.textContent = '"since 2008" — start here';
   gridEl.appendChild(priorityLabel);
 
-  PRIORITY.forEach((ch, i) => addGridBtn(ch, i + SYMBOLS.length));
+  PRIORITY.forEach((ch, i) => addGridBtn(ch, i));
 
   const restLabel = document.createElement('div');
   restLabel.className = 'group-label';
   restLabel.textContent = 'rest of alphabet (optional, for any text)';
   gridEl.appendChild(restLabel);
 
-  REST.forEach((ch, i) => addGridBtn(ch, i + SYMBOLS.length + PRIORITY.length));
+  REST.forEach((ch, i) => addGridBtn(ch, i + PRIORITY.length));
 }
 
 function addGridBtn(ch, i) {
