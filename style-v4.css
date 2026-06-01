@@ -278,7 +278,7 @@ nav .nav-logo img {
 }
 
 .v2-stat-num {
-  font-size: clamp(3rem, 6vw, 6.5rem);
+  font-size: clamp(3.3rem, 6.6vw, 7.15rem);
   font-weight: var(--w-bold);
   color: var(--obsidian);
   line-height: 0.95;
@@ -1894,7 +1894,7 @@ footer {
   /* Hide duplicate stat row on mobile — same numbers shown in the top stats bar */
   .v4-use-cases-stat-row { display: none; }
   /* Oversize stat numbers on mobile for visual impact */
-  .v2-stat-num { font-size: clamp(4.5rem, 18vw, 7rem); line-height: 0.9; }
+  .v2-stat-num { font-size: clamp(4.95rem, 19.8vw, 7.7rem); line-height: 0.9; }
   .v4-use-cases-stat span { font-size: clamp(3.5rem, 14vw, 5rem); }
   /* Oversize tagline (Zero mess / Zero fumes / 100% fun) on mobile,
      stacked tight like a single graffiti tag — lines should touch */
