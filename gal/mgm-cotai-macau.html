@@ -47,7 +47,8 @@
 <article class="gal-story">
 
   <div class="gal-story-hero">
-    <iframe src="https://player.vimeo.com/video/1165797788?background=1&autoplay=1&loop=1&muted=1&dnt=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="MGM Cotai Spectacle Square — Graffiti+"></iframe>
+    <iframe id="mgm-hero-video" src="https://player.vimeo.com/video/1165797788?background=1&autoplay=1&loop=1&muted=1&dnt=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="MGM Cotai Spectacle Square — Graffiti+"></iframe>
+    <img class="gal-story-hero-poster" src="../images/mgm_cotai_lobby.webp" alt="Graffiti+ digital graffiti running on the LED screens above MGM Cotai's Spectacle Square atrium in Macau">
   </div>
 
   <div class="gal-story-back"><a href="../gallery.html">← Back to Gallery</a></div>
@@ -55,7 +56,7 @@
   <header class="gal-story-header">
     <div>
       <div class="gal-story-eyebrow">MGM Cotai Spectacle Square — Digital Art Project</div>
-      <h1>Macau.<br>Tag, throw-up, masterpiece.<br>Rebuilt in 3D, at building scale.</h1>
+      <h1>Built with Macau's writers.<br>Their graffiti soul, intact —<br>at the scale of the Spectacle.</h1>
       <div class="includes-tags">
         <span class="includes-tag">3D Digital Art</span>
         <span class="includes-tag">Collaboration</span>
@@ -83,13 +84,17 @@
   </header>
 
   <div class="gal-story-body">
-    <p class="gal-story-lede">Graffiti's three forms — tag, throw-up, masterpiece — rebuilt in 3D and run at building scale across the LED screens above MGM Cotai's Spectacle Square.</p>
+    <p class="gal-story-lede">Graffiti's three forms — tag, throw-up, masterpiece — rebuilt in 3D and run at building scale across the LED screens above MGM Cotai's Spectacle Square, home to some of the largest permanent indoor LED displays in the world.</p>
 
     <p>The <strong>MGM Cotai Spectacle Square Digital Art — Graffiti and Street Art Project</strong> started when <a href="https://pibg2038.com" target="_blank" rel="noopener"><strong>PIBG2038</strong></a> — Macau artist, GANTZ5 co-founder, founder of the <a href="outloud-festival-2024.html">Outloud street art festival</a> — traveled from Macau to our studio in Canada. He worked with animator <a href="https://www.instagram.com/ronthekiller/" target="_blank" rel="noopener"><strong>Ron the Killer</strong></a> and toy designer <a href="https://www.instagram.com/nativo_toyworkshop/" target="_blank" rel="noopener"><strong>Nativo</strong></a> (AAFK) to build a series of digital graffiti works for the giant LED facade above the Spectacle atrium.</p>
 
-    <p>The centerpiece is <strong>CG-LEO</strong> — the Graffiti Art Lion Toy — a 3D mascot Nativo designed for the screens. PIBG2038's own pieces <strong>Coexistence</strong> and <strong>The Core</strong> run alongside it, extending the world. Street culture, rebuilt in dimension.</p>
+    <p>We don't parachute into a city and drop a generic piece on a wall — that's not what we do. We work with the people who actually live and breathe the culture there, and working alongside some of Macau's most prominent writers was a real lesson in creativity and local pride. Bringing their scene to a stage this size meant putting it in the hands of the writers who built it, so that when the work hit 25 screens it still read as graffiti — not a polished ad for it.</p>
 
-    <p>MGM Cotai now runs public art tours through the installation. Look closely — there are details hidden in every piece.</p>
+    <p>Here's how it came together. PIBG2038 painted original work on our 20-foot digital graffiti wall. We lifted the raw paint layers off that wall and set them onto digital facades drawn from Macau's Portuguese and Chinese architecture. Nativo built a custom 3D MGM lion into the scene. Then Ron the Killer animated the tags, throw-ups and pieces, and let the lion move through the art — playful, and alive.</p>
+
+    <p>That lion is <strong>CG-LEO</strong> — the Graffiti Art Lion Toy — and it anchors the whole world. PIBG2038's own pieces <strong>Coexistence</strong> and <strong>The Core</strong> run alongside it, extending it further. Street culture, rebuilt in dimension and scaled across the atrium without losing what makes it real.</p>
+
+    <p>Underneath the screens and the scale, this was about community. We're honored that MGM gave us the platform to put these writers' work in front of the public and to pay respect to Macau's own creative heartbeat. We're grateful, too, to the Government of Canada, whose trade mission program to Macau helped open the door to this opportunity and carry a Canadian studio's work onto the Spectacle. MGM Cotai now runs public art tours through the installation — look closely, there are details hidden in every piece.</p>
   </div>
 
   <div class="gal-story-media">
@@ -147,6 +152,21 @@
   </div>
 </footer>
 <script>document.getElementById('nav-hamburger').addEventListener('click',()=>document.getElementById('nav-links').classList.toggle('open'));</script>
+<script src="https://player.vimeo.com/api/player.js"></script>
+<script>
+(function(){
+  var poster = document.querySelector('.gal-story-hero-poster');
+  var iframe = document.getElementById('mgm-hero-video');
+  if(!poster || !iframe) return;
+  var hide = function(){ poster.classList.add('is-hidden'); };
+  // Fade the poster the moment the background video actually starts playing.
+  if(window.Vimeo && Vimeo.Player){
+    try { new Vimeo.Player(iframe).on('play', hide); } catch(e){ /* fall through to timeout */ }
+  }
+  // Safety net in case the play event never fires.
+  setTimeout(hide, 6000);
+})();
+</script>
 <script src="../js/gal-nav.js" defer></script>
 </body>
 </html>

@@ -3222,6 +3222,16 @@ footer {
   object-fit: cover;
   border: 0;
 }
+/* Holding image — sits over the iframe until the background video starts playing */
+.gal-story .gal-story-hero-poster {
+  z-index: 2;
+  opacity: 1;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+.gal-story .gal-story-hero-poster.is-hidden {
+  opacity: 0;
+}
 .gal-story .gal-story-back {
   max-width: 1200px;
   margin: 0 auto;
