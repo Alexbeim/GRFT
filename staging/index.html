@@ -523,13 +523,13 @@
 <section class="hero-carousel" id="heroCarousel" aria-roledescription="carousel" aria-label="Graffiti+ — who we are and featured projects">
 
   <!-- Slide 0: Intro / origin — links to the About (history) page -->
-  <article class="hc-slide hc-slide--brand is-active" data-dur="6000" role="group" aria-roledescription="slide" aria-label="Graffiti+ — since 2008">
+  <article class="hc-slide hc-slide--brand is-active" data-dur="3200" role="group" aria-roledescription="slide" aria-label="Graffiti+ — since 2008">
     <div class="hc-slide-bg" style="background-image:url('/images/hero.webp')"></div>
     <div class="hc-slide-scrim"></div>
     <div class="hc-slide-inner">
       <p class="hc-status"><span class="hc-dot"></span> The original</p>
       <h1 class="hc-title">Pioneering<br>digital graffiti</h1>
-      <p class="hc-meta hc-since"><span class="grft">since 2008.</span></p>
+      <p class="hc-meta hc-since"><span class="grft grft-tag" data-tag="/images/tags/since-2008.json" data-align="left" data-fill="0.89" data-exit="browser" data-hide-copy="true">since 2008.</span></p>
       <a class="hc-cta" href="/about.html">Our story <span>&rarr;</span></a>
     </div>
   </article>
@@ -1169,6 +1169,10 @@
     });
   }
 </script>
+<!-- Live "since 2008" spray-can tag paint engine -->
+<script src="/opentype.min.js"></script>
+<script src="/paint-engine.js"></script>
+<script src="/js/grft-tag.js"></script>
 <script>
 (function () {
   var root     = document.getElementById('heroCarousel');
@@ -1186,6 +1190,36 @@
   var SPRITE_COLS = 7, SPRITE_ROWS = 7, SPRITE_FRAMES = 49;
   var sprite = new Image();
   sprite.src = '/images/buff-sprite.jpg';
+
+  // ── "since 2008" spray-can tag paint (brand slide only) ──
+  // Painted on a canvas INSIDE the brand slide, so a paint still running while
+  // the user skips away simply rides along on the (hidden) slide — never breaks
+  // the others. Re-triggered each time the brand slide is revealed; guarded so
+  // rapid skip/back can't stack paints.
+  var sinceEl = root.querySelector('.hc-slide--brand .grft-tag');
+  var sinceTag = null;
+  if (sinceEl) {
+    fetch(sinceEl.getAttribute('data-tag'))
+      .then(function (r) { return r.json(); })
+      .then(function (t) { sinceTag = t; if (current === 0) paintSince(); })
+      .catch(function () {});
+  }
+  function paintSince() {
+    if (reduce || !sinceEl || !sinceTag || !window.GrftTag) return;
+    if (GrftTag.isPainting(sinceEl)) return;        // already painting -> don't stack
+    GrftTag.paintNow(sinceEl, sinceTag, { speed: 4, onDone: runBrandDwell });
+  }
+
+  // The brand slide holds its advance timer until the can finishes painting, then
+  // runs a short dwell so the finished tag is seen before moving on. runBrandDwell
+  // is fired by the paint's onDone (or a fallback timer if the paint can't run).
+  var brandDwellStart = null, brandFallback = null, brandDwellStarted = true;
+  function runBrandDwell() {
+    if (brandDwellStarted || current !== 0) return;
+    brandDwellStarted = true;
+    clearTimeout(brandFallback);
+    if (brandDwellStart) brandDwellStart();
+  }
 
   var durs = slides.map(function (s) { return parseInt(s.getAttribute('data-dur'), 10) || 6000; });
 
@@ -1333,6 +1367,7 @@
       if (token !== paintToken) return;
       dctx.clearRect(0, 0, canvas.width, canvas.height); // clear to transparent -> crisp new slide shows
       if (slideEl) slideEl.classList.add('is-revealed'); // fade in copy + scrim afterward
+      if (slideEl === slides[0]) paintSince();           // spray-paint "since 2008" on the brand slide
     }
     requestAnimationFrame(frame);
     // Wall-clock guarantee: end 100% revealed even if rAF is throttled (backgrounded tab).
@@ -1373,15 +1408,29 @@
     });
     var a = segs[i];
     a.style.setProperty('--hc-dur', durs[i] + 'ms');
-    if (!reduce) void a.offsetWidth;   // restart the fill animation
-    a.classList.add('is-active');
+    var startDwell = function () { if (!reduce) void a.offsetWidth; a.classList.add('is-active'); };
+    if (i === 0 && !reduce && sinceEl) {
+      // Brand slide: don't start the advance timer yet — wait for the "since 2008"
+      // can to finish painting (runBrandDwell), then run the dwell. Fallback timer
+      // guarantees it never hangs if the paint can't run.
+      brandDwellStart = startDwell;
+      brandDwellStarted = false;
+      clearTimeout(brandFallback);
+      brandFallback = setTimeout(runBrandDwell, 12000);
+    } else {
+      startDwell();
+    }
 
     // Paint-reveal between background images (skipped on first paint and reduced-motion).
     var painted = (!first && !reduce && fromUrl !== toUrl) && paintReveal(fromUrl, toUrl, slides[i]);
     if (!painted) {
       // No paint reveal: fade the copy + scrim in shortly after the slide shows.
       var target = slides[i];
-      setTimeout(function () { if (slides[current] === target) target.classList.add('is-revealed'); }, 60);
+      setTimeout(function () {
+        if (slides[current] !== target) return;
+        target.classList.add('is-revealed');
+        if (target === slides[0]) paintSince();   // spray-paint "since 2008" on first load / no-transition
+      }, 60);
     }
     displayedUrl = toUrl;
     first = false;

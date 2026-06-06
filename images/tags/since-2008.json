@@ -1,0 +1,54 @@
+{
+  "v": 1,
+  "text": "since 2008",
+  "fontSize": 350.7209686296093,
+  "cap": "spray",
+  "color": "#ffc800",
+  "speed": 12,
+  "drip": {
+    "enabled": false,
+    "useWetness": true,
+    "wetnessPerStamp": 0.05,
+    "spawnThreshold": 0.95,
+    "spawnRate": 0.019,
+    "maxRateMultiplier": 2,
+    "initialVelocity": 5,
+    "gravity": 200,
+    "drag": 0.985,
+    "wetnessDrain": 0.05,
+    "thicknessDrain": 0.005,
+    "initialWetness": 0.85,
+    "initialThicknessFrac": 0.45,
+    "minThicknessFrac": 0.18,
+    "stampSpacingFrac": 0.18,
+    "spreadX": 6,
+    "wanderChance": 0.55,
+    "vxMax": 5,
+    "swayAmpMax": 19,
+    "swayFreqMin": 0.25,
+    "swayFreqMax": 0.65
+  },
+  "stage": {
+    "w": 1482,
+    "h": 657
+  },
+  "inkBox": {
+    "x": 77.53336887189565,
+    "y": 179.50432323197577,
+    "w": 1378.8021150350703,
+    "h": 210.46251221106223
+  },
+  "layout": [
+    { "char": "s", "x": 103.74000000000001, "y": 406.1, "scale": 1, "rotation": 0 },
+    { "char": "i", "x": 279.10048431480465, "y": 406.1, "scale": 1, "rotation": 0 },
+    { "char": "n", "x": 322.6502745769125, "y": 400.1078125, "scale": 1, "rotation": 0 },
+    { "char": "c", "x": 531.3709127339021, "y": 376.56484375, "scale": 1, "rotation": 0 },
+    { "char": "e", "x": 651.8646604120804, "y": 395.53359375, "scale": 1, "rotation": 0 },
+    { "char": " ", "x": 748.0144193725922, "y": 406.1, "scale": 1, "rotation": 0 },
+    { "char": "2", "x": 856.9969377751789, "y": 398.8109375, "scale": 1, "rotation": 0 },
+    { "char": "0", "x": 989.5880909466154, "y": 398.725, "scale": 1, "rotation": 0 },
+    { "char": "0", "x": 1138.85707252683, "y": 396.02578125, "scale": 1, "rotation": 0 },
+    { "char": "8", "x": 1300.2080853570446, "y": 402.7640625, "scale": 1, "rotation": 0 }
+  ],
+  "savedAt": "2026-05-29T20:03:33.191Z"
+}
