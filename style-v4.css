@@ -3425,6 +3425,14 @@ footer {
   margin: 0 0 var(--sp-22);
 }
 .gal-story-body p strong { color: var(--white); font-weight: var(--w-bold); }
+.gal-story-body p a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: opacity 0.15s ease;
+}
+.gal-story-body p a:hover { opacity: 0.7; }
 .gal-story-body h2 {
   font-size: clamp(1.5rem, 2.4vw, 2.2rem);
   font-weight: var(--w-bold);
