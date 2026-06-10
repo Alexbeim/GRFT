@@ -95,6 +95,11 @@
   }
   button.btn:hover { background: rgba(255,255,255,0.15); }
   button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  /* Lit-up state for standalone toggle buttons (e.g. the Drips on/off). */
+  button.btn.active { background: var(--accent); color: var(--bg); border-color: transparent; }
+  button.btn.active:hover { background: #fff; }
+  /* Drips control: dim the intensity slider while drips are off. */
+  .drip-ctrl input[type=range]:disabled { opacity: 0.35; }
   button.go { background: var(--accent); color: var(--bg); border-color: transparent; padding: 10px 20px; font-size: 12px; font-weight: 800; }
   button.go:hover { background: #fff; }
 
@@ -293,6 +298,22 @@
     <input type="range" id="speed" min="1" max="15" step="0.5" value="3" style="width:110px;accent-color:var(--accent);">
     <span id="speed-val" style="font:700 11px/1 ui-monospace,Menlo,monospace;width:30px;text-align:right;">3×</span>
   </label>
+  <!-- Drips: simple on/off toggle + intensity slider. Drips only show during
+       "Paint it" playback (spray + mop caps; chisel never drips). -->
+  <div class="drip-ctrl" style="display:inline-flex;align-items:center;gap:8px;">
+    <button class="btn active" id="drip-toggle" title="Turn paint drips on or off">💧 Drips</button>
+    <label style="display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;opacity:0.85;">
+      <input type="range" id="drip-amt" min="0" max="200" step="10" value="100" style="width:90px;accent-color:var(--accent);" title="How much it drips">
+      <span id="drip-amt-val" style="font:700 11px/1 ui-monospace,Menlo,monospace;width:38px;text-align:right;">100%</span>
+    </label>
+  </div>
+  <!-- Background: textured brick wall (default), solid black, or an uploaded image. -->
+  <div class="pill-group" id="bg-group" title="Background">
+    <button id="bg-wall" class="active">Wall</button>
+    <button id="bg-black">Black</button>
+    <button id="bg-image">Image</button>
+  </div>
+  <input type="file" id="bg-file" accept="image/*" style="display:none">
   <button class="btn" id="reset">↺ Reset</button>
   <select id="saved-tags" title="Load a saved arrangement">
     <option value="">— Saved tags —</option>
@@ -1044,6 +1065,127 @@ document.getElementById('reset-paths').addEventListener('click', () => {
 // Re-render paths whenever the layout changes (so the anchors track text edits).
 const _origRenderOverlay = renderOverlay;
 renderOverlay = function() { _origRenderOverlay(); renderPaths(); };
+
+// ── Drips control (simple on/off + intensity) ────────────────────────────────
+// Drips are a per-cap engine setting. We capture each drip-capable cap's
+// default spawnRate at boot, then scale it by the intensity slider; the toggle
+// flips `enabled`. Chisel never drips (engine default) so we leave it alone.
+// Changes apply to the next "Paint it" — if a painted result is on screen we
+// repaint immediately so the effect is visible without an extra tap.
+const DRIP_CAPS = ['spray', 'mop'];
+const dripBaseRate = {};
+DRIP_CAPS.forEach(c => { dripBaseRate[c] = GraffitiPaint.getDripConfig(c).spawnRate || 0; });
+
+const dripState = { on: true, amount: 1 };   // amount = multiplier on base spawnRate
+const DRIP_STORAGE = 'grft-tag-drips';
+try {
+  const saved = JSON.parse(localStorage.getItem(DRIP_STORAGE) || 'null');
+  if (saved) {
+    dripState.on = saved.on !== false;
+    if (typeof saved.amount === 'number') dripState.amount = saved.amount;
+  }
+} catch {}
+
+const dripToggle = document.getElementById('drip-toggle');
+const dripAmt    = document.getElementById('drip-amt');
+const dripAmtVal = document.getElementById('drip-amt-val');
+
+function repaintIfPainting() {
+  if (document.body.classList.contains('painting') && state.layout.length) {
+    GraffitiPaint.playLayout(state.layout, { fontSize: state.fontSize, speed: getSpeed() });
+  }
+}
+function applyDrips() {
+  DRIP_CAPS.forEach(c => {
+    GraffitiPaint.setDripConfig(c, {
+      enabled: dripState.on,
+      spawnRate: dripBaseRate[c] * dripState.amount,
+    });
+  });
+  dripToggle.classList.toggle('active', dripState.on);
+  dripToggle.textContent = dripState.on ? '💧 Drips' : '💧 No drips';
+  dripAmt.disabled = !dripState.on;
+  dripAmt.value = Math.round(dripState.amount * 100);
+  dripAmtVal.textContent = Math.round(dripState.amount * 100) + '%';
+  try { localStorage.setItem(DRIP_STORAGE, JSON.stringify(dripState)); } catch {}
+}
+dripToggle.addEventListener('click', () => {
+  dripState.on = !dripState.on;
+  applyDrips();
+  repaintIfPainting();
+});
+dripAmt.addEventListener('input', () => {
+  dripState.amount = (+dripAmt.value) / 100;
+  dripAmtVal.textContent = (+dripAmt.value) + '%';
+});
+dripAmt.addEventListener('change', () => { applyDrips(); repaintIfPainting(); });
+applyDrips();
+
+// ── Background control (brick wall / solid black / uploaded image) ────────────
+// The brick wall is the CSS default on .stage. Black and Image set inline
+// styles that override it; switching back to Wall clears them so the CSS shows
+// through. The paint canvas uses `hard-light` over the textured wall (so it
+// picks up the 3D brick shading) but plain `normal` over flat black / arbitrary
+// images, where hard-light would skew the colour.
+const bgState = { mode: 'wall', image: null };
+const BG_STORAGE = 'grft-tag-bg';
+const bgWallBtn  = document.getElementById('bg-wall');
+const bgBlackBtn = document.getElementById('bg-black');
+const bgImageBtn = document.getElementById('bg-image');
+const bgFile     = document.getElementById('bg-file');
+
+function applyBackground() {
+  const s = stage.style;
+  // Clear any prior inline overrides first.
+  s.backgroundImage = s.backgroundColor = s.backgroundSize =
+    s.backgroundPosition = s.backgroundRepeat = '';
+  if (bgState.mode === 'black') {
+    s.backgroundImage = 'none';
+    s.backgroundColor = '#000';
+    canvas.style.mixBlendMode = 'normal';
+  } else if (bgState.mode === 'image' && bgState.image) {
+    s.backgroundImage = `url("${bgState.image}")`;
+    s.backgroundColor = '#000';
+    s.backgroundSize = 'cover';
+    s.backgroundPosition = 'center';
+    s.backgroundRepeat = 'no-repeat';
+    canvas.style.mixBlendMode = 'normal';
+  } else {
+    bgState.mode = 'wall';
+    canvas.style.mixBlendMode = 'hard-light';
+  }
+  bgWallBtn.classList.toggle('active',  bgState.mode === 'wall');
+  bgBlackBtn.classList.toggle('active', bgState.mode === 'black');
+  bgImageBtn.classList.toggle('active', bgState.mode === 'image');
+  try { localStorage.setItem(BG_STORAGE, JSON.stringify(bgState)); } catch {}
+}
+bgWallBtn.addEventListener('click',  () => { bgState.mode = 'wall';  applyBackground(); });
+bgBlackBtn.addEventListener('click', () => { bgState.mode = 'black'; applyBackground(); });
+bgImageBtn.addEventListener('click', () => {
+  // No image yet, or re-clicking while already showing it → pick a (new) file.
+  if (!bgState.image || bgState.mode === 'image') bgFile.click();
+  else { bgState.mode = 'image'; applyBackground(); }
+});
+bgFile.addEventListener('change', () => {
+  const f = bgFile.files && bgFile.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    bgState.image = reader.result;
+    bgState.mode = 'image';
+    applyBackground();
+    status.textContent = 'Background image set ✓';
+  };
+  reader.onerror = () => { status.textContent = 'Could not read that image.'; };
+  reader.readAsDataURL(f);
+  bgFile.value = '';   // allow re-selecting the same file later
+});
+// Restore a persisted background (image data URL persists best-effort).
+try {
+  const saved = JSON.parse(localStorage.getItem(BG_STORAGE) || 'null');
+  if (saved && saved.mode) { bgState.mode = saved.mode; bgState.image = saved.image || null; }
+} catch {}
+applyBackground();
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
 setCap('spray');
