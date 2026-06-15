@@ -639,7 +639,7 @@ stage.addEventListener('pointerdown', e => {
   if (document.body.classList.contains('painting')) return;
   // The floating selection toolbar lives INSIDE the stage now — clicks on
   // it should go to the toolbar handler, not start a marquee.
-  if (e.target.closest('.sel-toolbar')) return;
+  if (e.target instanceof Element && e.target.closest('.sel-toolbar')) return;
   if (e.target.classList && e.target.classList.contains('char')) {
     const idx = +e.target.dataset.idx;
     startDrag(idx, e);
@@ -687,7 +687,7 @@ function actOnSelection(act) {
   renderOverlay();
 }
 selToolbar.addEventListener('click', e => {
-  const b = e.target.closest('button[data-act]');
+  const b = e.target instanceof Element ? e.target.closest('button[data-act]') : null;
   if (b) actOnSelection(b.dataset.act);
 });
 // Keyboard: Ctrl/Cmd+Z = undo (works everywhere except text inputs); arrow

@@ -25,11 +25,14 @@
   <meta property="og:locale" content="en_US">
   <!-- Microsoft Clarity -->
   <script type="text/javascript">
+    // Only load on production — keeps localhost / dev sessions out of Clarity data.
+    if (!/^(localhost|127\.0\.0\.1|)$/.test(location.hostname)) {
     (function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
         t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
     })(window, document, "clarity", "script", "wv7dut1dl9");
+    }
   </script>
   <script type="application/ld+json">
   {"@context": "https://schema.org", "@type": "Article", "headline": "18 Years of Graffiti+", "description": "Eighteen years of putting spray cans in people's hands and building large-scale interactive LED graffiti walls around the world. Where Graffiti+ came from, and where it's going.", "image": "https://graffitiplus.io/images/eighteen-years-poster.jpg", "url": "https://graffitiplus.io/gal/eighteen-years", "mainEntityOfPage": "https://graffitiplus.io/gal/eighteen-years", "publisher": {"@type": "Organization", "name": "Graffiti+", "logo": {"@type": "ImageObject", "url": "https://graffitiplus.io/images/logo-v4.webp"}}, "author": {"@type": "Organization", "name": "Graffiti+"}, "isPartOf": {"@id": "https://graffitiplus.io/#website"}, "about": {"@type": "Thing", "name": "Large-scale interactive LED graffiti wall installations"}}

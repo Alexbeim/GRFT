@@ -237,11 +237,14 @@
   <link rel="stylesheet" href="/style-v4.css">
   <!-- Microsoft Clarity -->
   <script type="text/javascript">
+    // Only load on production — keeps localhost / dev sessions out of Clarity data.
+    if (!/^(localhost|127\.0\.0\.1|)$/.test(location.hostname)) {
     (function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
         t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
     })(window, document, "clarity", "script", "wv7dut1dl9");
+    }
   </script>
 <style>
     /* ============================================================
@@ -427,23 +430,27 @@
       position: absolute;
       left: clamp(20px, 5vw, 76px);
       bottom: clamp(46px, 8vh, 70px);
+      margin-bottom: -11px;   /* offsets the seg's transparent vertical padding so the bar stays put */
       z-index: 5;
       display: flex;
+      align-items: center;
       gap: 10px;
       transition: opacity 0.6s ease;
     }
     .hc-seg {
       position: relative;
       width: 46px; height: 3px;
-      padding: 0; border: 0;
+      /* Visible bar stays 3px; transparent vertical padding enlarges the tap target to ~25px. */
+      padding: 11px 0; border: 0;
+      box-sizing: content-box;
       background: rgba(255,255,255,0.22);
+      background-clip: content-box;
       cursor: pointer;
-      overflow: hidden;
     }
     .hc-seg::before {
       content: "";
       position: absolute;
-      inset: 0;
+      left: 0; right: 0; top: 11px; bottom: 11px;
       background: var(--accent, #FEBD17);
       transform: scaleX(0);
       transform-origin: left center;
@@ -629,9 +636,8 @@
       </div>
     </div>
     <div class="v2-origin-video">
-      <video autoplay muted loop playsinline>
-        <source src="/videos/hero.webm" type="video/webm">
-        <source src="/videos/hero.mp4" type="video/mp4">
+      <video autoplay muted loop playsinline preload="metadata" poster="/images/eighteen-years-poster.jpg">
+        <source src="/vid/eighteen-years.mp4" type="video/mp4">
       </video>
     </div>
   </div>
@@ -737,38 +743,38 @@
       </div>
     </div>
     <div class="v4-use-cases-right">
-      <div class="v4-use-case-item">
+      <button type="button" class="v4-use-case-item" aria-expanded="false">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        <div><strong>Brand activations</strong><span>Custom-built for your identity and crowd</span></div>
-      </div>
-      <div class="v4-use-case-item">
+        <div><strong>Brand activations</strong><span>Custom-built for your identity and crowd</span><p class="v4-uc-more"><span>We build the whole moment around your identity — custom cans, your colours and logo on the wall, and a finished piece every guest takes home. The crowd does the painting; the brand gets the credit.</span></p></div>
+      </button>
+      <button type="button" class="v4-use-case-item" aria-expanded="false">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-        <div><strong>Music festivals</strong><span>High footfall, organic energy, zero friction</span></div>
-      </div>
-      <div class="v4-use-case-item">
+        <div><strong>Music festivals</strong><span>High footfall, organic energy, zero friction</span><p class="v4-uc-more"><span>Drop it anywhere with foot traffic and it runs itself — no aerosols, no clean-up, no line that stalls. Festival-goers walk up between sets, grab a can, and leave their mark on the wall.</span></p></div>
+      </button>
+      <button type="button" class="v4-use-case-item" aria-expanded="false">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-        <div><strong>Tradeshows &amp; expos</strong><span>Stop traffic, hold attention, drive booth visits</span></div>
-      </div>
-      <div class="v4-use-case-item">
+        <div><strong>Tradeshows &amp; expos</strong><span>Stop traffic, hold attention, drive booth visits</span><p class="v4-uc-more"><span>A graffiti wall stops booth traffic cold and holds it long enough to talk. People stop, they play, and they remember the booth that handed them a can instead of a flyer.</span></p></div>
+      </button>
+      <button type="button" class="v4-use-case-item" aria-expanded="false">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-        <div><strong>Corporate events</strong><span>Fun activities for teams — moments that actually stick</span></div>
-      </div>
-      <div class="v4-use-case-item">
+        <div><strong>Corporate events</strong><span>Fun activities for teams — moments that actually stick</span><p class="v4-uc-more"><span>Hand a team real spray cans and watch the room loosen up — no skill needed, everyone's in, and the wall fills with something they made together.</span></p></div>
+      </button>
+      <button type="button" class="v4-use-case-item" aria-expanded="false">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-        <div><strong>Pop-ups &amp; retail</strong><span>Shareable content that extends beyond the space</span></div>
-      </div>
-      <div class="v4-use-case-item">
+        <div><strong>Pop-ups &amp; retail</strong><span>Shareable content that extends beyond the space</span><p class="v4-uc-more"><span>Every piece is shareable by design, so the activation keeps living on phones and feeds long after someone walks out of the store.</span></p></div>
+      </button>
+      <button type="button" class="v4-use-case-item" aria-expanded="false">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-        <div><strong>Theme parks</strong><span>Repeatable, scalable, crowd-tested</span></div>
-      </div>
-      <div class="v4-use-case-item">
+        <div><strong>Theme parks</strong><span>Repeatable, scalable, crowd-tested</span><p class="v4-uc-more"><span>Built to run all day, every day — repeatable, scalable, and crowd-tested for the kind of throughput a park demands, with nothing to refill or clean.</span></p></div>
+      </button>
+      <button type="button" class="v4-use-case-item" aria-expanded="false">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        <div><strong>Product launches</strong><span>Art-led reveal moments people remember</span></div>
-      </div>
-      <div class="v4-use-case-item">
+        <div><strong>Product launches</strong><span>Art-led reveal moments people remember</span><p class="v4-uc-more"><span>Turn the reveal into a moment people paint themselves — an art-led unveiling the room creates together, and one that lands harder than any banner.</span></p></div>
+      </button>
+      <button type="button" class="v4-use-case-item" aria-expanded="false">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4M8 12h8"/></svg>
-        <div><strong>Sports activations</strong><span>Fan engagement built around culture</span></div>
-      </div>
+        <div><strong>Sports activations</strong><span>Fan engagement built around culture</span><p class="v4-uc-more"><span>Fan engagement rooted in culture, not gimmicks — give the crowd a wall, a can, and a reason to rep the team in their own hand.</span></p></div>
+      </button>
     </div>
   </div>
 </section>
@@ -1124,6 +1130,24 @@
   document.getElementById('nav-hamburger').addEventListener('click', () => {
     document.getElementById('nav-links').classList.toggle('open');
   });
+
+  // Use-case grid: click a box to expand its detail in place (one open at a time)
+  (function () {
+    var items = document.querySelectorAll('.v4-use-case-item');
+    items.forEach(function (item) {
+      item.addEventListener('click', function () {
+        var willOpen = !item.classList.contains('is-open');
+        items.forEach(function (other) {
+          other.classList.remove('is-open');
+          other.setAttribute('aria-expanded', 'false');
+        });
+        if (willOpen) {
+          item.classList.add('is-open');
+          item.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+  })();
 
   // Contact form: validate + submit via AJAX so the user stays on the page
   const form = document.getElementById('contact-form');

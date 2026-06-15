@@ -1286,13 +1286,42 @@ footer {
   border-left: 1px solid rgba(255,255,255,0.07);
 }
 .v4-use-case-item {
-  padding: var(--sp-22) var(--sp-34);
+  position: relative;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  border: 0;
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  padding: var(--sp-22) var(--sp-38) var(--sp-22) var(--sp-34);
   display: flex;
   align-items: flex-start;
   gap: var(--sp-17);
   background: #0a0f10;
-  transition: background 0.25s;
-  cursor: default;
+  transition: background 0.25s, box-shadow 0.25s;
+  cursor: pointer;
+}
+.v4-use-case-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+/* '+' affordance, mirrors the FAQ idiom; rotates to '×' when open */
+.v4-use-case-item::after {
+  content: '+';
+  position: absolute;
+  top: var(--sp-22);
+  right: var(--sp-22);
+  font-size: 18px;
+  line-height: 1;
+  font-weight: var(--w-regular);
+  color: rgba(255,255,255,0.3);
+  transition: transform 0.3s ease, color 0.25s;
+}
+.v4-use-case-item:hover::after { color: var(--accent); }
+.v4-use-case-item.is-open::after {
+  transform: rotate(135deg);
+  color: var(--accent);
 }
 .v4-use-case-item svg {
   flex-shrink: 0;
@@ -1324,7 +1353,37 @@ footer {
 }
 .v4-use-case-item:hover svg { color: var(--accent); }
 .v4-use-case-item:hover strong { color: var(--accent); }
-.v4-use-case-item:hover span { color: rgba(255,255,255,0.55); }
+.v4-use-case-item:hover > div > span:first-of-type { color: rgba(255,255,255,0.55); }
+
+/* Expandable detail — collapsed by default, grid-rows trick animates height smoothly */
+.v4-uc-more {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin: 0;
+  opacity: 0;
+  transition: grid-template-rows 0.38s ease, opacity 0.3s ease, margin-top 0.38s ease;
+}
+.v4-uc-more > span {
+  overflow: hidden;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.6);
+  font-weight: var(--w-regular);
+}
+.v4-use-case-item.is-open {
+  background: rgba(255,200,0,0.05);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.v4-use-case-item.is-open svg { color: var(--accent); }
+.v4-use-case-item.is-open strong { color: var(--accent); }
+.v4-use-case-item.is-open > div > span:first-of-type { color: rgba(255,255,255,0.55); }
+.v4-use-case-item.is-open .v4-uc-more {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
 
 /* ── FOR EVERYONE ── */
 .v4-for-everyone {
