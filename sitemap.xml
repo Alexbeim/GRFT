@@ -53,6 +53,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://graffitiplus.io/gal/new-york-nites-brooklyn</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://graffitiplus.io/gal/samsung-galaxy-z-flip-7-launch-nyc</loc>
     <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
