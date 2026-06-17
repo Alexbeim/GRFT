@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coney Training Grounds 🏗️</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --orange: #FF6B00;
+  --yellow: #FFD700;
+  --black: #0a0a0a;
+  --dark: #111;
+  --panel: #161616;
+  --border: rgba(255,215,0,0.15);
+  --text: rgba(255,255,255,0.88);
+  --muted: rgba(255,255,255,0.35);
+}
+
+body {
+  background: var(--black);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* =============================================
+   LOGIN SCREEN
+============================================= */
+#login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  gap: 24px;
+}
+
+.login-cone {
+  font-size: 72px;
+  animation: cone-bounce 2s ease-in-out infinite;
+}
+@keyframes cone-bounce {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-12px) rotate(3deg); }
+}
+
+.login-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--yellow);
+  text-align: center;
+}
+.login-sub {
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+  max-width: 280px;
+  line-height: 1.6;
+}
+
+.login-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-box input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  letter-spacing: 3px;
+  transition: border-color 0.2s;
+}
+.login-box input:focus { border-color: var(--yellow); }
+.login-box input::placeholder { letter-spacing: 0; color: var(--muted); }
+
+.login-btn {
+  background: var(--yellow);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.login-btn:hover { background: #ffe033; transform: scale(1.02); }
+.login-btn:active { transform: scale(0.98); }
+
+.login-error {
+  font-size: 12px;
+  color: #ff4444;
+  text-align: center;
+  display: none;
+}
+.login-error.show { display: block; }
+
+.login-warning {
+  background: rgba(255,107,0,0.08);
+  border: 1px solid rgba(255,107,0,0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: rgba(255,107,0,0.9);
+  line-height: 1.5;
+  max-width: 320px;
+  text-align: center;
+}
+
+/* =============================================
+   MAIN LAYOUT
+============================================= */
+#app {
+  display: none;
+  min-height: 100vh;
+}
+#app.visible { display: flex; flex-direction: column; }
+
+/* Header */
+.header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-cone { font-size: 28px; }
+.header-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--yellow);
+  letter-spacing: -0.3px;
+}
+.header-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.header-badge {
+  background: rgba(255,107,0,0.15);
+  border: 1px solid rgba(255,107,0,0.3);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--orange);
+  letter-spacing: 0.05em;
+}
+
+/* Warning banner */
+.warning-banner {
+  background: rgba(255,107,0,0.07);
+  border-bottom: 1px solid rgba(255,107,0,0.2);
+  padding: 10px 24px;
+  font-size: 12px;
+  color: rgba(255,107,0,0.85);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+.warning-banner strong { color: var(--orange); }
+
+/* Main content */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  flex: 1;
+  min-height: 0;
+  height: calc(100vh - 100px);
+}
+
+/* =============================================
+   CHAT PANEL (LEFT)
+============================================= */
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  height: 100%;
+}
+
+.chat-panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.chat-panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--yellow);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.reset-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.reset-btn:hover { color: #fff; border-color: rgba(255,255,255,0.25); }
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,215,0,0.1) transparent;
+}
+
+.msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 82%;
+  animation: msg-in 0.25s ease both;
+}
+@keyframes msg-in {
+  from { opacity:0; transform: translateY(8px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.msg.coney { align-self: flex-start; }
+.msg.user  { align-self: flex-end; }
+
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+}
+.msg.coney .msg-bubble {
+  background: rgba(255,215,0,0.07);
+  border: 1px solid rgba(255,215,0,0.15);
+  border-bottom-left-radius: 4px;
+}
+.msg.user .msg-bubble {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-bottom-right-radius: 4px;
+}
+
+/* Flag button under coney messages */
+.flag-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 5px;
+  padding-left: 2px;
+}
+.flag-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.flag-btn:hover { border-color: #ff4444; color: #ff4444; }
+.flag-btn.flagged { border-color: #ff4444; color: #ff4444; background: rgba(255,68,68,0.08); }
+
+/* Typing */
+.typing-bubble {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 12px 14px;
+  background: rgba(255,215,0,0.07);
+  border: 1px solid rgba(255,215,0,0.12);
+  border-radius: 14px;
+  border-bottom-left-radius: 4px;
+  width: fit-content;
+}
+.t-dot {
+  width: 5px; height: 5px;
+  background: var(--yellow);
+  border-radius: 50%;
+  animation: t-b 1.2s ease-in-out infinite;
+}
+.t-dot:nth-child(2) { animation-delay: 0.18s; }
+.t-dot:nth-child(3) { animation-delay: 0.36s; }
+@keyframes t-b {
+  0%,60%,100% { transform: translateY(0); opacity:0.35; }
+  30%          { transform: translateY(-5px); opacity:1; }
+}
+
+/* Input row */
+.chat-input-row {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.chat-input {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  min-height: 40px;
+  max-height: 100px;
+  line-height: 1.45;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.chat-input::placeholder { color: var(--muted); }
+.chat-input:focus { border-color: rgba(255,215,0,0.35); }
+.send-btn {
+  background: var(--yellow);
+  border: none;
+  border-radius: 12px;
+  width: 40px; height: 40px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.15s;
+}
+.send-btn:hover { background: #ffe033; transform: scale(1.06); }
+.send-btn:active { transform: scale(0.94); }
+.send-btn:disabled { background: rgba(255,215,0,0.25); cursor: not-allowed; transform: none; }
+.send-btn svg { width: 15px; height: 15px; fill: #000; }
+
+/* =============================================
+   TRAINING PANEL (RIGHT)
+============================================= */
+.training-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.training-panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.training-panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--yellow);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.training-panel-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+/* Flag context */
+.flag-context {
+  margin: 14px 16px 0;
+  background: rgba(255,68,68,0.07);
+  border: 1px solid rgba(255,68,68,0.2);
+  border-radius: 10px;
+  padding: 10px 13px;
+  font-size: 12px;
+  color: rgba(255,68,68,0.85);
+  line-height: 1.5;
+  display: none;
+}
+.flag-context.show { display: block; }
+.flag-context strong { color: #ff6666; }
+
+/* Correction form */
+.correction-form {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.correction-type {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.type-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.type-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+.type-btn.active { background: rgba(255,215,0,0.1); border-color: var(--yellow); color: var(--yellow); }
+
+.correction-input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 13px;
+  color: #fff;
+  font-size: 13px;
+  resize: none;
+  outline: none;
+  min-height: 72px;
+  max-height: 140px;
+  line-height: 1.5;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.correction-input::placeholder { color: var(--muted); }
+.correction-input:focus { border-color: rgba(255,215,0,0.35); }
+
+.save-correction-btn {
+  background: var(--orange);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.save-correction-btn:hover { background: #ff8020; transform: scale(1.02); }
+.save-correction-btn:active { transform: scale(0.98); }
+.save-correction-btn:disabled { background: rgba(255,107,0,0.3); cursor: not-allowed; transform: none; }
+
+.save-confirm {
+  font-size: 12px;
+  color: #4caf50;
+  text-align: center;
+  display: none;
+  animation: fade-in 0.3s ease;
+}
+.save-confirm.show { display: block; }
+@keyframes fade-in { from { opacity:0; } to { opacity:1; } }
+
+/* Corrections log */
+.corrections-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,215,0,0.1) transparent;
+}
+
+.log-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 12px 0 4px;
+  flex-shrink: 0;
+}
+
+.correction-item {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 13px;
+  font-size: 12px;
+  line-height: 1.55;
+  animation: msg-in 0.25s ease both;
+  position: relative;
+}
+.correction-item-type {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 4px;
+}
+.correction-item-text {
+  color: var(--text);
+}
+.correction-item-meta {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.correction-delete {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  opacity: 0;
+}
+.correction-item:hover .correction-delete { opacity: 1; }
+.correction-delete:hover { color: #ff4444; background: rgba(255,68,68,0.1); }
+
+.empty-log {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  padding: 24px 0;
+  line-height: 1.6;
+}
+
+/* Stats bar */
+.stats-bar {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stat-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--yellow);
+}
+.stat-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+  .training-panel { border-right: none; border-top: 1px solid var(--border); max-height: 45vh; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-cone">🚧</div>
+  <div>
+    <div class="login-title">Coney Training Grounds</div>
+    <div class="login-sub" style="margin-top:6px">Internal use only. Train Coney, flag bad answers, add corrections.</div>
+  </div>
+  <div class="login-box">
+    <input type="password" id="pw-input" placeholder="Enter password" autocomplete="off">
+    <button class="login-btn" id="pw-btn">Enter the Grounds →</button>
+    <div class="login-error" id="pw-error">Wrong password. Try again.</div>
+  </div>
+  <div class="login-warning">
+    ⚠️ Do not share technical specs, pricing, financial info, or client contracts during training sessions.
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-cone">🚧</div>
+      <div>
+        <div class="header-title">Coney Training Grounds</div>
+        <div class="header-sub">Graffiti+ Internal — Chat, flag, correct</div>
+      </div>
+    </div>
+    <div class="header-badge">INTERNAL ONLY</div>
+  </div>
+
+  <!-- Warning banner -->
+  <div class="warning-banner">
+    <strong>Reminder:</strong> Do not share technical specifications, pricing, financial data, or confidential client info during training.
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Chat Panel -->
+    <div class="chat-panel">
+      <div class="chat-panel-header">
+        <div class="chat-panel-title">🎯 Live Chat Test</div>
+        <button class="reset-btn" id="reset-btn">↺ Reset conversation</button>
+      </div>
+      <div class="chat-messages" id="messages"></div>
+      <div class="chat-input-row">
+        <textarea class="chat-input" id="input" placeholder="Talk to Coney as if you're a visitor..." rows="1"></textarea>
+        <button class="send-btn" id="send-btn" aria-label="Send">
+          <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Training Panel -->
+    <div class="training-panel">
+      <div class="training-panel-header">
+        <div class="training-panel-title">🛠 Training Controls</div>
+        <div class="training-panel-sub">Flag a response, pick a type, write the correction.</div>
+      </div>
+
+      <div id="flag-context" class="flag-context"></div>
+
+      <div class="correction-form">
+        <div class="correction-type" id="type-btns">
+          <button class="type-btn active" data-type="wrong-fact">Wrong fact</button>
+          <button class="type-btn" data-type="bad-tone">Bad tone</button>
+          <button class="type-btn" data-type="killed-sale">Killed the sale</button>
+          <button class="type-btn" data-type="made-it-up">Made it up</button>
+          <button class="type-btn" data-type="add-knowledge">Add knowledge</button>
+          <button class="type-btn" data-type="other">Other</button>
+        </div>
+        <textarea class="correction-input" id="correction-input" placeholder="Write the correction or fact here. Be specific — e.g. 'Graffiti+ has never operated in Beijing. Remove that reference.'"></textarea>
+        <button class="save-correction-btn" id="save-btn">
+          <span>💾</span> Save Correction
+        </button>
+        <div class="save-confirm" id="save-confirm">✓ Correction saved and applied to Coney</div>
+      </div>
+
+      <div class="corrections-log" id="corrections-log">
+        <div class="log-header">Correction Log</div>
+        <div class="empty-log" id="empty-log">No corrections yet.<br>Flag a response to get started.</div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat">
+          <div class="stat-val" id="stat-corrections">0</div>
+          <div class="stat-label">Corrections</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="stat-flags">0</div>
+          <div class="stat-label">Flagged</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="stat-msgs">0</div>
+          <div class="stat-label">Messages</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// =============================================
+// CONFIG
+// =============================================
+const PASSWORD = 'nosotros';
+const API_BASE = 'https://api.manus.im/api/llm-proxy/v1';
+const API_KEY  = 'sk-SS7nvzBs3mqewMkJfWJYRL';
+const STORAGE_KEY = 'coney_corrections_v1';
+
+// =============================================
+// BASE SYSTEM PROMPT
+// =============================================
+const BASE_SYSTEM = `You are Coney — the mascot and AI assistant for Graffiti+, a modular interactive graffiti platform by Tangible Interaction Design Inc. You're a traffic cone who's been around since 2008 — that's 18 years on walls worldwide. You know the culture. Genuine, a little dry, warm underneath it all.
+
+Personality:
+- Relaxed and street-smart. Talk like a real person, not a brand.
+- Light dry humour — occasional wit, never mean.
+- One or two sentences max. If it needs three, fine. Never more.
+- Don't hype. Say it plain.
+- IMPORTANT: Only state facts you know for certain. If you don't know a specific detail, say "I don't have that detail — the team can fill you in." Do NOT invent cities, events, clients, or statistics.
+
+About Graffiti+:
+- Founded 2008, started from Vancouver's Olympic bid
+- First global moment: Chanel SoHo flagship reopening, September 2010 during MBFW
+- 18 years on walls worldwide
+- Clients include: Louis Vuitton, Nike, Chanel, Hennessy, Porsche, Google, IBM
+- Core phrase: "Art making as a public participatory experience"
+- Mission: Put real creative tools in people's hands — in public, at scale, with full cultural integrity
+- Modular platform, real-time 3D tracking, LED and projection-ready, deployable globally
+- Website: graffitiplus.io
+
+Tone rules:
+- Never say: innovative, cutting-edge, tech-powered, edgy, urban art, graffiti-inspired
+- Don't be corporate. Don't be a hype machine.
+- Graffiti culture references are fine — use them correctly or not at all
+
+CONVERSATION FLOW:
+Your job is to have a real conversation and naturally figure out if this person is a good fit for Graffiti+. Do not interrogate. Ask one question at a time, woven naturally into the conversation.
+
+QUALIFICATION RULES:
+- Your default is ALWAYS to treat someone as a potential lead and pass them through to the team. The team decides what fits, not you.
+- NEVER disqualify based on: event size, guest count, event type, audience type, or how informal it sounds.
+- Staff parties, private brand events, VIP dinners, corporate internal events, small activations — ALL are leads. Pass them through.
+- The ONLY reason to not collect a lead: the person is a private individual with zero brand, company, or event context.
+- When in doubt: collect the info and let the team decide. You are not the gatekeeper. You are the opener.
+
+COLLECTION FLOW — once you sense a good fit, naturally gather these one at a time:
+1. Their name
+2. Company or organisation
+3. Type of event or activation
+4. Location
+5. Rough timeframe
+
+Once you have all five: "That sounds like a solid fit for what we do. Want me to pass this to the team so they can follow up? Or if you'd rather see it in action first, I can set you up with a live demo."
+
+If they want follow-up or a demo, ask for their email. Then output EXACTLY this on its own line:
+[LEAD_COLLECTED]{"name":"VALUE","company":"VALUE","event_type":"VALUE","location":"VALUE","timeframe":"VALUE","email":"VALUE","demo_requested":BOOLEAN}
+
+Do not output [LEAD_COLLECTED] until you have the email. Do not output it more than once.`;
+
+// =============================================
+// STATE
+// =============================================
+let history = [];
+let isLoading = false;
+let corrections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let selectedType = 'wrong-fact';
+let flaggedMessage = null;
+let flagCount = 0;
+let msgCount = 0;
+
+// =============================================
+// DOM
+// =============================================
+const loginScreen = document.getElementById('login-screen');
+const app = document.getElementById('app');
+const pwInput = document.getElementById('pw-input');
+const pwBtn = document.getElementById('pw-btn');
+const pwError = document.getElementById('pw-error');
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('send-btn');
+const resetBtn = document.getElementById('reset-btn');
+const correctionInput = document.getElementById('correction-input');
+const saveBtn = document.getElementById('save-btn');
+const saveConfirm = document.getElementById('save-confirm');
+const flagContext = document.getElementById('flag-context');
+const correctionsLog = document.getElementById('corrections-log');
+const emptyLog = document.getElementById('empty-log');
+const statCorrections = document.getElementById('stat-corrections');
+const statFlags = document.getElementById('stat-flags');
+const statMsgs = document.getElementById('stat-msgs');
+
+// =============================================
+// LOGIN
+// =============================================
+function tryLogin() {
+  if (pwInput.value === PASSWORD) {
+    loginScreen.style.display = 'none';
+    app.classList.add('visible');
+    initChat();
+    renderLog();
+  } else {
+    pwError.classList.add('show');
+    pwInput.value = '';
+    pwInput.focus();
+    setTimeout(() => pwError.classList.remove('show'), 2500);
+  }
+}
+pwBtn.addEventListener('click', tryLogin);
+pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+
+// =============================================
+// CHAT
+// =============================================
+function initChat() {
+  history = [];
+  messagesEl.innerHTML = '';
+  msgCount = 0;
+  flagCount = 0;
+  updateStats();
+  const greetings = [
+    "Hey, I'm Coney. What do you want to know about Graffiti+?",
+    "Eighteen years on walls worldwide. What's on your mind?",
+    "You found me. Ask away.",
+    "What's up? I'm here."
+  ];
+  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+  addMsg('coney', greeting);
+}
+
+resetBtn.addEventListener('click', initChat);
+
+function addMsg(role, text, flaggable = true) {
+  const wrap = document.createElement('div');
+  wrap.className = `msg ${role}`;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.textContent = text;
+  wrap.appendChild(bubble);
+
+  if (role === 'coney' && flaggable) {
+    const flagRow = document.createElement('div');
+    flagRow.className = 'flag-row';
+    const flagBtn = document.createElement('button');
+    flagBtn.className = 'flag-btn';
+    flagBtn.innerHTML = '⚑ Flag this response';
+    flagBtn.addEventListener('click', () => {
+      document.querySelectorAll('.flag-btn.flagged').forEach(b => b.classList.remove('flagged'));
+      flagBtn.classList.add('flagged');
+      flagBtn.innerHTML = '⚑ Flagged';
+      flaggedMessage = text;
+      flagCount++;
+      updateStats();
+      flagContext.innerHTML = `<strong>Flagged response:</strong> "${text.length > 120 ? text.slice(0,120)+'…' : text}"`;
+      flagContext.classList.add('show');
+      correctionInput.focus();
+    });
+    flagRow.appendChild(flagBtn);
+    wrap.appendChild(flagRow);
+    msgCount++;
+    updateStats();
+  }
+
+  if (role === 'user') { msgCount++; updateStats(); }
+
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  history.push({ role: role === 'coney' ? 'assistant' : 'user', content: text });
+}
+
+function showTyping() {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg coney';
+  wrap.id = 'typing';
+  wrap.innerHTML = `<div class="typing-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>`;
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+function removeTyping() {
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+async function send() {
+  const text = inputEl.value.trim();
+  if (!text || isLoading) return;
+
+  addMsg('user', text, false);
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  isLoading = true;
+  sendBtn.disabled = true;
+  showTyping();
+
+  // Build system prompt with corrections appended
+  const correctionBlock = corrections.length > 0
+    ? '\n\nTRAINING CORRECTIONS (applied by the Graffiti+ team — follow these strictly):\n' +
+      corrections.map((c, i) => `${i+1}. [${c.type.toUpperCase()}] ${c.text}`).join('\n')
+    : '';
+
+  const systemPrompt = BASE_SYSTEM + correctionBlock;
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...history.slice(0, -1)
+  ];
+  messages.push({ role: 'user', content: text });
+
+  try {
+    const res = await fetch(`${API_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
+      body: JSON.stringify({ model: 'gpt-4.1-mini', messages, max_tokens: 200, temperature: 0.72 })
+    });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    let reply = data.choices?.[0]?.message?.content?.trim() || "Lost signal — try again.";
+    removeTyping();
+    // Strip lead signal in training mode
+    reply = reply.replace(/\[LEAD_COLLECTED\]\{.*\}/, '').trim();
+    if (reply) addMsg('coney', reply);
+  } catch (err) {
+    removeTyping();
+    addMsg('coney', "Something went sideways. Try again.", false);
+    console.error(err);
+  }
+
+  isLoading = false;
+  sendBtn.disabled = false;
+}
+
+sendBtn.addEventListener('click', send);
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
+});
+
+// =============================================
+// CORRECTION TYPES
+// =============================================
+document.querySelectorAll('.type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedType = btn.dataset.type;
+  });
+});
+
+// =============================================
+// SAVE CORRECTION
+// =============================================
+saveBtn.addEventListener('click', () => {
+  const text = correctionInput.value.trim();
+  if (!text) return;
+
+  const correction = {
+    id: Date.now(),
+    type: selectedType,
+    text,
+    flagged: flaggedMessage,
+    timestamp: new Date().toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
+  };
+
+  corrections.unshift(correction);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(corrections));
+
+  correctionInput.value = '';
+  flagContext.classList.remove('show');
+  flaggedMessage = null;
+  saveConfirm.classList.add('show');
+  setTimeout(() => saveConfirm.classList.remove('show'), 2500);
+
+  renderLog();
+  updateStats();
+});
+
+// =============================================
+// RENDER LOG
+// =============================================
+function renderLog() {
+  const existing = correctionsLog.querySelectorAll('.correction-item');
+  existing.forEach(el => el.remove());
+
+  emptyLog.style.display = corrections.length === 0 ? 'block' : 'none';
+
+  corrections.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'correction-item';
+    item.innerHTML = `
+      <div class="correction-item-type">${c.type.replace(/-/g,' ')}</div>
+      <div class="correction-item-text">${c.text}</div>
+      ${c.flagged ? `<div class="correction-item-meta">Re: "${c.flagged.slice(0,60)}${c.flagged.length>60?'…':''}"</div>` : ''}
+      <div class="correction-item-meta">${c.timestamp}</div>
+      <button class="correction-delete" data-id="${c.id}" title="Delete">✕</button>
+    `;
+    correctionsLog.appendChild(item);
+  });
+
+  correctionsLog.querySelectorAll('.correction-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      corrections = corrections.filter(c => c.id !== parseInt(btn.dataset.id));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(corrections));
+      renderLog();
+      updateStats();
+    });
+  });
+}
+
+// =============================================
+// STATS
+// =============================================
+function updateStats() {
+  statCorrections.textContent = corrections.length;
+  statFlags.textContent = flagCount;
+  statMsgs.textContent = msgCount;
+}
+</script>
+</body>
+</html>
