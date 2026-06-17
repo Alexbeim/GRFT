@@ -339,23 +339,72 @@ body {
   cursor: pointer;
   pointer-events: all;
   flex-shrink: 0;
-  animation: idle-float 3.5s ease-in-out infinite;
+  animation: entrance 0.7s cubic-bezier(0.34,1.56,0.64,1) both, idle-float 3.5s ease-in-out 0.7s infinite;
   transform-origin: bottom center;
   filter: drop-shadow(0 8px 24px rgba(255,107,0,0.25));
+  transition: filter 0.3s;
 }
 #coney-btn:hover {
-  animation: idle-float-hover 0.6s ease-in-out infinite;
-  filter: drop-shadow(0 12px 32px rgba(255,107,0,0.45));
+  animation: idle-float-hover 2s ease-in-out infinite;
+  filter: drop-shadow(0 14px 36px rgba(255,107,0,0.5));
+}
+#coney-btn:active {
+  animation: click-squash 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
 }
 
+/* Entrance — slides up from below with spring */
+@keyframes entrance {
+  0%   { opacity: 0; transform: translateY(60px) scale(0.7); }
+  60%  { opacity: 1; transform: translateY(-10px) scale(1.05); }
+  80%  { transform: translateY(4px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Idle float — gentle bob with slight tilt */
 @keyframes idle-float {
   0%,100% { transform: translateY(0px) rotate(0deg); }
-  30%      { transform: translateY(-5px) rotate(0.8deg); }
-  70%      { transform: translateY(-3px) rotate(-0.5deg); }
+  25%      { transform: translateY(-6px) rotate(1deg); }
+  50%      { transform: translateY(-4px) rotate(0deg); }
+  75%      { transform: translateY(-7px) rotate(-0.8deg); }
 }
+
+/* Hover — bigger float, no tilt */
 @keyframes idle-float-hover {
-  0%,100% { transform: translateY(0px) scale(1.04); }
-  50%      { transform: translateY(-7px) scale(1.06); }
+  0%,100% { transform: translateY(0px) scale(1.04) rotate(0deg); }
+  30%      { transform: translateY(-9px) scale(1.06) rotate(1.5deg); }
+  70%      { transform: translateY(-6px) scale(1.05) rotate(-1deg); }
+}
+
+/* Click squash and stretch */
+@keyframes click-squash {
+  0%   { transform: scale(1,1); }
+  20%  { transform: scale(1.25, 0.75) translateY(8px); }
+  50%  { transform: scale(0.9, 1.15) translateY(-12px); }
+  75%  { transform: scale(1.05, 0.97) translateY(2px); }
+  100% { transform: scale(1,1) translateY(0); }
+}
+
+/* Thinking wiggle — applied via JS class */
+#coney-btn.thinking {
+  animation: thinking-wiggle 1.4s ease-in-out infinite !important;
+}
+@keyframes thinking-wiggle {
+  0%,100% { transform: rotate(0deg) translateY(0); }
+  20%      { transform: rotate(-3deg) translateY(-3px); }
+  40%      { transform: rotate(3deg) translateY(-5px); }
+  60%      { transform: rotate(-2deg) translateY(-3px); }
+  80%      { transform: rotate(2deg) translateY(-4px); }
+}
+
+/* Reply pop — applied via JS class */
+#coney-btn.reply-pop {
+  animation: reply-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards !important;
+}
+@keyframes reply-pop {
+  0%   { transform: scale(1) translateY(0); }
+  40%  { transform: scale(1.18) translateY(-16px) rotate(-3deg); }
+  70%  { transform: scale(0.95) translateY(0) rotate(1deg); }
+  100% { transform: scale(1) translateY(0) rotate(0deg); }
 }
 
 #coney-img {
@@ -579,10 +628,20 @@ closeBtn.addEventListener('click', closeChat);
 // ANIMATIONS
 // =============================================
 function bounce() {
-  coneyBtn.classList.remove('bounce');
+  coneyBtn.classList.remove('bounce', 'thinking', 'reply-pop');
   void coneyBtn.offsetWidth;
-  coneyBtn.classList.add('bounce');
-  setTimeout(() => coneyBtn.classList.remove('bounce'), 600);
+  coneyBtn.classList.add('reply-pop');
+  setTimeout(() => coneyBtn.classList.remove('reply-pop'), 550);
+}
+
+function startThinking() {
+  coneyBtn.classList.remove('reply-pop');
+  void coneyBtn.offsetWidth;
+  coneyBtn.classList.add('thinking');
+}
+
+function stopThinking() {
+  coneyBtn.classList.remove('thinking');
 }
 
 // =============================================
@@ -628,6 +687,7 @@ async function send() {
   inputEl.style.height = 'auto';
   setLoading(true);
   showTyping();
+  startThinking();
 
   const messages = [
     { role: 'system', content: SYSTEM },
@@ -656,6 +716,7 @@ async function send() {
     let reply = data.choices?.[0]?.message?.content?.trim() || "Lost signal for a sec — try again.";
 
     removeTyping();
+    stopThinking();
     setLoading(false);
 
     // Check for lead capture signal
@@ -675,6 +736,7 @@ async function send() {
 
   } catch (err) {
     removeTyping();
+    stopThinking();
     setLoading(false);
     addMsg('coney', "Yo, something went sideways on my end. Try again.");
     console.error(err);
