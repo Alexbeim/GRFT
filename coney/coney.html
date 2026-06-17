@@ -608,7 +608,12 @@ Once you have all five, say something natural like: "That sounds like a solid fi
 If they want follow-up or a demo, ask for their email. Then output EXACTLY this format on its own line at the very end of your response — nothing after it:
 [LEAD_COLLECTED]{"name":"VALUE","company":"VALUE","event_type":"VALUE","location":"VALUE","timeframe":"VALUE","email":"VALUE","demo_requested":BOOLEAN}
 
-Do not output [LEAD_COLLECTED] until you have the email. Do not output it more than once.`;
+Do not output [LEAD_COLLECTED] until you have the email. Do not output it more than once.
+
+GALLERY LINKS:
+When someone asks about past work, previous projects, examples, proof of what you do, or wants to see it in action — naturally mention the gallery and include this exact tag at the end of your message (on its own line, nothing after it):
+[GALLERY_LINK]
+Only use this when it genuinely adds value. Do not force it into every message. One time per conversation is usually enough.`;
 
 const GREETINGS = [
   "Hey, I'm Coney. What do you want to know about Graffiti+?",
@@ -634,8 +639,12 @@ const TIPS = [
 // =============================================
 let isOpen    = false;
 let isLoading = false;
-let history   = []; // {role, content}
 let tipIdx    = 0;
+
+// Persist conversation across page navigations
+const SESSION_KEY = 'coney_history';
+const SESSION_MSGS_KEY = 'coney_msgs';
+let history = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '[]');
 
 // =============================================
 // DOM
@@ -660,6 +669,9 @@ function openChat() {
     setTimeout(() => {
       addMsg('coney', GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
     }, 350);
+  } else if (messagesEl.children.length === 0) {
+    // Restore messages if chat was opened on a new page
+    restoreHistory();
   }
   setTimeout(() => {
     inputEl.focus();
@@ -703,15 +715,36 @@ function stopThinking() {
 // =============================================
 // MESSAGES
 // =============================================
-function addMsg(role, text) {
+function addMsg(role, text, isHtml = false) {
   history.push({ role: role === 'coney' ? 'assistant' : 'user', content: text });
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(history));
   const wrap = document.createElement('div');
   wrap.className = `msg ${role}`;
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
-  bubble.textContent = text;
+  if (isHtml) {
+    bubble.innerHTML = text;
+  } else {
+    bubble.textContent = text;
+  }
   wrap.appendChild(bubble);
   messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function restoreHistory() {
+  if (history.length === 0) return;
+  // Rebuild visible messages from history
+  history.forEach(msg => {
+    const role = msg.role === 'assistant' ? 'coney' : 'user';
+    const wrap = document.createElement('div');
+    wrap.className = `msg ${role}`;
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.innerHTML = msg.content; // may contain gallery link HTML
+    wrap.appendChild(bubble);
+    messagesEl.appendChild(wrap);
+  });
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
@@ -775,18 +808,26 @@ async function send() {
     stopThinking();
     setLoading(false);
 
+    // Check for gallery link signal
+    const hasGallery = reply.includes('[GALLERY_LINK]');
+    let cleanReply = reply.replace('[GALLERY_LINK]', '').trim();
+
     // Check for lead capture signal
-    const leadMatch = reply.match(/\[LEAD_COLLECTED\](\{.*\})/);
+    const leadMatch = cleanReply.match(/\[LEAD_COLLECTED\](\{.*\})/);
     if (leadMatch) {
-      // Strip the signal from the visible reply
-      const cleanReply = reply.replace(/\[LEAD_COLLECTED\]\{.*\}/, '').trim();
-      if (cleanReply) addMsg('coney', cleanReply);
+      const finalReply = cleanReply.replace(/\[LEAD_COLLECTED\]\{.*\}/, '').trim();
+      if (finalReply) addMsg('coney', finalReply);
       try {
         const lead = JSON.parse(leadMatch[1]);
         showLeadCard(lead);
       } catch(e) { console.error('Lead parse error', e); }
+    } else if (hasGallery) {
+      // Append gallery link button to the message
+      const msgWithLink = cleanReply +
+        `<br><br><a href="https://graffitiplus.io/gallery.html" target="_blank" style="display:inline-block;margin-top:4px;padding:7px 14px;background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.4);border-radius:20px;color:#FFD700;font-size:12px;font-weight:600;text-decoration:none;letter-spacing:0.03em;">See the work →</a>`;
+      addMsg('coney', msgWithLink, true);
     } else {
-      addMsg('coney', reply);
+      addMsg('coney', cleanReply);
     }
     bounce();
 
