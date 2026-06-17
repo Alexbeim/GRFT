@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coney — Graffiti+ Assistant</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0a0a0a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  color: #fff;
+}
+
+/* Demo page bg */
+.demo-bg {
+  padding: 60px 48px;
+  opacity: 0.25;
+  pointer-events: none;
+  user-select: none;
+}
+.demo-bg h1 { font-size: 52px; font-weight: 800; color: #FFD700; letter-spacing: -1px; }
+.demo-bg p  { font-size: 17px; color: #777; max-width: 520px; line-height: 1.7; margin-top: 12px; }
+
+/* =============================================
+   WIDGET WRAPPER
+============================================= */
+#coney-widget {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+/* =============================================
+   LEAD CARD
+============================================= */
+.lead-card {
+  background: rgba(255,215,0,0.06);
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 14px;
+  overflow: hidden;
+  font-size: 12px;
+  width: 100%;
+  animation: msg-pop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.lead-card-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 13px;
+  background: rgba(255,215,0,0.1);
+  border-bottom: 1px solid rgba(255,215,0,0.15);
+}
+.lead-card-icon {
+  color: #4ade80;
+  font-size: 13px;
+  font-weight: 700;
+}
+.lead-card-title {
+  font-weight: 700;
+  color: #FFD700;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.lead-card-rows {
+  padding: 8px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.lead-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.lead-label {
+  color: rgba(255,255,255,0.35);
+  font-size: 11px;
+  flex-shrink: 0;
+  width: 62px;
+}
+.lead-val {
+  color: rgba(255,255,255,0.85);
+  font-size: 11px;
+  text-align: right;
+  word-break: break-all;
+}
+.lead-card-footer {
+  padding: 7px 13px;
+  border-top: 1px solid rgba(255,215,0,0.1);
+  color: rgba(255,255,255,0.25);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+}
+
+/* =============================================
+   MOBILE
+============================================= */
+@media (max-width: 480px) {
+  #coney-widget {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    align-items: flex-end;
+  }
+
+  #coney-chat {
+    width: 100%;
+    max-height: 70vh;
+    border-radius: 16px;
+  }
+
+  .chat-messages {
+    max-height: calc(70vh - 130px);
+  }
+
+  #coney-btn {
+    width: 80px;
+    height: 95px;
+  }
+
+  /* On mobile, chat panel takes full width above the character */
+  #coney-widget.chat-open {
+    left: 16px;
+  }
+}
+
+/* =============================================
+   CHAT PANEL
+============================================= */
+#coney-chat {
+  width: 340px;
+  background: rgba(8, 8, 8, 0.96);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  pointer-events: all;
+  transform-origin: bottom right;
+  transform: scale(0.85) translateY(16px);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.25s ease;
+  box-shadow:
+    0 0 0 1px rgba(255,215,0,0.05),
+    0 8px 32px rgba(0,0,0,0.7),
+    0 0 60px rgba(255,215,0,0.04);
+  max-height: 500px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+#coney-chat.open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+/* Header */
+.chat-header {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,215,0,0.1);
+  background: rgba(255,215,0,0.04);
+  flex-shrink: 0;
+}
+.chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.chat-status-dot {
+  width: 7px; height: 7px;
+  background: #4ade80;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #4ade80;
+  animation: dot-pulse 2.5s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  0%,100% { opacity:1; box-shadow: 0 0 6px #4ade80; }
+  50%      { opacity:0.5; box-shadow: 0 0 2px #4ade80; }
+}
+.chat-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFD700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.chat-subtitle {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  margin-left: 2px;
+}
+.chat-close {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.3);
+  cursor: pointer;
+  font-size: 16px;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.chat-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+/* Messages */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 220px;
+  max-height: 320px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,215,0,0.15) transparent;
+}
+.chat-messages::-webkit-scrollbar { width: 3px; }
+.chat-messages::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.15); border-radius: 2px; }
+
+.msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 86%;
+  animation: msg-pop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes msg-pop {
+  from { opacity:0; transform: translateY(10px) scale(0.94); }
+  to   { opacity:1; transform: translateY(0) scale(1); }
+}
+.msg.coney { align-self: flex-start; }
+.msg.user  { align-self: flex-end; }
+
+.msg-bubble {
+  padding: 9px 13px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.92);
+}
+.msg.coney .msg-bubble {
+  background: rgba(255,215,0,0.09);
+  border: 1px solid rgba(255,215,0,0.18);
+  border-bottom-left-radius: 4px;
+}
+.msg.user .msg-bubble {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-bottom-right-radius: 4px;
+}
+
+/* Typing */
+.typing-bubble {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 11px 14px;
+  background: rgba(255,215,0,0.07);
+  border: 1px solid rgba(255,215,0,0.15);
+  border-radius: 14px;
+  border-bottom-left-radius: 4px;
+  width: fit-content;
+}
+.t-dot {
+  width: 5px; height: 5px;
+  background: #FFD700;
+  border-radius: 50%;
+  animation: t-bounce 1.2s ease-in-out infinite;
+}
+.t-dot:nth-child(2) { animation-delay: 0.18s; }
+.t-dot:nth-child(3) { animation-delay: 0.36s; }
+@keyframes t-bounce {
+  0%,60%,100% { transform: translateY(0); opacity: 0.35; }
+  30%          { transform: translateY(-5px); opacity: 1; }
+}
+
+/* Input */
+.chat-input-row {
+  padding: 12px;
+  border-top: 1px solid rgba(255,215,0,0.08);
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.chat-input {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  padding: 9px 13px;
+  color: #fff;
+  font-size: 13px;
+  resize: none;
+  outline: none;
+  min-height: 38px;
+  max-height: 90px;
+  line-height: 1.45;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.chat-input::placeholder { color: rgba(255,255,255,0.25); }
+.chat-input:focus { border-color: rgba(255,215,0,0.35); }
+
+.send-btn {
+  background: #FFD700;
+  border: none;
+  border-radius: 12px;
+  width: 38px; height: 38px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.15s;
+}
+.send-btn:hover  { background: #ffe033; transform: scale(1.06); }
+.send-btn:active { transform: scale(0.94); }
+.send-btn:disabled { background: rgba(255,215,0,0.3); cursor: not-allowed; transform: none; }
+.send-btn svg { width: 15px; height: 15px; fill: #000; }
+
+/* =============================================
+   CONEY CHARACTER
+============================================= */
+#coney-btn {
+  position: relative;
+  width: 110px;
+  height: 130px;
+  cursor: pointer;
+  pointer-events: all;
+  flex-shrink: 0;
+  animation: idle-float 3.5s ease-in-out infinite;
+  transform-origin: bottom center;
+  filter: drop-shadow(0 8px 24px rgba(255,107,0,0.25));
+}
+#coney-btn:hover {
+  animation: idle-float-hover 0.6s ease-in-out infinite;
+  filter: drop-shadow(0 12px 32px rgba(255,107,0,0.45));
+}
+
+@keyframes idle-float {
+  0%,100% { transform: translateY(0px) rotate(0deg); }
+  30%      { transform: translateY(-5px) rotate(0.8deg); }
+  70%      { transform: translateY(-3px) rotate(-0.5deg); }
+}
+@keyframes idle-float-hover {
+  0%,100% { transform: translateY(0px) scale(1.04); }
+  50%      { transform: translateY(-7px) scale(1.06); }
+}
+
+#coney-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Tooltip */
+#coney-tip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  background: rgba(8,8,8,0.92);
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 12px;
+  border-bottom-right-radius: 3px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFD700;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 0.25s, transform 0.25s;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(10px);
+}
+#coney-btn:hover #coney-tip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Bounce on open */
+#coney-btn.bounce {
+  animation: char-bounce 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+@keyframes char-bounce {
+  0%   { transform: scale(1) translateY(0); }
+  35%  { transform: scale(1.15) translateY(-14px); }
+  65%  { transform: scale(0.95) translateY(0); }
+  100% { transform: scale(1) translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<div class="demo-bg">
+  <h1>Graffiti+</h1>
+  <p>Art making as a public participatory experience. Sixteen years of putting real spray-can tools in people's hands — on the walls of the world's most recognizable events.</p>
+</div>
+
+<!-- WIDGET -->
+<div id="coney-widget">
+
+  <!-- Chat Panel -->
+  <div id="coney-chat">
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="chat-status-dot"></div>
+        <span class="chat-title">Coney</span>
+        <span class="chat-subtitle">Graffiti+ Assistant</span>
+      </div>
+      <button class="chat-close" id="close-btn" aria-label="Close">✕</button>
+    </div>
+    <div class="chat-messages" id="messages"></div>
+    <div class="chat-input-row">
+      <textarea
+        class="chat-input"
+        id="input"
+        placeholder="Ask me anything about Graffiti+…"
+        rows="1"
+      ></textarea>
+      <button class="send-btn" id="send-btn" aria-label="Send">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Coney -->
+  <div id="coney-btn">
+    <div id="coney-tip">Yo, got questions?</div>
+    <img id="coney-img" src="assets/coney_nobg.png" alt="Coney" draggable="false" />
+  </div>
+
+</div>
+
+<script>
+// =============================================
+// CONFIG
+// =============================================
+const API_BASE = 'https://api.manus.im/api/llm-proxy/v1';
+const API_KEY  = 'sk-SS7nvzBs3mqewMkJfWJYRL'; // injected at deploy
+
+const SYSTEM = `You are Coney — the mascot and AI assistant for Graffiti+, a modular interactive graffiti platform by Tangible Interaction Design Inc. You're a traffic cone who's been around since 2008. You know the culture. Genuine, a little dry, warm underneath it all.
+
+Personality:
+- Relaxed and street-smart. Talk like a real person, not a brand.
+- Light dry humour — occasional wit, never mean.
+- Concise. Two or three sentences usually does it.
+- Don't hype. If something is good, say it plainly.
+
+About Graffiti+:
+- Founded 2008, started from Vancouver's Olympic bid
+- First global moment: Chanel SoHo flagship reopening, September 2010 during MBFW
+- Six continents, clients: Louis Vuitton, Nike, Chanel, Hennessy, Porsche, Google, IBM
+- Core phrase: "Art making as a public participatory experience"
+- Mission: Put real creative tools in people's hands — in public, at scale, with full cultural integrity
+- Modular platform, real-time 3D tracking, LED and projection-ready, deployable globally
+- Website: graffitiplus.io
+
+Tone rules:
+- Never say: innovative, cutting-edge, tech-powered, edgy, urban art, graffiti-inspired
+- Don't be corporate. Don't be a hype machine.
+- Graffiti culture references are fine — use them correctly or not at all
+
+CONVERSATION FLOW — THIS IS IMPORTANT:
+Your job is to have a real conversation and naturally figure out if this person is a good fit for Graffiti+. Do not interrogate. Ask one question at a time, woven naturally into the conversation.
+
+GOOD FIT — guide toward booking:
+- Brand activations, experiential marketing, product launches
+- Festivals, concerts, cultural events, public art installations
+- Corporate events, agency work, museum or gallery activations
+- Any public-facing event with an audience
+
+NOT A FIT — let down warmly, no hard sell:
+- Personal or residential use (home, garage, backyard) with no budget or event context
+- Hobbyist or DIY with no event, brand, or budget signal
+- NEVER disqualify based on guest count or event size alone
+- NEVER disqualify if someone signals money, prestige, a high-end client, or a desire to do something special — even if it sounds small. A millionaire's private party is a lead. A brand doing a 10-person VIP dinner is a lead. When in doubt, pass it through.
+- Only truly disqualify if it is clearly personal/residential with zero commercial or event angle (e.g. "I want to paint my bedroom wall")
+- If not a fit: be warm, acknowledge what they are into, explain Graffiti+ is built for public or event experiences, wish them well. Never make them feel bad.
+
+COLLECTION FLOW — once you sense a good fit, naturally gather these one at a time:
+1. Their name
+2. Company or organisation
+3. Type of event or activation
+4. Location
+5. Rough timeframe
+
+Once you have all five, say something natural like: "That sounds like a solid fit for what we do. Want me to pass this to the team so they can follow up? Or if you'd rather see it in action first, I can set you up with a live demo."
+
+If they want follow-up or a demo, ask for their email. Then output EXACTLY this format on its own line at the very end of your response — nothing after it:
+[LEAD_COLLECTED]{"name":"VALUE","company":"VALUE","event_type":"VALUE","location":"VALUE","timeframe":"VALUE","email":"VALUE","demo_requested":BOOLEAN}
+
+Do not output [LEAD_COLLECTED] until you have the email. Do not output it more than once.`;
+
+const GREETINGS = [
+  "Hey, I'm Coney. What do you want to know about Graffiti+?",
+  "Sixteen years on walls worldwide. What's on your mind?",
+  "You found me. Ask away.",
+  "I've been to six continents. Happy to talk about any of them.",
+  "What's up? I'm here."
+];
+
+const TIPS = [
+  "Got questions?",
+  "Ask me anything.",
+  "16 years on walls worldwide.",
+  "Real tools. Real culture.",
+  "I'm Coney. What's up?",
+  "Six continents. One cone.",
+  "Let's talk.",
+  "Graffiti+ — since 2008."
+];
+
+// =============================================
+// STATE
+// =============================================
+let isOpen    = false;
+let isLoading = false;
+let history   = []; // {role, content}
+let tipIdx    = 0;
+
+// =============================================
+// DOM
+// =============================================
+const chatPanel = document.getElementById('coney-chat');
+const messagesEl = document.getElementById('messages');
+const inputEl    = document.getElementById('input');
+const sendBtn    = document.getElementById('send-btn');
+const closeBtn   = document.getElementById('close-btn');
+const coneyBtn   = document.getElementById('coney-btn');
+const tipEl      = document.getElementById('coney-tip');
+
+// =============================================
+// OPEN / CLOSE
+// =============================================
+function openChat() {
+  isOpen = true;
+  chatPanel.classList.add('open');
+  document.getElementById('coney-widget').classList.add('chat-open');
+  bounce();
+  if (history.length === 0) {
+    setTimeout(() => {
+      addMsg('coney', GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
+    }, 350);
+  }
+  setTimeout(() => {
+    inputEl.focus();
+    // Scroll into view on mobile when keyboard opens
+    if (window.innerWidth <= 480) {
+      setTimeout(() => messagesEl.scrollTop = messagesEl.scrollHeight, 350);
+    }
+  }, 400);
+}
+
+function closeChat() {
+  isOpen = false;
+  chatPanel.classList.remove('open');
+  document.getElementById('coney-widget').classList.remove('chat-open');
+  inputEl.blur();
+}
+
+coneyBtn.addEventListener('click', () => isOpen ? closeChat() : openChat());
+closeBtn.addEventListener('click', closeChat);
+
+// =============================================
+// ANIMATIONS
+// =============================================
+function bounce() {
+  coneyBtn.classList.remove('bounce');
+  void coneyBtn.offsetWidth;
+  coneyBtn.classList.add('bounce');
+  setTimeout(() => coneyBtn.classList.remove('bounce'), 600);
+}
+
+// =============================================
+// MESSAGES
+// =============================================
+function addMsg(role, text) {
+  history.push({ role: role === 'coney' ? 'assistant' : 'user', content: text });
+  const wrap = document.createElement('div');
+  wrap.className = `msg ${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.textContent = text;
+  wrap.appendChild(bubble);
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function showTyping() {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg coney';
+  wrap.id = 'typing';
+  wrap.innerHTML = `<div class="typing-bubble">
+    <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+  </div>`;
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+// =============================================
+// AI CALL
+// =============================================
+async function send() {
+  const text = inputEl.value.trim();
+  if (!text || isLoading) return;
+
+  addMsg('user', text);
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  setLoading(true);
+  showTyping();
+
+  const messages = [
+    { role: 'system', content: SYSTEM },
+    ...history.slice(0, -1) // exclude the user msg we just added (already in history via addMsg)
+  ];
+  // Re-add the last user message properly
+  messages.push({ role: 'user', content: text });
+
+  try {
+    const res = await fetch(`${API_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4.1-mini',
+        messages,
+        max_tokens: 180,
+        temperature: 0.75
+      })
+    });
+
+    if (!res.ok) throw new Error(`${res.status}`);
+    const data = await res.json();
+    let reply = data.choices?.[0]?.message?.content?.trim() || "Lost signal for a sec — try again.";
+
+    removeTyping();
+    setLoading(false);
+
+    // Check for lead capture signal
+    const leadMatch = reply.match(/\[LEAD_COLLECTED\](\{.*\})/);
+    if (leadMatch) {
+      // Strip the signal from the visible reply
+      const cleanReply = reply.replace(/\[LEAD_COLLECTED\]\{.*\}/, '').trim();
+      if (cleanReply) addMsg('coney', cleanReply);
+      try {
+        const lead = JSON.parse(leadMatch[1]);
+        showLeadCard(lead);
+      } catch(e) { console.error('Lead parse error', e); }
+    } else {
+      addMsg('coney', reply);
+    }
+    bounce();
+
+  } catch (err) {
+    removeTyping();
+    setLoading(false);
+    addMsg('coney', "Yo, something went sideways on my end. Try again.");
+    console.error(err);
+  }
+}
+
+function setLoading(val) {
+  isLoading = val;
+  sendBtn.disabled = val;
+}
+
+// =============================================
+// INPUT HANDLERS
+// =============================================
+sendBtn.addEventListener('click', send);
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 90) + 'px';
+});
+
+// =============================================
+// LEAD CARD
+// =============================================
+function showLeadCard(lead) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg coney';
+  wrap.innerHTML = `
+    <div class="lead-card">
+      <div class="lead-card-header">
+        <span class="lead-card-icon">&#10003;</span>
+        <span class="lead-card-title">${lead.demo_requested ? 'Demo Requested' : 'Intro Requested'}</span>
+      </div>
+      <div class="lead-card-rows">
+        <div class="lead-row"><span class="lead-label">Name</span><span class="lead-val">${lead.name}</span></div>
+        <div class="lead-row"><span class="lead-label">Company</span><span class="lead-val">${lead.company}</span></div>
+        <div class="lead-row"><span class="lead-label">Event</span><span class="lead-val">${lead.event_type}</span></div>
+        <div class="lead-row"><span class="lead-label">Location</span><span class="lead-val">${lead.location}</span></div>
+        <div class="lead-row"><span class="lead-label">Timeframe</span><span class="lead-val">${lead.timeframe}</span></div>
+        <div class="lead-row"><span class="lead-label">Email</span><span class="lead-val">${lead.email}</span></div>
+      </div>
+      <div class="lead-card-footer">Sent to info@graffitiplus.io</div>
+    </div>
+  `;
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  // In production: POST lead data to backend here
+  console.log('LEAD CAPTURED:', lead);
+}
+
+// =============================================
+// TOOLTIP ROTATION
+// =============================================
+setInterval(() => {
+  if (!isOpen) {
+    tipIdx = (tipIdx + 1) % TIPS.length;
+    tipEl.textContent = TIPS[tipIdx];
+  }
+}, 3500);
+</script>
+
+</body>
+</html>
