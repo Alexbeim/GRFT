@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coney Training Grounds 🏗️</title>
+<title>Coney Training Grounds</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -11,11 +11,12 @@
   --orange: #FF6B00;
   --yellow: #FFD700;
   --black: #0a0a0a;
-  --dark: #111;
-  --panel: #161616;
-  --border: rgba(255,215,0,0.15);
+  --panel: #141414;
+  --panel2: #1a1a1a;
+  --border: rgba(255,215,0,0.12);
+  --border2: rgba(255,255,255,0.07);
   --text: rgba(255,255,255,0.88);
-  --muted: rgba(255,255,255,0.35);
+  --muted: rgba(255,255,255,0.32);
 }
 
 body {
@@ -23,562 +24,576 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: var(--text);
   min-height: 100vh;
+  overflow: hidden;
 }
 
 /* =============================================
-   LOGIN SCREEN
+   LOGIN
 ============================================= */
 #login-screen {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: var(--black);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  gap: 24px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 1000; gap: 20px;
 }
-
-.login-cone {
-  font-size: 72px;
-  animation: cone-bounce 2s ease-in-out infinite;
+.login-coney-wrap {
+  position: relative;
+  width: 140px; height: 160px;
+  display: flex; align-items: flex-end; justify-content: center;
 }
-@keyframes cone-bounce {
+.login-coney {
+  width: 120px;
+  animation: coney-enter 0.8s cubic-bezier(0.34,1.56,0.64,1) both,
+             coney-idle 3s ease-in-out 0.8s infinite;
+  transform-origin: bottom center;
+  filter: drop-shadow(0 8px 24px rgba(255,107,0,0.25));
+}
+@keyframes coney-enter {
+  from { transform: translateY(40px) scale(0.8); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes coney-idle {
   0%,100% { transform: translateY(0) rotate(0deg); }
-  50%      { transform: translateY(-12px) rotate(3deg); }
+  40%     { transform: translateY(-6px) rotate(1.5deg); }
+  60%     { transform: translateY(-4px) rotate(-1deg); }
 }
-
+.login-halo {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  font-size: 22px;
+  animation: halo-float 3s ease-in-out infinite;
+}
+@keyframes halo-float {
+  0%,100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
+  50%     { transform: translateX(-50%) translateY(-5px) rotate(5deg); }
+}
+.login-speech {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px 14px 14px 4px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text);
+  max-width: 260px;
+  text-align: center;
+  line-height: 1.5;
+  position: relative;
+}
 .login-title {
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 26px; font-weight: 800;
   letter-spacing: -0.5px;
   color: var(--yellow);
-  text-align: center;
 }
-.login-sub {
-  font-size: 14px;
-  color: var(--muted);
-  text-align: center;
-  max-width: 280px;
-  line-height: 1.6;
-}
-
 .login-box {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 28px;
-  width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  padding: 24px; width: 300px;
+  display: flex; flex-direction: column; gap: 10px;
 }
-
 .login-box input {
   background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid var(--border2);
   border-radius: 10px;
   padding: 11px 14px;
-  color: #fff;
-  font-size: 15px;
-  outline: none;
-  letter-spacing: 3px;
+  color: #fff; font-size: 15px;
+  outline: none; letter-spacing: 3px;
   transition: border-color 0.2s;
 }
 .login-box input:focus { border-color: var(--yellow); }
 .login-box input::placeholder { letter-spacing: 0; color: var(--muted); }
-
 .login-btn {
-  background: var(--yellow);
-  color: #000;
-  border: none;
-  border-radius: 10px;
-  padding: 12px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
+  background: var(--yellow); color: #000;
+  border: none; border-radius: 10px;
+  padding: 12px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: background 0.2s, transform 0.15s;
 }
 .login-btn:hover { background: #ffe033; transform: scale(1.02); }
-.login-btn:active { transform: scale(0.98); }
-
-.login-error {
-  font-size: 12px;
-  color: #ff4444;
-  text-align: center;
-  display: none;
-}
+.login-error { font-size: 12px; color: #ff4444; text-align: center; display: none; }
 .login-error.show { display: block; }
-
 .login-warning {
-  background: rgba(255,107,0,0.08);
-  border: 1px solid rgba(255,107,0,0.25);
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 12px;
-  color: rgba(255,107,0,0.9);
-  line-height: 1.5;
-  max-width: 320px;
-  text-align: center;
+  background: rgba(255,107,0,0.07);
+  border: 1px solid rgba(255,107,0,0.2);
+  border-radius: 10px; padding: 10px 14px;
+  font-size: 11px; color: rgba(255,107,0,0.85);
+  line-height: 1.5; max-width: 300px; text-align: center;
 }
 
 /* =============================================
-   MAIN LAYOUT
+   APP SHELL
 ============================================= */
-#app {
-  display: none;
-  min-height: 100vh;
-}
-#app.visible { display: flex; flex-direction: column; }
+#app { display: none; height: 100vh; flex-direction: column; }
+#app.visible { display: flex; }
 
-/* Header */
 .header {
   background: var(--panel);
   border-bottom: 1px solid var(--border);
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
+  padding: 0 20px;
+  display: flex; align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;
+  height: 56px; flex-shrink: 0;
 }
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-coney {
+  width: 36px; height: 40px;
+  animation: header-idle 4s ease-in-out infinite;
+  transform-origin: bottom center;
+  filter: drop-shadow(0 2px 8px rgba(255,107,0,0.3));
 }
-.header-cone { font-size: 28px; }
-.header-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--yellow);
-  letter-spacing: -0.3px;
+@keyframes header-idle {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50%     { transform: translateY(-3px) rotate(1deg); }
 }
-.header-sub {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 1px;
-}
+.header-title { font-size: 16px; font-weight: 800; color: var(--yellow); }
+.header-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
 .header-badge {
-  background: rgba(255,107,0,0.15);
-  border: 1px solid rgba(255,107,0,0.3);
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--orange);
-  letter-spacing: 0.05em;
+  background: rgba(255,107,0,0.12);
+  border: 1px solid rgba(255,107,0,0.25);
+  border-radius: 20px; padding: 3px 10px;
+  font-size: 10px; font-weight: 700;
+  color: var(--orange); letter-spacing: 0.05em;
 }
 
-/* Warning banner */
 .warning-banner {
-  background: rgba(255,107,0,0.07);
-  border-bottom: 1px solid rgba(255,107,0,0.2);
-  padding: 10px 24px;
-  font-size: 12px;
-  color: rgba(255,107,0,0.85);
-  text-align: center;
-  letter-spacing: 0.02em;
+  background: rgba(255,107,0,0.06);
+  border-bottom: 1px solid rgba(255,107,0,0.15);
+  padding: 7px 20px;
+  font-size: 11px; color: rgba(255,107,0,0.8);
+  text-align: center; flex-shrink: 0;
 }
 .warning-banner strong { color: var(--orange); }
 
-/* Main content */
-.main {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  flex: 1;
-  min-height: 0;
-  height: calc(100vh - 100px);
+/* Tab bar */
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  flex-shrink: 0;
+}
+.tab {
+  padding: 10px 20px;
+  font-size: 12px; font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--yellow); border-bottom-color: var(--yellow); }
+.tab-badge {
+  background: var(--orange);
+  color: #fff; border-radius: 10px;
+  padding: 1px 6px; font-size: 9px; font-weight: 700;
 }
 
 /* =============================================
-   CHAT PANEL (LEFT)
+   MAIN CONTENT
 ============================================= */
-.chat-panel {
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--border);
-  height: 100%;
+.content { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+
+/* Tab panels */
+.tab-panel { display: none; flex: 1; overflow: hidden; }
+.tab-panel.active { display: flex; }
+
+/* =============================================
+   CHAT TAB — 3 column layout
+============================================= */
+#tab-chat {
+  display: none;
+}
+#tab-chat.active {
+  display: grid;
+  grid-template-columns: 180px 1fr 340px;
 }
 
-.chat-panel-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
+/* Coney sidebar */
+.coney-sidebar {
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
+  padding: 24px 12px 16px;
+  gap: 16px;
+  background: var(--panel);
 }
-.chat-panel-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--yellow);
-  letter-spacing: 0.05em;
+.sidebar-coney-wrap {
+  position: relative;
+  width: 120px; height: 140px;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.sidebar-coney {
+  width: 110px;
+  animation: sidebar-idle 4s ease-in-out infinite;
+  transform-origin: bottom center;
+  filter: drop-shadow(0 6px 20px rgba(255,107,0,0.2));
+  transition: transform 0.3s;
+}
+.sidebar-coney.thinking {
+  animation: coney-think 0.6s ease-in-out infinite;
+}
+.sidebar-coney.react {
+  animation: coney-react 0.4s ease both;
+}
+@keyframes sidebar-idle {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  40%     { transform: translateY(-5px) rotate(1.5deg); }
+  60%     { transform: translateY(-3px) rotate(-1deg); }
+}
+@keyframes coney-think {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50%     { transform: translateY(-4px) rotate(2deg); }
+}
+@keyframes coney-react {
+  0%   { transform: scale(1) rotate(0deg); }
+  30%  { transform: scale(1.08) rotate(-3deg); }
+  60%  { transform: scale(0.96) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.sidebar-halo {
+  position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  animation: halo-float 3s ease-in-out infinite;
+}
+.sidebar-speech {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 10px 10px 10px 4px;
+  padding: 9px 11px;
+  font-size: 11px; color: var(--text);
+  line-height: 1.5; text-align: center;
+  width: 100%;
+}
+.sidebar-label {
+  font-size: 10px; font-weight: 700;
+  color: var(--orange); letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.sidebar-stats {
+  width: 100%;
+  display: flex; flex-direction: column; gap: 8px;
+  margin-top: auto;
+}
+.sidebar-stat {
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  border-radius: 8px; padding: 8px 10px;
+  text-align: center;
+}
+.sidebar-stat-val { font-size: 20px; font-weight: 800; color: var(--yellow); }
+.sidebar-stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 1px; }
+
+/* Chat area */
+.chat-area {
+  display: flex; flex-direction: column;
+  border-right: 1px solid var(--border);
+}
+.chat-area-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.chat-area-title { font-size: 12px; font-weight: 700; color: var(--yellow); letter-spacing: 0.05em; text-transform: uppercase; }
 .reset-btn {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  padding: 5px 12px;
-  font-size: 11px;
-  color: var(--muted);
-  cursor: pointer;
+  background: none; border: 1px solid var(--border2);
+  border-radius: 7px; padding: 4px 10px;
+  font-size: 10px; color: var(--muted); cursor: pointer;
   transition: all 0.2s;
 }
-.reset-btn:hover { color: #fff; border-color: rgba(255,255,255,0.25); }
+.reset-btn:hover { color: #fff; border-color: rgba(255,255,255,0.2); }
 
 .chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,215,0,0.1) transparent;
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,215,0,0.1) transparent;
 }
-
-.msg {
-  display: flex;
-  flex-direction: column;
-  max-width: 82%;
-  animation: msg-in 0.25s ease both;
-}
-@keyframes msg-in {
-  from { opacity:0; transform: translateY(8px); }
-  to   { opacity:1; transform: translateY(0); }
-}
+.msg { display: flex; flex-direction: column; max-width: 84%; animation: msg-in 0.22s ease both; }
+@keyframes msg-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
 .msg.coney { align-self: flex-start; }
 .msg.user  { align-self: flex-end; }
-
 .msg-bubble {
-  padding: 10px 14px;
-  border-radius: 14px;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--text);
+  padding: 9px 13px; border-radius: 13px;
+  font-size: 13px; line-height: 1.55; color: var(--text);
 }
 .msg.coney .msg-bubble {
-  background: rgba(255,215,0,0.07);
-  border: 1px solid rgba(255,215,0,0.15);
+  background: rgba(255,215,0,0.06);
+  border: 1px solid rgba(255,215,0,0.13);
   border-bottom-left-radius: 4px;
 }
 .msg.user .msg-bubble {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.09);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border2);
   border-bottom-right-radius: 4px;
 }
-
-/* Flag button under coney messages */
-.flag-row {
-  display: flex;
-  gap: 6px;
-  margin-top: 5px;
-  padding-left: 2px;
-}
+.flag-row { display: flex; gap: 5px; margin-top: 4px; padding-left: 2px; }
 .flag-btn {
-  background: none;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 6px;
-  padding: 3px 9px;
-  font-size: 11px;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  background: none; border: 1px solid var(--border2);
+  border-radius: 6px; padding: 2px 8px;
+  font-size: 10px; color: var(--muted); cursor: pointer;
+  transition: all 0.2s; display: flex; align-items: center; gap: 3px;
 }
 .flag-btn:hover { border-color: #ff4444; color: #ff4444; }
-.flag-btn.flagged { border-color: #ff4444; color: #ff4444; background: rgba(255,68,68,0.08); }
-
-/* Typing */
+.flag-btn.flagged { border-color: #ff4444; color: #ff4444; background: rgba(255,68,68,0.07); }
 .typing-bubble {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  padding: 12px 14px;
-  background: rgba(255,215,0,0.07);
-  border: 1px solid rgba(255,215,0,0.12);
-  border-radius: 14px;
-  border-bottom-left-radius: 4px;
+  display: flex; gap: 4px; align-items: center;
+  padding: 11px 13px;
+  background: rgba(255,215,0,0.06);
+  border: 1px solid rgba(255,215,0,0.1);
+  border-radius: 13px; border-bottom-left-radius: 4px;
   width: fit-content;
 }
-.t-dot {
-  width: 5px; height: 5px;
-  background: var(--yellow);
-  border-radius: 50%;
-  animation: t-b 1.2s ease-in-out infinite;
-}
+.t-dot { width: 5px; height: 5px; background: var(--yellow); border-radius: 50%; animation: t-b 1.2s ease-in-out infinite; }
 .t-dot:nth-child(2) { animation-delay: 0.18s; }
 .t-dot:nth-child(3) { animation-delay: 0.36s; }
-@keyframes t-b {
-  0%,60%,100% { transform: translateY(0); opacity:0.35; }
-  30%          { transform: translateY(-5px); opacity:1; }
-}
+@keyframes t-b { 0%,60%,100% { transform:translateY(0); opacity:0.35; } 30% { transform:translateY(-5px); opacity:1; } }
 
-/* Input row */
 .chat-input-row {
-  padding: 14px 20px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-  flex-shrink: 0;
+  padding: 12px 16px; border-top: 1px solid var(--border);
+  display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0;
 }
 .chat-input {
-  flex: 1;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 12px;
-  padding: 10px 14px;
-  color: #fff;
-  font-size: 14px;
-  resize: none;
-  outline: none;
-  min-height: 40px;
-  max-height: 100px;
-  line-height: 1.45;
-  font-family: inherit;
-  transition: border-color 0.2s;
+  flex: 1; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border2); border-radius: 11px;
+  padding: 9px 13px; color: #fff; font-size: 13px;
+  resize: none; outline: none; min-height: 38px; max-height: 90px;
+  line-height: 1.45; font-family: inherit; transition: border-color 0.2s;
 }
 .chat-input::placeholder { color: var(--muted); }
-.chat-input:focus { border-color: rgba(255,215,0,0.35); }
+.chat-input:focus { border-color: rgba(255,215,0,0.3); }
 .send-btn {
-  background: var(--yellow);
-  border: none;
-  border-radius: 12px;
-  width: 40px; height: 40px;
-  cursor: pointer;
+  background: var(--yellow); border: none; border-radius: 11px;
+  width: 38px; height: 38px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.2s, transform 0.15s;
+  flex-shrink: 0; transition: background 0.2s, transform 0.15s;
 }
 .send-btn:hover { background: #ffe033; transform: scale(1.06); }
 .send-btn:active { transform: scale(0.94); }
-.send-btn:disabled { background: rgba(255,215,0,0.25); cursor: not-allowed; transform: none; }
-.send-btn svg { width: 15px; height: 15px; fill: #000; }
+.send-btn:disabled { background: rgba(255,215,0,0.2); cursor: not-allowed; transform: none; }
+.send-btn svg { width: 14px; height: 14px; fill: #000; }
 
-/* =============================================
-   TRAINING PANEL (RIGHT)
-============================================= */
+/* Training panel */
 .training-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  display: flex; flex-direction: column; overflow: hidden;
 }
-
 .training-panel-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+  padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
 }
-.training-panel-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--yellow);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-.training-panel-sub {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 3px;
-  line-height: 1.5;
-}
+.training-panel-title { font-size: 12px; font-weight: 700; color: var(--yellow); letter-spacing: 0.05em; text-transform: uppercase; }
+.training-panel-sub { font-size: 10px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
 
-/* Flag context */
 .flag-context {
-  margin: 14px 16px 0;
-  background: rgba(255,68,68,0.07);
-  border: 1px solid rgba(255,68,68,0.2);
-  border-radius: 10px;
-  padding: 10px 13px;
-  font-size: 12px;
-  color: rgba(255,68,68,0.85);
-  line-height: 1.5;
-  display: none;
+  margin: 12px 14px 0;
+  background: rgba(255,68,68,0.06);
+  border: 1px solid rgba(255,68,68,0.18);
+  border-radius: 9px; padding: 9px 12px;
+  font-size: 11px; color: rgba(255,68,68,0.85);
+  line-height: 1.5; display: none;
 }
 .flag-context.show { display: block; }
 .flag-context strong { color: #ff6666; }
 
-/* Correction form */
 .correction-form {
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex-shrink: 0;
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; flex-shrink: 0;
 }
-
-.correction-type {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
+.correction-type { display: flex; gap: 5px; flex-wrap: wrap; }
 .type-btn {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 11px;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all 0.2s;
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 3px 10px;
+  font-size: 10px; color: var(--muted); cursor: pointer; transition: all 0.2s;
 }
 .type-btn:hover { border-color: var(--yellow); color: var(--yellow); }
-.type-btn.active { background: rgba(255,215,0,0.1); border-color: var(--yellow); color: var(--yellow); }
-
+.type-btn.active { background: rgba(255,215,0,0.08); border-color: var(--yellow); color: var(--yellow); }
 .correction-input {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 10px;
-  padding: 10px 13px;
-  color: #fff;
-  font-size: 13px;
-  resize: none;
-  outline: none;
-  min-height: 72px;
-  max-height: 140px;
-  line-height: 1.5;
-  font-family: inherit;
-  transition: border-color 0.2s;
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border2);
+  border-radius: 9px; padding: 9px 12px; color: #fff; font-size: 12px;
+  resize: none; outline: none; min-height: 66px; max-height: 120px;
+  line-height: 1.5; font-family: inherit; transition: border-color 0.2s;
 }
 .correction-input::placeholder { color: var(--muted); }
-.correction-input:focus { border-color: rgba(255,215,0,0.35); }
-
+.correction-input:focus { border-color: rgba(255,215,0,0.3); }
 .save-correction-btn {
-  background: var(--orange);
-  border: none;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+  background: var(--orange); border: none; border-radius: 9px;
+  padding: 9px 14px; font-size: 12px; font-weight: 700; color: #fff;
+  cursor: pointer; transition: background 0.2s, transform 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
 }
 .save-correction-btn:hover { background: #ff8020; transform: scale(1.02); }
 .save-correction-btn:active { transform: scale(0.98); }
-.save-correction-btn:disabled { background: rgba(255,107,0,0.3); cursor: not-allowed; transform: none; }
-
-.save-confirm {
-  font-size: 12px;
-  color: #4caf50;
-  text-align: center;
-  display: none;
-  animation: fade-in 0.3s ease;
-}
-.save-confirm.show { display: block; }
+.save-confirm { font-size: 11px; color: #4caf50; text-align: center; display: none; }
+.save-confirm.show { display: block; animation: fade-in 0.3s ease; }
 @keyframes fade-in { from { opacity:0; } to { opacity:1; } }
 
-/* Corrections log */
 .corrections-log {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0 16px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,215,0,0.1) transparent;
+  flex: 1; overflow-y: auto; padding: 0 14px 14px;
+  display: flex; flex-direction: column; gap: 7px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,215,0,0.1) transparent;
 }
-
 .log-header {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 12px 0 4px;
-  flex-shrink: 0;
+  font-size: 10px; font-weight: 700; color: var(--muted);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 10px 0 3px; flex-shrink: 0;
 }
-
 .correction-item {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 13px;
-  font-size: 12px;
-  line-height: 1.55;
-  animation: msg-in 0.25s ease both;
-  position: relative;
+  background: var(--panel2); border: 1px solid var(--border);
+  border-radius: 9px; padding: 9px 12px; font-size: 11px;
+  line-height: 1.55; animation: msg-in 0.22s ease both; position: relative;
 }
-.correction-item-type {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--orange);
-  margin-bottom: 4px;
-}
-.correction-item-text {
-  color: var(--text);
-}
-.correction-item-meta {
-  font-size: 10px;
-  color: var(--muted);
-  margin-top: 5px;
-}
+.correction-item-type { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--orange); margin-bottom: 3px; }
+.correction-item-text { color: var(--text); }
+.correction-item-meta { font-size: 9px; color: var(--muted); margin-top: 4px; }
 .correction-delete {
-  position: absolute;
-  top: 8px; right: 8px;
-  background: none;
-  border: none;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 2px 5px;
-  border-radius: 4px;
-  transition: all 0.2s;
-  opacity: 0;
+  position: absolute; top: 7px; right: 7px;
+  background: none; border: none; color: var(--muted);
+  cursor: pointer; font-size: 11px; padding: 2px 4px;
+  border-radius: 4px; transition: all 0.2s; opacity: 0;
 }
 .correction-item:hover .correction-delete { opacity: 1; }
 .correction-delete:hover { color: #ff4444; background: rgba(255,68,68,0.1); }
+.empty-log { font-size: 11px; color: var(--muted); text-align: center; padding: 20px 0; line-height: 1.6; }
 
-.empty-log {
-  font-size: 12px;
-  color: var(--muted);
-  text-align: center;
-  padding: 24px 0;
-  line-height: 1.6;
+/* =============================================
+   QUESTIONNAIRE TAB
+============================================= */
+#tab-quiz {
+  display: none;
 }
-
-/* Stats bar */
-.stats-bar {
-  padding: 10px 16px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  gap: 16px;
-  flex-shrink: 0;
-}
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.stat-val {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--yellow);
-}
-.stat-label {
-  font-size: 10px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+#tab-quiz.active {
+  display: grid;
+  grid-template-columns: 200px 1fr;
 }
 
-/* Mobile */
-@media (max-width: 768px) {
-  .main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
-  .training-panel { border-right: none; border-top: 1px solid var(--border); max-height: 45vh; }
+.quiz-sidebar {
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  align-items: center; padding: 24px 14px 16px;
+  gap: 14px; background: var(--panel);
+  overflow-y: auto;
+}
+.quiz-coney-wrap {
+  position: relative; width: 130px; height: 150px;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.quiz-coney {
+  width: 120px;
+  animation: sidebar-idle 4s ease-in-out infinite;
+  transform-origin: bottom center;
+  filter: drop-shadow(0 6px 20px rgba(255,107,0,0.2));
+}
+.quiz-halo {
+  position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px; animation: halo-float 3s ease-in-out infinite;
+}
+.quiz-speech {
+  background: var(--panel2); border: 1px solid var(--border);
+  border-radius: 10px 10px 10px 4px;
+  padding: 10px 12px; font-size: 11px; color: var(--text);
+  line-height: 1.55; text-align: center; width: 100%;
+}
+.quiz-progress-wrap { width: 100%; }
+.quiz-progress-label { font-size: 10px; color: var(--muted); margin-bottom: 5px; display: flex; justify-content: space-between; }
+.quiz-progress-bar { height: 4px; background: rgba(255,255,255,0.07); border-radius: 4px; overflow: hidden; }
+.quiz-progress-fill { height: 100%; background: var(--yellow); border-radius: 4px; transition: width 0.4s ease; }
+.quiz-categories { width: 100%; display: flex; flex-direction: column; gap: 4px; }
+.quiz-cat {
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border2);
+  border-radius: 7px; padding: 6px 10px;
+  font-size: 10px; color: var(--muted); cursor: pointer;
+  transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;
+}
+.quiz-cat:hover { border-color: var(--yellow); color: var(--text); }
+.quiz-cat.active { background: rgba(255,215,0,0.07); border-color: var(--yellow); color: var(--yellow); }
+.quiz-cat-count { font-size: 9px; opacity: 0.6; }
+
+.quiz-main {
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.quiz-main-header {
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.quiz-main-title { font-size: 12px; font-weight: 700; color: var(--yellow); letter-spacing: 0.05em; text-transform: uppercase; }
+.quiz-main-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+.quiz-questions {
+  flex: 1; overflow-y: auto; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,215,0,0.1) transparent;
+}
+.quiz-question {
+  background: var(--panel2); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 14px 16px;
+  animation: msg-in 0.25s ease both;
+  transition: border-color 0.2s;
+}
+.quiz-question:hover { border-color: rgba(255,215,0,0.2); }
+.quiz-question.answered {
+  animation: q-dismiss 0.4s ease forwards;
+}
+@keyframes q-dismiss {
+  0%   { opacity:1; transform:translateX(0) scale(1); max-height: 200px; }
+  50%  { opacity:0.3; transform:translateX(20px) scale(0.97); }
+  100% { opacity:0; transform:translateX(40px) scale(0.95); max-height: 0; padding: 0; margin: 0; overflow: hidden; }
+}
+.quiz-q-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.quiz-q-num { font-size: 9px; font-weight: 700; color: var(--orange); letter-spacing: 0.06em; text-transform: uppercase; flex-shrink: 0; margin-top: 1px; }
+.quiz-q-text { font-size: 13px; color: var(--text); line-height: 1.5; flex: 1; }
+.quiz-q-cat { font-size: 9px; color: var(--muted); flex-shrink: 0; }
+.quiz-answer-row { display: flex; gap: 8px; align-items: flex-end; }
+.quiz-answer {
+  flex: 1; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border2); border-radius: 9px;
+  padding: 8px 12px; color: #fff; font-size: 12px;
+  resize: none; outline: none; min-height: 36px; max-height: 100px;
+  line-height: 1.45; font-family: inherit; transition: border-color 0.2s;
+}
+.quiz-answer::placeholder { color: var(--muted); }
+.quiz-answer:focus { border-color: rgba(255,215,0,0.3); }
+.quiz-btns { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+.quiz-save-btn {
+  background: var(--yellow); border: none; border-radius: 8px;
+  padding: 7px 12px; font-size: 11px; font-weight: 700; color: #000;
+  cursor: pointer; transition: background 0.2s, transform 0.15s; white-space: nowrap;
+}
+.quiz-save-btn:hover { background: #ffe033; transform: scale(1.03); }
+.quiz-skip-btn {
+  background: none; border: 1px solid var(--border2);
+  border-radius: 8px; padding: 6px 12px;
+  font-size: 10px; color: var(--muted); cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+}
+.quiz-skip-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+.quiz-empty {
+  text-align: center; padding: 48px 20px;
+  color: var(--muted); font-size: 13px; line-height: 1.7;
+}
+.quiz-empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+.quiz-unsure-note {
+  padding: 10px 20px; border-top: 1px solid var(--border);
+  font-size: 10px; color: var(--muted); text-align: center;
+  line-height: 1.5; flex-shrink: 0;
+}
+.quiz-unsure-note strong { color: rgba(255,107,0,0.7); }
+
+/* =============================================
+   MOBILE
+============================================= */
+@media (max-width: 900px) {
+  #tab-chat.active { grid-template-columns: 1fr 280px; }
+  .coney-sidebar { display: none; }
+  #tab-quiz.active { grid-template-columns: 1fr; }
+  .quiz-sidebar { display: none; }
+}
+@media (max-width: 600px) {
+  #tab-chat.active { grid-template-columns: 1fr; }
+  .training-panel { display: none; }
 }
 </style>
 </head>
@@ -586,116 +601,302 @@ body {
 
 <!-- LOGIN -->
 <div id="login-screen">
-  <div class="login-cone">🚧</div>
-  <div>
-    <div class="login-title">Coney Training Grounds</div>
-    <div class="login-sub" style="margin-top:6px">Internal use only. Train Coney, flag bad answers, add corrections.</div>
+  <div class="login-coney-wrap">
+    <div class="login-halo">😇</div>
+    <img class="login-coney" src="assets/coney_nobg.png" alt="Coney">
   </div>
+  <div class="login-speech">Yo. This is internal. Password up.</div>
+  <div class="login-title">Training Grounds</div>
   <div class="login-box">
     <input type="password" id="pw-input" placeholder="Enter password" autocomplete="off">
     <button class="login-btn" id="pw-btn">Enter the Grounds →</button>
     <div class="login-error" id="pw-error">Wrong password. Try again.</div>
   </div>
   <div class="login-warning">
-    ⚠️ Do not share technical specs, pricing, financial info, or client contracts during training sessions.
+    ⚠️ Do not share technical specs, pricing, financial info, or client contracts during training.
   </div>
 </div>
 
 <!-- APP -->
 <div id="app">
 
-  <!-- Header -->
   <div class="header">
     <div class="header-left">
-      <div class="header-cone">🚧</div>
+      <img class="header-coney" src="assets/coney_nobg.png" alt="Coney">
       <div>
         <div class="header-title">Coney Training Grounds</div>
-        <div class="header-sub">Graffiti+ Internal — Chat, flag, correct</div>
+        <div class="header-sub">Graffiti+ Internal</div>
       </div>
     </div>
     <div class="header-badge">INTERNAL ONLY</div>
   </div>
 
-  <!-- Warning banner -->
   <div class="warning-banner">
-    <strong>Reminder:</strong> Do not share technical specifications, pricing, financial data, or confidential client info during training.
+    <strong>Reminder:</strong> Do not share technical specs, pricing, financial data, or confidential client info during training.
   </div>
 
-  <!-- Main -->
-  <div class="main">
-
-    <!-- Chat Panel -->
-    <div class="chat-panel">
-      <div class="chat-panel-header">
-        <div class="chat-panel-title">🎯 Live Chat Test</div>
-        <button class="reset-btn" id="reset-btn">↺ Reset conversation</button>
-      </div>
-      <div class="chat-messages" id="messages"></div>
-      <div class="chat-input-row">
-        <textarea class="chat-input" id="input" placeholder="Talk to Coney as if you're a visitor..." rows="1"></textarea>
-        <button class="send-btn" id="send-btn" aria-label="Send">
-          <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Training Panel -->
-    <div class="training-panel">
-      <div class="training-panel-header">
-        <div class="training-panel-title">🛠 Training Controls</div>
-        <div class="training-panel-sub">Flag a response, pick a type, write the correction.</div>
-      </div>
-
-      <div id="flag-context" class="flag-context"></div>
-
-      <div class="correction-form">
-        <div class="correction-type" id="type-btns">
-          <button class="type-btn active" data-type="wrong-fact">Wrong fact</button>
-          <button class="type-btn" data-type="bad-tone">Bad tone</button>
-          <button class="type-btn" data-type="killed-sale">Killed the sale</button>
-          <button class="type-btn" data-type="made-it-up">Made it up</button>
-          <button class="type-btn" data-type="add-knowledge">Add knowledge</button>
-          <button class="type-btn" data-type="other">Other</button>
-        </div>
-        <textarea class="correction-input" id="correction-input" placeholder="Write the correction or fact here. Be specific — e.g. 'Graffiti+ has never operated in Beijing. Remove that reference.'"></textarea>
-        <button class="save-correction-btn" id="save-btn">
-          <span>💾</span> Save Correction
-        </button>
-        <div class="save-confirm" id="save-confirm">✓ Correction saved and applied to Coney</div>
-      </div>
-
-      <div class="corrections-log" id="corrections-log">
-        <div class="log-header">Correction Log</div>
-        <div class="empty-log" id="empty-log">No corrections yet.<br>Flag a response to get started.</div>
-      </div>
-
-      <div class="stats-bar">
-        <div class="stat">
-          <div class="stat-val" id="stat-corrections">0</div>
-          <div class="stat-label">Corrections</div>
-        </div>
-        <div class="stat">
-          <div class="stat-val" id="stat-flags">0</div>
-          <div class="stat-label">Flagged</div>
-        </div>
-        <div class="stat">
-          <div class="stat-val" id="stat-msgs">0</div>
-          <div class="stat-label">Messages</div>
-        </div>
-      </div>
-    </div>
-
+  <div class="tab-bar">
+    <div class="tab active" data-tab="chat">🎯 Chat Test</div>
+    <div class="tab" data-tab="quiz" id="quiz-tab">📋 Knowledge Q&amp;A <span class="tab-badge" id="quiz-badge">36</span></div>
   </div>
-</div>
+
+  <div class="content">
+
+    <!-- CHAT TAB -->
+    <div class="tab-panel active" id="tab-chat">
+
+      <!-- Coney sidebar -->
+      <div class="coney-sidebar">
+        <div class="sidebar-coney-wrap">
+          <div class="sidebar-halo">😇</div>
+          <img class="sidebar-coney" id="sidebar-coney" src="assets/coney_nobg.png" alt="Coney">
+        </div>
+        <div class="sidebar-label">Coney</div>
+        <div class="sidebar-speech" id="sidebar-speech">Ask me something and see how I respond.</div>
+        <div class="sidebar-stats">
+          <div class="sidebar-stat">
+            <div class="sidebar-stat-val" id="stat-corrections">0</div>
+            <div class="sidebar-stat-label">Corrections</div>
+          </div>
+          <div class="sidebar-stat">
+            <div class="sidebar-stat-val" id="stat-flags">0</div>
+            <div class="sidebar-stat-label">Flagged</div>
+          </div>
+          <div class="sidebar-stat">
+            <div class="sidebar-stat-val" id="stat-msgs">0</div>
+            <div class="sidebar-stat-label">Messages</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat area -->
+      <div class="chat-area">
+        <div class="chat-area-header">
+          <div class="chat-area-title">Live Chat Test</div>
+          <button class="reset-btn" id="reset-btn">↺ New conversation</button>
+        </div>
+        <div class="chat-messages" id="messages"></div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="input" placeholder="Talk to Coney as if you're a visitor..." rows="1"></textarea>
+          <button class="send-btn" id="send-btn" aria-label="Send">
+            <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Training panel -->
+      <div class="training-panel">
+        <div class="training-panel-header">
+          <div class="training-panel-title">🛠 Training Controls</div>
+          <div class="training-panel-sub">Flag a response, pick a type, write the correction.</div>
+        </div>
+        <div id="flag-context" class="flag-context"></div>
+        <div class="correction-form">
+          <div class="correction-type" id="type-btns">
+            <button class="type-btn active" data-type="wrong-fact">Wrong fact</button>
+            <button class="type-btn" data-type="bad-tone">Bad tone</button>
+            <button class="type-btn" data-type="killed-sale">Killed the sale</button>
+            <button class="type-btn" data-type="made-it-up">Made it up</button>
+            <button class="type-btn" data-type="add-knowledge">Add knowledge</button>
+            <button class="type-btn" data-type="other">Other</button>
+          </div>
+          <textarea class="correction-input" id="correction-input" placeholder="Write the correction or fact. Be specific — e.g. 'Graffiti+ has never operated in Beijing. Remove that reference.'"></textarea>
+          <button class="save-correction-btn" id="save-btn">💾 Save Correction</button>
+          <div class="save-confirm" id="save-confirm">✓ Saved and applied to Coney</div>
+        </div>
+        <div class="corrections-log" id="corrections-log">
+          <div class="log-header">Correction Log</div>
+          <div class="empty-log" id="empty-log">No corrections yet.<br>Flag a response to get started.</div>
+        </div>
+      </div>
+
+    </div><!-- end #tab-chat -->
+
+    <!-- QUIZ TAB -->
+    <div class="tab-panel" id="tab-quiz">
+
+      <div class="quiz-sidebar">
+        <div class="quiz-coney-wrap">
+          <div class="quiz-halo">😇</div>
+          <img class="quiz-coney" src="assets/coney_nobg.png" alt="Coney">
+        </div>
+        <div class="quiz-speech" id="quiz-speech">Answer what you know. Skip what you don't. Every answer makes me sharper.</div>
+        <div class="quiz-progress-wrap">
+          <div class="quiz-progress-label">
+            <span>Progress</span>
+            <span id="progress-text">0 / 36</span>
+          </div>
+          <div class="quiz-progress-bar">
+            <div class="quiz-progress-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="quiz-categories" id="quiz-categories"></div>
+      </div>
+
+      <div class="quiz-main">
+        <div class="quiz-main-header">
+          <div>
+            <div class="quiz-main-title">Knowledge Q&amp;A</div>
+            <div class="quiz-main-sub" id="quiz-filter-label">Showing all questions</div>
+          </div>
+        </div>
+        <div class="quiz-questions" id="quiz-questions"></div>
+        <div class="quiz-unsure-note">
+          <strong>Not sure?</strong> Skip it. Only answer what you know for certain — Coney will say "I don't have that detail" rather than make something up.
+        </div>
+      </div>
+
+    </div><!-- end #tab-quiz -->
+
+  </div><!-- end .content -->
+</div><!-- end #app -->
 
 <script>
 // =============================================
 // CONFIG
 // =============================================
-const PASSWORD = 'nosotros';
-const API_BASE = 'https://api.manus.im/api/llm-proxy/v1';
-const API_KEY  = 'sk-SS7nvzBs3mqewMkJfWJYRL';
-const STORAGE_KEY = 'coney_corrections_v1';
+const PASSWORD   = 'nosotros';
+const API_BASE   = 'https://api.manus.im/api/llm-proxy/v1';
+const API_KEY    = 'sk-SS7nvzBs3mqewMkJfWJYRL';
+const CORR_KEY   = 'coney_corrections_v1';
+const QUIZ_KEY   = 'coney_quiz_v1';
+
+// =============================================
+// QUESTIONS
+// =============================================
+const QUESTIONS = [
+  // THE PRODUCT
+  { id:1,  cat:'The Product',    text:'What exactly does a client get when they book Graffiti+? Walk me through what shows up at an event.' },
+  { id:2,  cat:'The Product',    text:'What are the different configurations or setups available? (e.g. wall size, number of stations, indoor vs outdoor)' },
+  { id:3,  cat:'The Product',    text:'What\'s the minimum and maximum scale you can deploy? (smallest event, largest)' },
+  { id:4,  cat:'The Product',    text:'How long does setup take? Teardown?' },
+  { id:5,  cat:'The Product',    text:'Do you need a specific type of wall or surface, or can it go anywhere?' },
+  { id:6,  cat:'The Product',    text:'What tech does it run on — is it proprietary hardware, off-the-shelf, or a mix?' },
+  { id:7,  cat:'The Product',    text:'Can it run outdoors in daylight? In rain?' },
+  { id:8,  cat:'The Product',    text:'Is there a digital output — do participants get to keep their artwork?' },
+  { id:9,  cat:'The Product',    text:'Can the experience be branded with a client\'s visual identity?' },
+  { id:10, cat:'The Product',    text:'Is there a live social sharing component built in?' },
+  // PRICING & LOGISTICS
+  { id:11, cat:'Pricing & Logistics', text:'What\'s the rough starting price for a standard activation? (a range is fine)' },
+  { id:12, cat:'Pricing & Logistics', text:'What does pricing depend on — duration, size, location, custom work?' },
+  { id:13, cat:'Pricing & Logistics', text:'Do you work with a day rate, project rate, or retainer?' },
+  { id:14, cat:'Pricing & Logistics', text:'What\'s included vs what costs extra? (travel, custom branding, operator, etc.)' },
+  { id:15, cat:'Pricing & Logistics', text:'What markets do you actively operate in right now?' },
+  { id:16, cat:'Pricing & Logistics', text:'How far in advance do clients typically need to book?' },
+  { id:17, cat:'Pricing & Logistics', text:'Do you have local operators or partners in different cities/countries?' },
+  // CLIENTS & CASE STUDIES
+  { id:18, cat:'Clients & Case Studies', text:'Which 3–5 activations are you most proud of and why?' },
+  { id:19, cat:'Clients & Case Studies', text:'What\'s the most unusual or unexpected use case you\'ve been hired for?' },
+  { id:20, cat:'Clients & Case Studies', text:'What types of clients come back for repeat bookings?' },
+  { id:21, cat:'Clients & Case Studies', text:'Are there industries or event types you haven\'t cracked yet but want to?' },
+  { id:22, cat:'Clients & Case Studies', text:'What\'s the biggest activation you\'ve ever done (scale, audience size)?' },
+  // QUALIFICATION
+  { id:23, cat:'Qualification',  text:'What\'s the ideal client profile — who is the perfect booking?' },
+  { id:24, cat:'Qualification',  text:'What are the red flags that tell you early it\'s not going to work out?' },
+  { id:25, cat:'Qualification',  text:'What questions do you wish clients asked before booking?' },
+  { id:26, cat:'Qualification',  text:'What\'s the most common misconception people have about Graffiti+?' },
+  { id:27, cat:'Qualification',  text:'Is there a minimum budget you\'d want Coney to filter for?' },
+  // GRAFFITI+ AS A BRAND
+  { id:28, cat:'Brand & Culture', text:'How do you describe what you do in one sentence — your own words, not marketing copy?' },
+  { id:29, cat:'Brand & Culture', text:'What makes Graffiti+ different from other experiential tech companies?' },
+  { id:30, cat:'Brand & Culture', text:'What does "real tools" mean to you — why does that matter?' },
+  { id:31, cat:'Brand & Culture', text:'Is there a community or culture aspect beyond the events?' },
+  { id:32, cat:'Brand & Culture', text:'What\'s next — where is Graffiti+ going in the next 2–3 years?' },
+  // CONEY PERSONALITY
+  { id:33, cat:'Coney Personality', text:'Are there any phrases, slang, or references Coney should use or avoid?' },
+  { id:34, cat:'Coney Personality', text:'Any inside jokes or Graffiti+ lore that would make Coney feel more authentic?' },
+  { id:35, cat:'Coney Personality', text:'How should Coney handle someone who\'s clearly just messing around with no real intent?' },
+  { id:36, cat:'Coney Personality', text:'Is there anything Coney should never say or commit to on your behalf?' },
+];
+
+const CATEGORIES = [...new Set(QUESTIONS.map(q => q.cat))];
+
+const CONEY_QUIPS = [
+  "Answer what you know. Skip what you don't.",
+  "Every answer makes me sharper.",
+  "No guessing. Real info only.",
+  "You know this stuff. I don't yet.",
+  "Help me help you.",
+  "The more you tell me, the less I make up.",
+];
+
+// =============================================
+// STATE
+// =============================================
+let corrections = JSON.parse(localStorage.getItem(CORR_KEY) || '[]');
+let quizAnswers = JSON.parse(localStorage.getItem(QUIZ_KEY) || '{}'); // {id: answer}
+let skipped     = JSON.parse(localStorage.getItem(QUIZ_KEY+'_skip') || '[]');
+let history     = [];
+let isLoading   = false;
+let selectedType = 'wrong-fact';
+let flaggedMessage = null;
+let flagCount   = 0;
+let msgCount    = 0;
+let activeCategory = null;
+
+// =============================================
+// DOM
+// =============================================
+const loginScreen  = document.getElementById('login-screen');
+const app          = document.getElementById('app');
+const pwInput      = document.getElementById('pw-input');
+const pwBtn        = document.getElementById('pw-btn');
+const pwError      = document.getElementById('pw-error');
+const messagesEl   = document.getElementById('messages');
+const inputEl      = document.getElementById('input');
+const sendBtn      = document.getElementById('send-btn');
+const resetBtn     = document.getElementById('reset-btn');
+const corrInput    = document.getElementById('correction-input');
+const saveBtn      = document.getElementById('save-btn');
+const saveConfirm  = document.getElementById('save-confirm');
+const flagContext  = document.getElementById('flag-context');
+const corrLog      = document.getElementById('corrections-log');
+const emptyLog     = document.getElementById('empty-log');
+const sidebarConey = document.getElementById('sidebar-coney');
+const sidebarSpeech= document.getElementById('sidebar-speech');
+const statCorr     = document.getElementById('stat-corrections');
+const statFlags    = document.getElementById('stat-flags');
+const statMsgs     = document.getElementById('stat-msgs');
+const quizQuestions= document.getElementById('quiz-questions');
+const quizBadge    = document.getElementById('quiz-badge');
+const progressText = document.getElementById('progress-text');
+const progressFill = document.getElementById('progress-fill');
+const quizCats     = document.getElementById('quiz-categories');
+const quizFilterLabel = document.getElementById('quiz-filter-label');
+const quizSpeech   = document.getElementById('quiz-speech');
+
+// =============================================
+// LOGIN
+// =============================================
+function tryLogin() {
+  if (pwInput.value === PASSWORD) {
+    loginScreen.style.display = 'none';
+    app.classList.add('visible');
+    initChat();
+    renderQuiz();
+    renderLog();
+    updateStats();
+  } else {
+    pwError.classList.add('show');
+    pwInput.value = '';
+    pwInput.focus();
+    setTimeout(() => pwError.classList.remove('show'), 2500);
+  }
+}
+pwBtn.addEventListener('click', tryLogin);
+pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+
+// =============================================
+// TABS
+// =============================================
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
 
 // =============================================
 // BASE SYSTEM PROMPT
@@ -707,7 +908,7 @@ Personality:
 - Light dry humour — occasional wit, never mean.
 - One or two sentences max. If it needs three, fine. Never more.
 - Don't hype. Say it plain.
-- IMPORTANT: Only state facts you know for certain. If you don't know a specific detail, say "I don't have that detail — the team can fill you in." Do NOT invent cities, events, clients, or statistics.
+- CRITICAL: Only state facts you know for certain. If you don't know a specific detail, say "I don't have that detail — the team can fill you in." Do NOT invent cities, events, clients, or statistics.
 
 About Graffiti+:
 - Founded 2008, started from Vancouver's Olympic bid
@@ -748,75 +949,47 @@ If they want follow-up or a demo, ask for their email. Then output EXACTLY this 
 
 Do not output [LEAD_COLLECTED] until you have the email. Do not output it more than once.`;
 
-// =============================================
-// STATE
-// =============================================
-let history = [];
-let isLoading = false;
-let corrections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-let selectedType = 'wrong-fact';
-let flaggedMessage = null;
-let flagCount = 0;
-let msgCount = 0;
-
-// =============================================
-// DOM
-// =============================================
-const loginScreen = document.getElementById('login-screen');
-const app = document.getElementById('app');
-const pwInput = document.getElementById('pw-input');
-const pwBtn = document.getElementById('pw-btn');
-const pwError = document.getElementById('pw-error');
-const messagesEl = document.getElementById('messages');
-const inputEl = document.getElementById('input');
-const sendBtn = document.getElementById('send-btn');
-const resetBtn = document.getElementById('reset-btn');
-const correctionInput = document.getElementById('correction-input');
-const saveBtn = document.getElementById('save-btn');
-const saveConfirm = document.getElementById('save-confirm');
-const flagContext = document.getElementById('flag-context');
-const correctionsLog = document.getElementById('corrections-log');
-const emptyLog = document.getElementById('empty-log');
-const statCorrections = document.getElementById('stat-corrections');
-const statFlags = document.getElementById('stat-flags');
-const statMsgs = document.getElementById('stat-msgs');
-
-// =============================================
-// LOGIN
-// =============================================
-function tryLogin() {
-  if (pwInput.value === PASSWORD) {
-    loginScreen.style.display = 'none';
-    app.classList.add('visible');
-    initChat();
-    renderLog();
-  } else {
-    pwError.classList.add('show');
-    pwInput.value = '';
-    pwInput.focus();
-    setTimeout(() => pwError.classList.remove('show'), 2500);
-  }
+function buildSystemPrompt() {
+  // Add corrections
+  const corrBlock = corrections.length > 0
+    ? '\n\nTRAINING CORRECTIONS (follow these strictly):\n' +
+      corrections.map((c,i) => `${i+1}. [${c.type.toUpperCase()}] ${c.text}`).join('\n')
+    : '';
+  // Add quiz answers
+  const answered = Object.entries(quizAnswers);
+  const quizBlock = answered.length > 0
+    ? '\n\nKNOWLEDGE BASE (answers provided by the Graffiti+ team — treat as authoritative):\n' +
+      answered.map(([id, ans]) => {
+        const q = QUESTIONS.find(q => q.id === parseInt(id));
+        return q ? `Q: ${q.text}\nA: ${ans}` : '';
+      }).filter(Boolean).join('\n\n')
+    : '';
+  return BASE_SYSTEM + corrBlock + quizBlock;
 }
-pwBtn.addEventListener('click', tryLogin);
-pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
 
 // =============================================
 // CHAT
 // =============================================
+const GREETINGS = [
+  "Hey, I'm Coney. What do you want to know about Graffiti+?",
+  "Eighteen years on walls worldwide. What's on your mind?",
+  "You found me. Ask away.",
+  "What's up? I'm here.",
+];
+const SIDEBAR_QUIPS = [
+  "Ask me something and see how I respond.",
+  "Watching this conversation closely.",
+  "Flag anything that feels off.",
+  "I'm learning. Help me get it right.",
+  "Every correction makes me better.",
+];
+
 function initChat() {
-  history = [];
-  messagesEl.innerHTML = '';
-  msgCount = 0;
-  flagCount = 0;
-  updateStats();
-  const greetings = [
-    "Hey, I'm Coney. What do you want to know about Graffiti+?",
-    "Eighteen years on walls worldwide. What's on your mind?",
-    "You found me. Ask away.",
-    "What's up? I'm here."
-  ];
-  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+  history = []; messagesEl.innerHTML = '';
+  msgCount = 0; flagCount = 0; updateStats();
+  const greeting = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
   addMsg('coney', greeting);
+  sidebarSpeech.textContent = SIDEBAR_QUIPS[Math.floor(Math.random() * SIDEBAR_QUIPS.length)];
 }
 
 resetBtn.addEventListener('click', initChat);
@@ -824,7 +997,6 @@ resetBtn.addEventListener('click', initChat);
 function addMsg(role, text, flaggable = true) {
   const wrap = document.createElement('div');
   wrap.className = `msg ${role}`;
-
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
   bubble.textContent = text;
@@ -835,24 +1007,22 @@ function addMsg(role, text, flaggable = true) {
     flagRow.className = 'flag-row';
     const flagBtn = document.createElement('button');
     flagBtn.className = 'flag-btn';
-    flagBtn.innerHTML = '⚑ Flag this response';
+    flagBtn.innerHTML = '⚑ Flag this';
     flagBtn.addEventListener('click', () => {
-      document.querySelectorAll('.flag-btn.flagged').forEach(b => b.classList.remove('flagged'));
+      document.querySelectorAll('.flag-btn.flagged').forEach(b => { b.classList.remove('flagged'); b.innerHTML = '⚑ Flag this'; });
       flagBtn.classList.add('flagged');
       flagBtn.innerHTML = '⚑ Flagged';
       flaggedMessage = text;
-      flagCount++;
-      updateStats();
-      flagContext.innerHTML = `<strong>Flagged response:</strong> "${text.length > 120 ? text.slice(0,120)+'…' : text}"`;
+      flagCount++; updateStats();
+      flagContext.innerHTML = `<strong>Flagged:</strong> "${text.length > 100 ? text.slice(0,100)+'…' : text}"`;
       flagContext.classList.add('show');
-      correctionInput.focus();
+      corrInput.focus();
+      sidebarSpeech.textContent = 'Something off? Write the correction on the right.';
     });
     flagRow.appendChild(flagBtn);
     wrap.appendChild(flagRow);
-    msgCount++;
-    updateStats();
+    msgCount++; updateStats();
   }
-
   if (role === 'user') { msgCount++; updateStats(); }
 
   messagesEl.appendChild(wrap);
@@ -862,41 +1032,32 @@ function addMsg(role, text, flaggable = true) {
 
 function showTyping() {
   const wrap = document.createElement('div');
-  wrap.className = 'msg coney';
-  wrap.id = 'typing';
+  wrap.className = 'msg coney'; wrap.id = 'typing';
   wrap.innerHTML = `<div class="typing-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>`;
   messagesEl.appendChild(wrap);
   messagesEl.scrollTop = messagesEl.scrollHeight;
+  sidebarConey.classList.add('thinking');
+  sidebarSpeech.textContent = 'Thinking…';
 }
 function removeTyping() {
   const el = document.getElementById('typing');
   if (el) el.remove();
+  sidebarConey.classList.remove('thinking');
 }
 
 async function send() {
   const text = inputEl.value.trim();
   if (!text || isLoading) return;
-
   addMsg('user', text, false);
-  inputEl.value = '';
-  inputEl.style.height = 'auto';
-  isLoading = true;
-  sendBtn.disabled = true;
+  inputEl.value = ''; inputEl.style.height = 'auto';
+  isLoading = true; sendBtn.disabled = true;
   showTyping();
 
-  // Build system prompt with corrections appended
-  const correctionBlock = corrections.length > 0
-    ? '\n\nTRAINING CORRECTIONS (applied by the Graffiti+ team — follow these strictly):\n' +
-      corrections.map((c, i) => `${i+1}. [${c.type.toUpperCase()}] ${c.text}`).join('\n')
-    : '';
-
-  const systemPrompt = BASE_SYSTEM + correctionBlock;
-
   const messages = [
-    { role: 'system', content: systemPrompt },
-    ...history.slice(0, -1)
+    { role: 'system', content: buildSystemPrompt() },
+    ...history.slice(0, -1),
+    { role: 'user', content: text }
   ];
-  messages.push({ role: 'user', content: text });
 
   try {
     const res = await fetch(`${API_BASE}/chat/completions`, {
@@ -906,29 +1067,26 @@ async function send() {
     });
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
-    let reply = data.choices?.[0]?.message?.content?.trim() || "Lost signal — try again.";
+    let reply = data.choices?.[0]?.message?.content?.trim() || 'Lost signal — try again.';
     removeTyping();
-    // Strip lead signal in training mode
     reply = reply.replace(/\[LEAD_COLLECTED\]\{.*\}/, '').trim();
-    if (reply) addMsg('coney', reply);
-  } catch (err) {
+    if (reply) {
+      addMsg('coney', reply);
+      sidebarConey.classList.add('react');
+      setTimeout(() => sidebarConey.classList.remove('react'), 500);
+      sidebarSpeech.textContent = 'How did that land? Flag it if something\'s off.';
+    }
+  } catch(err) {
     removeTyping();
-    addMsg('coney', "Something went sideways. Try again.", false);
+    addMsg('coney', 'Something went sideways. Try again.', false);
     console.error(err);
   }
-
-  isLoading = false;
-  sendBtn.disabled = false;
+  isLoading = false; sendBtn.disabled = false;
 }
 
 sendBtn.addEventListener('click', send);
-inputEl.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-});
-inputEl.addEventListener('input', () => {
-  inputEl.style.height = 'auto';
-  inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
-});
+inputEl.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+inputEl.addEventListener('input', () => { inputEl.style.height = 'auto'; inputEl.style.height = Math.min(inputEl.scrollHeight, 90) + 'px'; });
 
 // =============================================
 // CORRECTION TYPES
@@ -941,74 +1099,156 @@ document.querySelectorAll('.type-btn').forEach(btn => {
   });
 });
 
-// =============================================
-// SAVE CORRECTION
-// =============================================
 saveBtn.addEventListener('click', () => {
-  const text = correctionInput.value.trim();
+  const text = corrInput.value.trim();
   if (!text) return;
-
-  const correction = {
-    id: Date.now(),
-    type: selectedType,
-    text,
-    flagged: flaggedMessage,
-    timestamp: new Date().toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
-  };
-
-  corrections.unshift(correction);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(corrections));
-
-  correctionInput.value = '';
+  const c = { id: Date.now(), type: selectedType, text, flagged: flaggedMessage, timestamp: new Date().toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) };
+  corrections.unshift(c);
+  localStorage.setItem(CORR_KEY, JSON.stringify(corrections));
+  corrInput.value = '';
   flagContext.classList.remove('show');
   flaggedMessage = null;
   saveConfirm.classList.add('show');
   setTimeout(() => saveConfirm.classList.remove('show'), 2500);
-
-  renderLog();
-  updateStats();
+  renderLog(); updateStats();
+  sidebarSpeech.textContent = 'Got it. That correction is live now.';
 });
 
-// =============================================
-// RENDER LOG
-// =============================================
 function renderLog() {
-  const existing = correctionsLog.querySelectorAll('.correction-item');
-  existing.forEach(el => el.remove());
-
+  corrLog.querySelectorAll('.correction-item').forEach(el => el.remove());
   emptyLog.style.display = corrections.length === 0 ? 'block' : 'none';
-
   corrections.forEach(c => {
     const item = document.createElement('div');
     item.className = 'correction-item';
-    item.innerHTML = `
-      <div class="correction-item-type">${c.type.replace(/-/g,' ')}</div>
-      <div class="correction-item-text">${c.text}</div>
-      ${c.flagged ? `<div class="correction-item-meta">Re: "${c.flagged.slice(0,60)}${c.flagged.length>60?'…':''}"</div>` : ''}
-      <div class="correction-item-meta">${c.timestamp}</div>
-      <button class="correction-delete" data-id="${c.id}" title="Delete">✕</button>
-    `;
-    correctionsLog.appendChild(item);
+    item.innerHTML = `<div class="correction-item-type">${c.type.replace(/-/g,' ')}</div><div class="correction-item-text">${c.text}</div>${c.flagged ? `<div class="correction-item-meta">Re: "${c.flagged.slice(0,55)}${c.flagged.length>55?'…':''}"</div>` : ''}<div class="correction-item-meta">${c.timestamp}</div><button class="correction-delete" data-id="${c.id}" title="Delete">✕</button>`;
+    corrLog.appendChild(item);
   });
-
-  correctionsLog.querySelectorAll('.correction-delete').forEach(btn => {
+  corrLog.querySelectorAll('.correction-delete').forEach(btn => {
     btn.addEventListener('click', () => {
       corrections = corrections.filter(c => c.id !== parseInt(btn.dataset.id));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(corrections));
-      renderLog();
-      updateStats();
+      localStorage.setItem(CORR_KEY, JSON.stringify(corrections));
+      renderLog(); updateStats();
     });
   });
 }
 
-// =============================================
-// STATS
-// =============================================
 function updateStats() {
-  statCorrections.textContent = corrections.length;
+  statCorr.textContent  = corrections.length;
   statFlags.textContent = flagCount;
-  statMsgs.textContent = msgCount;
+  statMsgs.textContent  = msgCount;
 }
+
+// =============================================
+// QUESTIONNAIRE
+// =============================================
+function getUnanswered(cat) {
+  return QUESTIONS.filter(q => {
+    if (quizAnswers[q.id]) return false;
+    if (cat && q.cat !== cat) return false;
+    return true;
+  });
+}
+
+function updateQuizProgress() {
+  const answered = Object.keys(quizAnswers).length;
+  const total = QUESTIONS.length;
+  progressText.textContent = `${answered} / ${total}`;
+  progressFill.style.width = `${(answered / total) * 100}%`;
+  const remaining = total - answered;
+  quizBadge.textContent = remaining;
+  quizBadge.style.display = remaining > 0 ? 'inline' : 'none';
+  quizSpeech.textContent = answered === 0
+    ? 'Answer what you know. Skip what you don\'t.'
+    : answered < 10
+    ? 'Good start. Keep going — every answer helps.'
+    : answered < 25
+    ? 'Getting there. You\'re making me smarter.'
+    : answered < total
+    ? 'Almost done. Last stretch.'
+    : 'All done. I\'m loaded up. Let\'s go.';
+}
+
+function renderCategories() {
+  quizCats.innerHTML = '';
+  // All button
+  const allBtn = document.createElement('div');
+  allBtn.className = 'quiz-cat' + (activeCategory === null ? ' active' : '');
+  const allRemaining = QUESTIONS.filter(q => !quizAnswers[q.id]).length;
+  allBtn.innerHTML = `<span>All</span><span class="quiz-cat-count">${allRemaining}</span>`;
+  allBtn.addEventListener('click', () => { activeCategory = null; renderCategories(); renderQuiz(); quizFilterLabel.textContent = 'Showing all questions'; });
+  quizCats.appendChild(allBtn);
+
+  CATEGORIES.forEach(cat => {
+    const remaining = QUESTIONS.filter(q => q.cat === cat && !quizAnswers[q.id]).length;
+    const btn = document.createElement('div');
+    btn.className = 'quiz-cat' + (activeCategory === cat ? ' active' : '');
+    btn.innerHTML = `<span>${cat}</span><span class="quiz-cat-count">${remaining}</span>`;
+    btn.addEventListener('click', () => {
+      activeCategory = cat; renderCategories(); renderQuiz();
+      quizFilterLabel.textContent = `Showing: ${cat}`;
+    });
+    quizCats.appendChild(btn);
+  });
+}
+
+function renderQuiz() {
+  quizQuestions.innerHTML = '';
+  const unanswered = getUnanswered(activeCategory);
+
+  if (unanswered.length === 0) {
+    quizQuestions.innerHTML = `<div class="quiz-empty"><div class="quiz-empty-icon">🎉</div>${activeCategory ? `All <strong>${activeCategory}</strong> questions answered!` : 'All questions answered!'}<br><span style="font-size:11px;color:var(--muted)">Coney is loaded up. Switch to Chat Test to see the difference.</span></div>`;
+    updateQuizProgress(); renderCategories(); return;
+  }
+
+  unanswered.forEach(q => {
+    const wrap = document.createElement('div');
+    wrap.className = 'quiz-question';
+    wrap.dataset.id = q.id;
+    wrap.innerHTML = `
+      <div class="quiz-q-header">
+        <div class="quiz-q-num">Q${q.id}</div>
+        <div class="quiz-q-text">${q.text}</div>
+        <div class="quiz-q-cat">${q.cat}</div>
+      </div>
+      <div class="quiz-answer-row">
+        <textarea class="quiz-answer" placeholder="Your answer…" rows="1"></textarea>
+        <div class="quiz-btns">
+          <button class="quiz-save-btn">Save</button>
+          <button class="quiz-skip-btn">Skip</button>
+        </div>
+      </div>`;
+
+    const textarea = wrap.querySelector('.quiz-answer');
+    textarea.addEventListener('input', () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+    });
+
+    wrap.querySelector('.quiz-save-btn').addEventListener('click', () => {
+      const val = textarea.value.trim();
+      if (!val) return;
+      quizAnswers[q.id] = val;
+      localStorage.setItem(QUIZ_KEY, JSON.stringify(quizAnswers));
+      wrap.classList.add('answered');
+      setTimeout(() => { wrap.remove(); updateQuizProgress(); renderCategories(); }, 420);
+    });
+
+    wrap.querySelector('.quiz-skip-btn').addEventListener('click', () => {
+      wrap.classList.add('answered');
+      setTimeout(() => { wrap.remove(); }, 380);
+    });
+
+    quizQuestions.appendChild(wrap);
+  });
+
+  updateQuizProgress();
+  renderCategories();
+}
+
+// =============================================
+// INIT
+// =============================================
+// (called after login)
 </script>
 </body>
 </html>
