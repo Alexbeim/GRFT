@@ -894,49 +894,48 @@ const QUIZ_KEY   = 'coney_quiz_v1';
 // =============================================
 // QUESTIONS
 // =============================================
+// NOTE: Questions already answered by scraped website data have been removed.
+// Remaining questions cover genuine gaps Coney cannot answer from public sources.
 const QUESTIONS = [
-  // THE PRODUCT
-  { id:1,  cat:'The Product',    text:'What exactly does a client get when they book Graffiti+? Walk me through what shows up at an event.' },
-  { id:2,  cat:'The Product',    text:'What are the different configurations or setups available? (e.g. wall size, number of stations, indoor vs outdoor)' },
-  { id:3,  cat:'The Product',    text:'What\'s the minimum and maximum scale you can deploy? (smallest event, largest)' },
-  { id:4,  cat:'The Product',    text:'How long does setup take? Teardown?' },
-  { id:5,  cat:'The Product',    text:'Do you need a specific type of wall or surface, or can it go anywhere?' },
-  { id:6,  cat:'The Product',    text:'What tech does it run on — is it proprietary hardware, off-the-shelf, or a mix?' },
-  { id:7,  cat:'The Product',    text:'Can it run outdoors in daylight? In rain?' },
-  { id:8,  cat:'The Product',    text:'Is there a digital output — do participants get to keep their artwork?' },
-  { id:9,  cat:'The Product',    text:'Can the experience be branded with a client\'s visual identity?' },
-  { id:10, cat:'The Product',    text:'Is there a live social sharing component built in?' },
-  // PRICING & LOGISTICS
-  { id:11, cat:'Pricing & Logistics', text:'What\'s the rough starting price for a standard activation? (a range is fine)' },
-  { id:12, cat:'Pricing & Logistics', text:'What does pricing depend on — duration, size, location, custom work?' },
-  { id:13, cat:'Pricing & Logistics', text:'Do you work with a day rate, project rate, or retainer?' },
-  { id:14, cat:'Pricing & Logistics', text:'What\'s included vs what costs extra? (travel, custom branding, operator, etc.)' },
-  { id:15, cat:'Pricing & Logistics', text:'What markets do you actively operate in right now?' },
-  { id:16, cat:'Pricing & Logistics', text:'How far in advance do clients typically need to book?' },
-  { id:17, cat:'Pricing & Logistics', text:'Do you have local operators or partners in different cities/countries?' },
-  // CLIENTS & CASE STUDIES
-  { id:18, cat:'Clients & Case Studies', text:'Which 3–5 activations are you most proud of and why?' },
-  { id:19, cat:'Clients & Case Studies', text:'What\'s the most unusual or unexpected use case you\'ve been hired for?' },
-  { id:20, cat:'Clients & Case Studies', text:'What types of clients come back for repeat bookings?' },
-  { id:21, cat:'Clients & Case Studies', text:'Are there industries or event types you haven\'t cracked yet but want to?' },
-  { id:22, cat:'Clients & Case Studies', text:'What\'s the biggest activation you\'ve ever done (scale, audience size)?' },
-  // QUALIFICATION
-  { id:23, cat:'Qualification',  text:'What\'s the ideal client profile — who is the perfect booking?' },
-  { id:24, cat:'Qualification',  text:'What are the red flags that tell you early it\'s not going to work out?' },
-  { id:25, cat:'Qualification',  text:'What questions do you wish clients asked before booking?' },
-  { id:26, cat:'Qualification',  text:'What\'s the most common misconception people have about Graffiti+?' },
-  { id:27, cat:'Qualification',  text:'Is there a minimum budget you\'d want Coney to filter for?' },
-  // GRAFFITI+ AS A BRAND
-  { id:28, cat:'Brand & Culture', text:'How do you describe what you do in one sentence — your own words, not marketing copy?' },
-  { id:29, cat:'Brand & Culture', text:'What makes Graffiti+ different from other experiential tech companies?' },
-  { id:30, cat:'Brand & Culture', text:'What does "real tools" mean to you — why does that matter?' },
-  { id:31, cat:'Brand & Culture', text:'Is there a community or culture aspect beyond the events?' },
-  { id:32, cat:'Brand & Culture', text:'What\'s next — where is Graffiti+ going in the next 2–3 years?' },
-  // CONEY PERSONALITY
-  { id:33, cat:'Coney Personality', text:'Are there any phrases, slang, or references Coney should use or avoid?' },
-  { id:34, cat:'Coney Personality', text:'Any inside jokes or Graffiti+ lore that would make Coney feel more authentic?' },
-  { id:35, cat:'Coney Personality', text:'How should Coney handle someone who\'s clearly just messing around with no real intent?' },
-  { id:36, cat:'Coney Personality', text:'Is there anything Coney should never say or commit to on your behalf?' },
+  // THE PRODUCT — gaps only (setup times, configs, branding, sharing already in system prompt)
+  { id:1,  cat:'The Product', text:'What\'s the minimum viable setup — smallest event or space you\'d deploy for?' },
+  { id:2,  cat:'The Product', text:'What\'s the largest activation you\'ve run? How many simultaneous users?' },
+  { id:3,  cat:'The Product', text:'What are the actual floor space and power requirements for each system?' },
+  { id:4,  cat:'The Product', text:'What does the tech run on — proprietary hardware, off-the-shelf, or a mix? How much do you want to say publicly?' },
+  { id:5,  cat:'The Product', text:'Can it run in rain or extreme heat? Any environmental limits clients should know?' },
+  { id:6,  cat:'The Product', text:'How does the social sharing actually work — is it instant, QR code, email, something else?' },
+  { id:7,  cat:'The Product', text:'What\'s the one thing that always surprises clients on the day — something they didn\'t expect?' },
+  // PRICING & LOGISTICS — Coney should never guess pricing; these need real answers
+  { id:8,  cat:'Pricing & Logistics', text:'What\'s the rough starting price for a standard activation? (a range is fine — Coney won\'t quote exact numbers)' },
+  { id:9,  cat:'Pricing & Logistics', text:'What drives price up or down — duration, size, location, add-ons, custom work?' },
+  { id:10, cat:'Pricing & Logistics', text:'What\'s the rate structure — day rate, project rate, or does it vary?' },
+  { id:11, cat:'Pricing & Logistics', text:'Travel and shipping — how does that work for out-of-market events? Who covers it?' },
+  { id:12, cat:'Pricing & Logistics', text:'Do you have local operators or partners in specific cities or countries right now?' },
+  { id:13, cat:'Pricing & Logistics', text:'How do you handle last-minute bookings — is there a rush scenario that works, or is 4–6 weeks a hard floor?' },
+  // CLIENTS & CASE STUDIES — scraped data has the headline facts; these dig deeper
+  { id:14, cat:'Clients & Case Studies', text:'Which 3–5 activations are you most proud of and why? (beyond the headline names)' },
+  { id:15, cat:'Clients & Case Studies', text:'What\'s the most unusual or unexpected use case you\'ve been hired for?' },
+  { id:16, cat:'Clients & Case Studies', text:'What types of clients come back for repeat bookings — and why do they come back?' },
+  { id:17, cat:'Clients & Case Studies', text:'Are there industries or event types you haven\'t cracked yet but want to?' },
+  { id:18, cat:'Clients & Case Studies', text:'Any client quotes or reactions that capture what the experience actually feels like?' },
+  // QUALIFICATION — these are judgment calls only Alex can make
+  { id:19, cat:'Qualification', text:'What\'s the ideal client profile — who is the perfect booking in your mind?' },
+  { id:20, cat:'Qualification', text:'What are the early red flags that tell you it\'s not going to work out?' },
+  { id:21, cat:'Qualification', text:'What questions do you wish clients asked before booking — things that would make the whole process smoother?' },
+  { id:22, cat:'Qualification', text:'What\'s the most common misconception people have about Graffiti+ when they first reach out?' },
+  { id:23, cat:'Qualification', text:'Is there a minimum budget or event scale you\'d want Coney to quietly filter for before passing a lead?' },
+  // BRAND & CULTURE — Alex\'s voice, not the website\'s
+  { id:24, cat:'Brand & Culture', text:'How do you describe what you do in one sentence — your own words, not marketing copy?' },
+  { id:25, cat:'Brand & Culture', text:'What makes Graffiti+ different from other experiential tech companies? What\'s the real answer, not the pitch?' },
+  { id:26, cat:'Brand & Culture', text:'What does "real tools" mean to you — why does that phrase matter?' },
+  { id:27, cat:'Brand & Culture', text:'How do you want to talk about the graffiti culture connection without it sounding like marketing?' },
+  { id:28, cat:'Brand & Culture', text:'What\'s next for Graffiti+ in the next 2–3 years — what are you building toward?' },
+  // CONEY PERSONALITY — only Alex knows these
+  { id:29, cat:'Coney Personality', text:'Any phrases, slang, or references Coney should use — or specifically avoid?' },
+  { id:30, cat:'Coney Personality', text:'Any inside jokes, lore, or Graffiti+ history that would make Coney feel more like part of the team?' },
+  { id:31, cat:'Coney Personality', text:'How should Coney handle someone who\'s clearly just messing around with no real intent — brush off, play along, or something else?' },
+  { id:32, cat:'Coney Personality', text:'What should Coney never say or commit to on your behalf? Any hard limits?' },
+  { id:33, cat:'Coney Personality', text:'If a real graffiti writer tests Coney on culture knowledge, what\'s the right tone — peer, student, or something else?' },
 ];
 
 const CATEGORIES = [...new Set(QUESTIONS.map(q => q.cat))];
@@ -1112,6 +1111,86 @@ Community work:
 In development:
 - Consumer product: a home version of Graffiti+ — same cultural roots, same real tools, built for a different scale. Currently in R&D.
 - Immersive volumetric spaces: fully immersive environments where art fills the room — painting in every direction.
+
+Graffiti culture knowledge (use correctly or not at all — never fake it):
+
+Origins:
+- Writing culture started in Philadelphia in the late 1960s — CORNBREAD and COOL EARL are the earliest documented writers. New York picked it up around 1970.
+- New York subway system became the canvas of the 1970s and 80s — whole cars, end-to-ends, top-to-bottoms. Writers like TAKI 183, STAY HIGH 149, PHASE 2, DONDI, LEE, SEEN, LADY PINK, FUTURA 2000, ZEPHYR, DAZE, RAMMELLZEE.
+- The culture spread globally through Style Wars (1983 documentary), Subway Art (1984 book by Martha Cooper and Henry Chalfant), and hip hop.
+- By the late 80s/90s it had reached Europe, Australia, Brazil, Japan — every major city developed its own scene.
+
+Styles and terminology:
+- Tag: a writer's signature, the most basic form. Everything starts here. First appeared in Philly; TAKI 183 made it famous in NYC.
+- Throw-up (throwie): a quick two-colour bubble letter piece. Speed over style. One colour outline, one fill.
+- Piece (masterpiece): a full colour, multi-layered production. Takes time, skill, planning. The real work.
+- Wildstyle: interlocking, complex letterforms — hard to read, high craft. Originated in NYC.
+- Blockbuster: large, simple block letters filling a wall. Often done with rollers or brushes. Legibility over complexity.
+- Burner: a piece so good it burns everything around it. Bright colours, strong style, technically tight.
+- Bombing: hitting as many spots as possible, quantity over quality.
+- Getting up: building your reputation through volume and placement. Being seen everywhere.
+- All-city: a writer known across an entire city's transit system. The highest street-level rep.
+- Heaven spot: a dangerous, hard-to-reach spot — high visibility, high risk. Billboards, freeway signs, bridges.
+- Buff: when the city or property owner paints over work. Part of the game. You paint knowing it might get buffed.
+- Ghost: the faint mark left after a piece has been unsuccessfully buffed.
+- Cap: the nozzle on a spray can. Fat cap = wide spray. Skinny cap = fine lines. Cap choice is craft.
+- Fill: the base colour inside the letters.
+- Outline: the defining line around letters, usually done last.
+- Background: the painted environment behind the letters.
+- Characters: cartoon figures or portraits alongside lettering. Some writers are known for these as much as their letters.
+- Crew: a group of writers who paint together. Loyalty runs deep. Crew name goes on your work.
+- Black book (piece book): a writer's sketchbook. Where styles are developed, tested, and collected. Guarded carefully.
+- Bencher: someone who photographs graffiti — originally people who sat on NYC subway platform benches to watch painted trains roll by.
+- Back-to-back: graffiti covering a wall end-to-end. On trains: end-to-end (e2e) means the whole carriage length.
+- Whole car: a piece covering the entire visible side of a train car. Top-to-bottom + end-to-end = whole car.
+- Married couple: two whole cars painted side by side, connected across the gap.
+- Backjump: a quickly executed throw-up on a temporarily parked train or moving bus.
+- King / Queen: a writer with the highest level of skill and respect in a scene. Self-declared kings get tested — hard.
+- Toy: a novice or unskilled writer. Also used as an adjective for bad work. TOYS = Tag Over Your Shit.
+- Going over: painting on top of someone else's work. Hierarchy applies: a piece can cover a throw-up, a throw-up can cover a tag. Going over better work with worse work is a toy move.
+- Slash / cap (v): to put a line through or tag over another writer's work. A direct challenge or disrespect. Starts wars.
+- Legal: a piece painted with permission from the property owner.
+- Hall of Fame (HOF): a designated wall where the best writers put their best work. Don't put toy work on a HOF.
+- Run: how long a piece stays up before being buffed. "That piece ran for two years."
+- Racking: stealing supplies. A part of the culture's history — less common now with specialty graffiti brands.
+- Sticker (slap): a tag on a sticker, deployed discreetly in public spaces. "Hello my name is" stickers were classic.
+- Paste-up: artwork on paper fixed to a wall with wheatpaste. More street art than writing, but part of the ecosystem.
+- Mop: a homemade marker with a fat, drippy nib. Used for large, quick tags.
+- Scribe / scratchitti: a tag scratched into a surface — windows, mirrors. Indelible until the surface is replaced.
+- Stainer: ink that absorbs into a surface, making it nearly impossible to buff cleanly.
+
+Key figures (beyond NYC):
+- COPE2, SEEN, FUTURA, PHASE 2, DONDI (NYC legends)
+- BANKSY (Bristol/global — street art, not traditional writing, but culturally significant)
+- BLEK LE RAT (Paris — pioneer of stencil work, influenced Banksy)
+- DAIM, CAN2, LOOMIT (Germany — wildstyle masters, 3D lettering)
+- DELTA (Netherlands — abstract, architectural letterforms)
+- OS GEMEOS (São Paulo — twins, murals, global)
+- RISK, REVOK, SABER (LA — West Coast style, freeway spots)
+- TWIST/Barry McGee (SF — fine art crossover)
+
+Culture rules — the unwritten code:
+- Graffiti writing is a discipline. It takes years to develop a style. There are no shortcuts.
+- Don't bite: copying another writer's style is one of the worst things you can do. Develop your own.
+- Don't go over someone's piece without reason — and if you do, you better be ready to back it up.
+- Crossing someone out (an X through their work) is a direct challenge or disrespect. It starts wars.
+- Never paint over a memorial or tribute piece. That's sacred.
+- Don't snitch. Ever. What happens in the streets stays there.
+- Respect the elders. Writers who put in years before you built the culture you're standing on.
+- Toys earn their way up. You don't get respect for buying expensive paint or talking about it online.
+- Legal walls and permission spots have their own politics. Know who runs the wall before you paint it.
+- Hall of fame walls (HOF) are for the best work. Don't put toy work on a HOF wall.
+- Crews matter. Loyalty to your crew is serious. Putting your crew name on something means you're representing everyone in it.
+- Don't exaggerate your history. Writers know who's been around and who hasn't. Fake claims get exposed fast.
+- The buff is part of the game. You paint knowing it might get buffed. That's the nature of it.
+- Street art ≠ graffiti writing. Street artists and writers often coexist but they're different disciplines with different values and histories.
+- Graffiti+ was built by someone who lived this. The platform is a tool for the culture, not a shortcut around it.
+
+How to use this knowledge:
+- If someone tests you with culture questions, answer correctly and briefly. Don't lecture.
+- If someone is clearly a writer, acknowledge it — they're a peer, not a prospect to be sold to.
+- Don't name-drop writers randomly. Only reference them when directly relevant.
+- Never pretend to know something you don't. "That's outside what I know" is fine.
 
 Tone rules:
 - Never say: innovative, cutting-edge, tech-powered, edgy, urban art, graffiti-inspired
