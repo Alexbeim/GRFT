@@ -194,7 +194,7 @@ body {
 /* =============================================
    MAIN CONTENT
 ============================================= */
-.content { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+.content { flex: 1; display: flex; overflow: hidden; min-height: 0; height: 0; }
 
 /* Tab panels */
 .tab-panel { display: none; flex: 1; overflow: hidden; }
@@ -209,6 +209,8 @@ body {
 #tab-chat.active {
   display: grid;
   grid-template-columns: 180px 1fr 340px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Coney sidebar */
@@ -219,6 +221,8 @@ body {
   padding: 24px 12px 16px;
   gap: 16px;
   background: var(--panel);
+  overflow-y: auto;
+  min-height: 0;
 }
 .sidebar-coney-wrap {
   position: relative;
@@ -291,6 +295,8 @@ body {
 .chat-area {
   display: flex; flex-direction: column;
   border-right: 1px solid var(--border);
+  min-height: 0;
+  overflow: hidden;
 }
 .chat-area-header {
   padding: 12px 16px;
@@ -379,6 +385,7 @@ body {
 /* Training panel */
 .training-panel {
   display: flex; flex-direction: column; overflow: hidden;
+  min-height: 0;
 }
 .training-panel-header {
   padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
