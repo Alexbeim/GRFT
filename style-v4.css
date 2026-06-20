@@ -847,7 +847,8 @@ footer {
 
   .v2-contact { padding: var(--sp-68) var(--sp-34); }
   .v2-contact-inner { grid-template-columns: 1fr; gap: var(--sp-53); }
-  .v2-contact-form .btn-submit { width: 100%; min-width: 0; }
+  .v2-contact-form .btn-submit,
+  .v2-contact-form .btn-email { width: 100%; min-width: 0; }
 }
 
 @media (max-width: 560px) {
@@ -3571,10 +3572,10 @@ footer {
   color: var(--obsidian);
   opacity: 0.75;
   margin: 0 0 var(--sp-17);
-  max-width: 36ch;
+  max-width: 52ch;
+  text-wrap: balance;       /* even line lengths, no lone-word widow */
 }
-.contact-section .contact-email-cta { text-align: center; }
-.contact-section .contact-email-prompt { margin-left: auto; margin-right: auto; }
+.contact-section .contact-email-cta { text-align: left; max-width: 1200px; margin: var(--sp-22) auto 0; width: 100%; }
 .btn-email {
   display: inline-flex;
   align-items: center;
