@@ -3607,3 +3607,25 @@ footer {
 .btn-email:hover { background: var(--canvas); color: var(--obsidian); }
 .btn-email:hover::after { transform: translateX(8px); }
 .btn-email:focus-visible { outline: 3px solid var(--obsidian); outline-offset: 3px; }
+
+/* ── Nav "Book a demo" CTA — shared across all pages (was inline on index) ── */
+.nav-right { display: flex; align-items: center; gap: 30px; }
+nav .nav-cta {
+  background: var(--accent, #FEBD17);
+  color: #000d10 !important;
+  font-weight: 700;
+  font-size: 13px !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 12px 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+nav .nav-cta:hover { transform: translateY(-1px); opacity: 0.9; color: #000d10 !important; }
+@media (max-width: 900px) {
+  .nav-right { gap: 14px; }
+  nav .nav-cta { font-size: 12px !important; padding: 9px 13px; letter-spacing: 0.02em; }
+}
