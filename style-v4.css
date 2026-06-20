@@ -3562,3 +3562,48 @@ footer {
   .gal-story-media { grid-template-columns: 1fr; }
   .gal-story-facts { grid-template-columns: 1fr; }
 }
+
+/* ── Email CTA — replaces the old contact forms (mailto link, no backend) ── */
+.contact-email-cta { margin-top: var(--sp-22); }
+.contact-email-prompt {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--obsidian);
+  opacity: 0.75;
+  margin: 0 0 var(--sp-17);
+  max-width: 36ch;
+}
+.contact-section .contact-email-cta { text-align: center; }
+.contact-section .contact-email-prompt { margin-left: auto; margin-right: auto; }
+.btn-email {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-17);
+  background: var(--obsidian);
+  color: var(--accent);
+  border: 2px solid var(--obsidian);
+  border-radius: 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: var(--w-bold);
+  padding: 22px 26px;
+  cursor: pointer;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  min-width: 260px;
+  width: auto;
+  transition: background 0.18s ease-out, color 0.18s ease-out;
+}
+.btn-email::after {
+  content: '→';
+  font-size: 20px;
+  font-weight: var(--w-bold);
+  letter-spacing: 0;
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.btn-email:hover { background: var(--canvas); color: var(--obsidian); }
+.btn-email:hover::after { transform: translateX(8px); }
+.btn-email:focus-visible { outline: 3px solid var(--obsidian); outline-offset: 3px; }
