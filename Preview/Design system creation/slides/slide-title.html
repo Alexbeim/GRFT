@@ -1,0 +1,37 @@
+<!-- @dsCard group="Slides" viewport="1280x720" subtitle="Title — full-bleed photo, scrim, accent word, cone corner" name="Title slide" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  html,body{margin:0}
+  body{width:1920px;height:1080px;background:#0A0B0C;position:relative;overflow:hidden;color:#F4F4F2}
+  /* photo plate placeholder — replace with real event photography */
+  .photo{position:absolute;inset:0;
+    background:repeating-linear-gradient(135deg,#15171a 0 2px,#0e1013 2px 46px);opacity:.5}
+  .scrim{position:absolute;inset:0;background:linear-gradient(80deg,rgba(10,11,12,0.96) 38%,rgba(10,11,12,0.55) 70%,rgba(10,11,12,0.2))}
+  .pad{position:absolute;inset:0;padding:80px 96px;display:flex;flex-direction:column}
+  .eyebrow-row{display:flex;justify-content:space-between;align-items:center;
+    border-bottom:1px solid var(--gp-hairline);padding-bottom:26px}
+  .eb{font-family:var(--gp-font-mono);font-size:24px;letter-spacing:.2em;text-transform:uppercase;color:#FEBD17}
+  .ebr{font-family:var(--gp-font-mono);font-size:24px;letter-spacing:.18em;text-transform:uppercase;color:#8A8A86}
+  .hero{margin-top:auto}
+  h1{font-family:var(--gp-font-display);font-weight:700;font-size:185px;line-height:.9;letter-spacing:-0.01em;margin:0}
+  .two{color:#9A9A96}
+  .acc{color:#FEBD17}
+  .link{font-family:var(--gp-font-mono);font-size:26px;letter-spacing:.06em;color:#F4F4F2;margin-top:42px}
+  .ph-tag{position:absolute;top:50%;left:55%;font-family:var(--gp-font-mono);font-size:18px;letter-spacing:.2em;
+    text-transform:uppercase;color:#3a3d42}
+  .cone{position:absolute;right:96px;bottom:0;height:560px;width:auto;
+    filter:drop-shadow(0 14px 30px rgba(0,0,0,0.55))}
+</style></head>
+<body>
+  <div class="photo"></div>
+  <div class="ph-tag">[ event photography ]</div>
+  <div class="scrim"></div>
+  <div class="pad">
+    <div class="eyebrow-row"><span class="eb">· The original</span><span class="ebr">Graffiti+ / 01</span></div>
+    <div class="hero">
+      <h1>Pioneering digital<br><span class="two">graffiti since <span class="acc">2008.</span></span></h1>
+      <div class="link">Our story →</div>
+    </div>
+  </div>
+  <img class="cone" src="../assets/cone-mascot.png" alt="GRFT+ cone mascot">
+</body></html>

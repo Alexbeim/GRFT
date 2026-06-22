@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#e7e5df}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:#e7e5df;padding:40px;font-family:var(--gp-font-body)">
+
+  <div style="max-width:1320px;margin:0 auto 22px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+      <a href="Module 1 - Asset Manager.dc.html" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:9px 14px;border-radius:2px;text-decoration:none;display:inline-block;background:#fff;color:#6B6B70;border:1px solid var(--gp-hairline-light)">1 · Asset Manager</a>
+      <a href="Module 2 - Event Tracker.dc.html" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:9px 14px;border-radius:2px;text-decoration:none;display:inline-block;background:#FEBD17;color:#0A0B0C;font-weight:700">2 · Event Tracker</a>
+      <a href="Module 3 - Call Sheet.dc.html" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:9px 14px;border-radius:2px;text-decoration:none;display:inline-block;background:#fff;color:#6B6B70;border:1px solid var(--gp-hairline-light)">3 · Call Sheet</a>
+    </div>
+    <div style="font-family:var(--gp-font-mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#B07A00;display:flex;align-items:center;gap:.6em;margin-bottom:10px"><span style="width:7px;height:7px;border-radius:50%;background:#FEBD17;display:inline-block"></span>Module 2 · Internal · Event tracker</div>
+    <div style="font-family:var(--gp-font-mono);font-size:12px;letter-spacing:.04em;color:#6B6B70">Replaces Notion. Use the left nav for each table; click any row to open its record. Happy path.</div>
+  </div>
+
+  <!-- app frame -->
+  <div style="max-width:1320px;margin:0 auto;height:880px;background:#fff;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.10);overflow:hidden;display:flex;flex-direction:column;position:relative">
+    <!-- app bar -->
+    <div style="height:56px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#0A0B0C;border-bottom:1px solid rgba(244,244,242,0.14)">
+      <div style="display:flex;align-items:center;gap:18px">
+        <img src="../assets/logo-grft.png" alt="GRFT+" style="height:20px;filter:brightness(0) invert(1)">
+        <span style="width:1px;height:22px;background:rgba(244,244,242,0.18);display:inline-block"></span>
+        <span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#9A9A96">Event Tracker · Internal</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:240px;height:32px;border-radius:2px;background:#16181b;border:1px solid rgba(244,244,242,0.12);display:flex;align-items:center;gap:8px;padding:0 12px"><span style="color:#6B6B70;font-size:12px">⌕</span><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#6B6B70">Search</span></div>
+        <div style="width:26px;height:26px;border-radius:50%;background:#2a2c2f"></div>
+      </div>
+    </div>
+
+    <div style="flex:1;display:flex;min-height:0">
+      <!-- left nav -->
+      <div style="width:208px;flex:none;border-right:1px solid var(--gp-hairline-light);padding:18px 12px;background:#FAF9F6;display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{nav}}" as="n" hint-placeholder-count="6">
+          <sc-if value="{{n.active}}" hint-placeholder-val="{{true}}">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 10px;background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#0A0B0C;font-weight:700">{{n.label}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;color:#9A9A96">{{n.count}}</span></div>
+          </sc-if>
+          <sc-if value="{{n.notActive}}" hint-placeholder-val="{{false}}">
+            <div onClick="{{n.go}}" style="display:flex;align-items:center;justify-content:space-between;padding:10px 10px;cursor:pointer;border-radius:2px" style-hover="background:#fff"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70">{{n.label}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;color:#9A9A96">{{n.count}}</span></div>
+          </sc-if>
+        </sc-for>
+      </div>
+
+      <!-- main -->
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+
+        <!-- ============ EVENTS ============ -->
+        <sc-if value="{{showEventsBoard}}" hint-placeholder-val="{{true}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+            <div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">All events</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">8 active</span></div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="display:inline-flex;border:1px solid var(--gp-hairline-light);border-radius:2px;overflow:hidden">
+                <span onClick="{{showBoard}}" style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;cursor:pointer;color:#0A0B0C;background:#FEBD17;font-weight:700">Board</span>
+                <span onClick="{{showList}}" style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;cursor:pointer;border-left:1px solid var(--gp-hairline-light);color:#6B6B70">List</span>
+              </div>
+              <div style="height:32px;border:1px solid var(--gp-hairline-light);border-radius:2px;display:flex;align-items:center;padding:0 12px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70;cursor:pointer">Filter ▾</div>
+              <span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ New event</span>
+            </div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:20px 24px;display:flex;gap:16px;align-items:flex-start">
+            <sc-for list="{{columns}}" as="col" hint-placeholder-count="6">
+              <div onDragOver="{{allowDrop}}" onDrop="{{col.drop}}" style="flex:none;width:248px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:9px;padding-bottom:10px;border-bottom:1px solid var(--gp-hairline-light)"><span style="width:8px;height:8px;border-radius:50%;background:{{col.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#0A0B0C;font-weight:700">{{col.label}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;color:#9A9A96;margin-left:auto">{{col.count}}</span></div>
+                <sc-for list="{{col.items}}" as="ev" hint-placeholder-count="2">
+                  <div onClick="{{ev.open}}" draggable="true" onDragStart="{{ev.onDragStart}}" style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px;cursor:grab;display:flex;flex-direction:column;gap:9px" style-hover="border-color:#0A0B0C">
+                    <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#B07A00">{{ev.client}}</div>
+                    <div style="font-family:var(--gp-font-display);font-weight:700;font-size:15px;letter-spacing:-0.01em;color:#0A0B0C;line-height:1.1">{{ev.title}}</div>
+                    <div style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">{{ev.date}} · {{ev.loc}}</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--gp-hairline-light);padding-top:9px;margin-top:2px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;color:#6B6B70">{{ev.techLabel}}</span><span style="font-family:var(--gp-font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70;background:#FAF9F6;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:3px 7px">{{ev.asset}}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showEventsList}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+            <div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">All events</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">8 active</span></div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="display:inline-flex;border:1px solid var(--gp-hairline-light);border-radius:2px;overflow:hidden">
+                <span onClick="{{showBoard}}" style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;cursor:pointer;color:#6B6B70">Board</span>
+                <span onClick="{{showList}}" style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;cursor:pointer;border-left:1px solid var(--gp-hairline-light);color:#0A0B0C;background:#FEBD17;font-weight:700">List</span>
+              </div>
+              <span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ New event</span>
+            </div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <div style="display:flex;gap:16px;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="flex:2">Event</span><span style="flex:1">Date</span><span style="flex:1">Location</span><span style="width:120px">Status</span><span style="width:130px">Assets</span></div>
+            <sc-for list="{{listEvents}}" as="ev" hint-placeholder-count="8">
+              <div onClick="{{ev.open}}" style="display:flex;gap:16px;align-items:center;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);cursor:pointer" style-hover="background:#FAF9F6">
+                <div style="flex:2;min-width:0"><div style="font-family:var(--gp-font-display);font-weight:700;font-size:15px;color:#0A0B0C">{{ev.title}}</div><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#B07A00;margin-top:3px">{{ev.client}}</div></div>
+                <span style="flex:1;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{ev.date}}</span>
+                <span style="flex:1;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{ev.loc}}</span>
+                <span style="width:120px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{ev.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{ev.status}}</span></span>
+                <span style="width:130px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;color:#6B6B70">{{ev.asset}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showEventRecord}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;border-bottom:1px solid var(--gp-hairline-light);padding:18px 24px">
+            <div onClick="{{back}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70;cursor:pointer;margin-bottom:14px">← Events</div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
+              <div>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#B07A00">Stanley Park Brewing</span><span style="display:flex;align-items:center;gap:7px;background:#FAF9F6;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:3px 9px"><span style="width:7px;height:7px;border-radius:50%;background:#FEBD17;display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#33333A">In prep</span></span></div>
+                <h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:26px;letter-spacing:-0.01em;color:#0A0B0C;margin:0 0 6px">Brewery Launch Party</h2>
+                <div style="font-family:var(--gp-font-mono);font-size:12px;color:#9A9A96">Jun 14, 2026 · Stanley Park, Vancouver BC</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="border:1px solid #0A0B0C;color:#0A0B0C;border-radius:2px;padding:10px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Edit</span>
+                <a href="Module 3 - Call Sheet.dc.html" style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:11px 18px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block">Generate call sheet →</a>
+              </div>
+            </div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;display:flex;gap:0">
+            <div style="flex:1;min-width:0;padding:26px 28px">
+              <div style="margin-bottom:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Core</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Event name</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">Brewery Launch Party</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Client</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">Stanley Park Brewing Co.</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Event date</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">Jun 14, 2026</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Venue</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">Stanley Park Pavilion, Vancouver</span></div>
+              </div>
+              <div style="margin-bottom:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Tech spec</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">System</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">GRFT+ Wall v4 · 4K</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Wall size</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">6.0 × 3.4 m · 3840 × 2160</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Power</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">2 × 20A circuits</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Network</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">Hardline + 4G backup</span></div>
+              </div>
+              <div style="margin-bottom:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Schedule</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Load-in</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">2:00 PM</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Doors</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">6:00 PM</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Live</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">6:30 – 10:30 PM</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Wrap</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">11:30 PM</span></div>
+              </div>
+              <div>
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Deliverable</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Recap video</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">60s · within 48h</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Photo set</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">40 edited frames</span></div>
+              </div>
+              <div style="margin-top:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Tasks · 3 open</div>
+                <div style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="width:16px;height:16px;border:1px solid #c2bfb6;border-radius:2px;flex:none"></span><span style="flex:1;font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Confirm power drop with venue</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">M. Okafor · Jun 10</span></div>
+                <div style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="width:16px;height:16px;border:1px solid #c2bfb6;border-radius:2px;flex:none"></span><span style="flex:1;font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Ship cases to venue</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">Logistics · Jun 10</span></div>
+                <div style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="width:16px;height:16px;border:1px solid #c2bfb6;border-radius:2px;flex:none"></span><span style="flex:1;font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Brief crew on brand assets</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">M. Okafor · Jun 13</span></div>
+                <div style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:13px;letter-spacing:.04em;color:#B07A00">+ Add task</span></div>
+              </div>
+            </div>
+            <div style="width:340px;flex:none;border-left:1px solid var(--gp-hairline-light);background:#FAF9F6;padding:26px 22px;display:flex;flex-direction:column;gap:14px">
+              <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#0A0B0C;font-weight:700">Linked records</div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96">Client</span></div><div style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Stanley Park Brewing Co.</div><div style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96;margin-top:3px">Dana Whitfield · Brand lead</div></div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96">Technicians</span><span style="font-family:var(--gp-font-mono);font-size:10px;color:#9A9A96">3</span></div><div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:50%;background:#ECEAE4"></div><div style="width:26px;height:26px;border-radius:50%;background:#ECEAE4"></div><div style="width:26px;height:26px;border-radius:50%;background:#ECEAE4"></div><span style="font-family:var(--gp-font-mono);font-size:11px;color:#6B6B70;margin-left:4px">Lead: M. Okafor</span></div></div>
+              <div style="display:flex;gap:14px"><div style="flex:1;background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96;margin-bottom:8px">System</div><div style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">GRFT+ Wall v4</div></div><div style="flex:1;background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96;margin-bottom:8px">Cases</div><div style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">2 packed</div></div></div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96">Assets · from Asset Manager</span><span style="font-family:var(--gp-font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#0A0B0C;background:#FEBD17;border-radius:2px;padding:3px 7px">Locked</span></div><div style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">2 logos · 5 colors · 8 assets</div><div style="font-family:var(--gp-font-mono);font-size:11px;color:#B07A00;margin-top:6px;border-bottom:2px solid #FEBD17;display:inline-block">Open in Asset Manager →</div></div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96;margin-bottom:8px">Media · from technicians</div><div style="font-family:var(--gp-font-body);font-size:13px;color:#9A9A96">Lands here after the event</div></div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ CLIENTS ============ -->
+        <sc-if value="{{showClientsList}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Clients</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">24 total</span></div><span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ New client</span></div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <div style="display:flex;gap:16px;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="flex:2">Client</span><span style="width:90px">Events</span><span style="flex:1">Primary contact</span><span style="width:120px">Status</span></div>
+            <sc-for list="{{clients}}" as="c" hint-placeholder-count="6">
+              <div onClick="{{c.open}}" style="display:flex;gap:16px;align-items:center;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);cursor:pointer" style-hover="background:#FAF9F6"><span style="flex:2;font-family:var(--gp-font-display);font-weight:700;font-size:15px;color:#0A0B0C">{{c.name}}</span><span style="width:90px;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{c.events}}</span><span style="flex:1;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{c.contact}}</span><span style="width:120px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{c.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{c.status}}</span></span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showClientRecord}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;border-bottom:1px solid var(--gp-hairline-light);padding:18px 24px">
+            <div onClick="{{back}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70;cursor:pointer;margin-bottom:14px">← Clients</div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px"><div><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:26px;letter-spacing:-0.01em;color:#0A0B0C;margin:0 0 6px">Stanley Park Brewing Co.</h2><div style="font-family:var(--gp-font-mono);font-size:12px;color:#9A9A96">3 events · Active since 2024</div></div><span style="border:1px solid #0A0B0C;color:#0A0B0C;border-radius:2px;padding:10px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Edit</span></div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;display:flex;gap:0">
+            <div style="flex:1;min-width:0;padding:26px 28px">
+              <div style="margin-bottom:26px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Contact</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Primary contact</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Dana Whitfield · Brand lead</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Email</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">dana@stanleyparkbrewing.com</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Account lead</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">P. Nair (GRFT+)</span></div>
+              </div>
+              <div><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Events</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Brewery Launch Party</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">Jun 14, 2026 · In prep</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Taproom 5th Birthday</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">Nov 02, 2025 · Closed</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Summer Series</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">Jul 20, 2024 · Closed</span></div>
+              </div>
+            </div>
+            <div style="width:340px;flex:none;border-left:1px solid var(--gp-hairline-light);background:#FAF9F6;padding:26px 22px;display:flex;flex-direction:column;gap:14px">
+              <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#0A0B0C;font-weight:700">Linked records</div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96">Brand assets</span><span style="font-family:var(--gp-font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#0A0B0C;background:#FEBD17;border-radius:2px;padding:3px 7px">Locked</span></div><div style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">2 logos · 5 colors · 8 assets</div></div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96;margin-bottom:8px">Billing</div><div style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">Net 30 · On file</div></div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ TECHNICIANS ============ -->
+        <sc-if value="{{showTechList}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Technicians</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">12 total</span></div><span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ New technician</span></div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <div style="display:flex;gap:16px;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="flex:2">Name</span><span style="flex:1">Role</span><span style="flex:1">Home base</span><span style="width:130px">Status</span></div>
+            <sc-for list="{{technicians}}" as="t" hint-placeholder-count="6">
+              <div onClick="{{t.open}}" style="display:flex;gap:16px;align-items:center;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);cursor:pointer" style-hover="background:#FAF9F6"><span style="flex:2;display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:50%;background:#ECEAE4;flex:none"></span><span style="font-family:var(--gp-font-display);font-weight:700;font-size:15px;color:#0A0B0C">{{t.name}}</span></span><span style="flex:1;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{t.role}}</span><span style="flex:1;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{t.base}}</span><span style="width:130px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{t.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{t.status}}</span></span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showTechRecord}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;border-bottom:1px solid var(--gp-hairline-light);padding:18px 24px">
+            <div onClick="{{back}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70;cursor:pointer;margin-bottom:14px">← Technicians</div>
+            <div style="display:flex;align-items:center;gap:16px"><span style="width:48px;height:48px;border-radius:50%;background:#ECEAE4;flex:none"></span><div><div style="display:flex;align-items:center;gap:12px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:24px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">M. Okafor</h2><span style="display:flex;align-items:center;gap:7px;background:#FAF9F6;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:3px 9px"><span style="width:7px;height:7px;border-radius:50%;background:#FEBD17;display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#33333A">On event</span></span></div><div style="font-family:var(--gp-font-mono);font-size:12px;color:#9A9A96;margin-top:4px">Lead technician · Vancouver</div></div></div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;display:flex;gap:0">
+            <div style="flex:1;min-width:0;padding:26px 28px">
+              <div style="margin-bottom:26px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Profile</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Certifications</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Wall v4 · AV · Rigging</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Phone</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">+1 (604) 555-0148</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Email</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">okafor@graffitiplus.io</span></div>
+              </div>
+              <div><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Assigned events</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Brewery Launch Party</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">Jun 14 · Lead</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Rampage</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">Oct 11 · Lead</span></div>
+              </div>
+            </div>
+            <div style="width:340px;flex:none;border-left:1px solid var(--gp-hairline-light);background:#FAF9F6;padding:26px 22px;display:flex;flex-direction:column;gap:14px">
+              <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#0A0B0C;font-weight:700">Quick actions</div>
+              <a href="Module 3 - Call Sheet.dc.html" style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:13px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;text-decoration:none;text-align:center">View call sheet →</a>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96;margin-bottom:8px">Media uploaded</div><div style="font-family:var(--gp-font-body);font-size:13px;color:#9A9A96">Flows to the event record</div></div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ SYSTEMS ============ -->
+        <sc-if value="{{showSystems}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Systems</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">6 units</span></div><span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ New system</span></div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <div style="display:flex;gap:16px;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="flex:2">System</span><span style="flex:1">Type</span><span style="width:130px">Status</span><span style="width:120px">Last service</span></div>
+            <sc-for list="{{systems}}" as="s" hint-placeholder-count="6">
+              <div style="display:flex;gap:16px;align-items:center;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light)"><span style="flex:2;font-family:var(--gp-font-display);font-weight:700;font-size:15px;color:#0A0B0C">{{s.name}}</span><span style="flex:1;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{s.type}}</span><span style="width:130px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{s.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{s.status}}</span></span><span style="width:120px;font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">{{s.service}}</span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ============ CASES ============ -->
+        <sc-if value="{{showCases}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Cases</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">18 total</span></div><span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ New case</span></div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <div style="display:flex;gap:16px;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="flex:1">Case</span><span style="flex:2">Contents</span><span style="width:90px">Weight</span><span style="width:120px">Status</span></div>
+            <sc-for list="{{cases}}" as="k" hint-placeholder-count="5">
+              <div style="display:flex;gap:16px;align-items:center;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light)"><span style="flex:1;font-family:var(--gp-font-display);font-weight:700;font-size:15px;color:#0A0B0C">{{k.name}}</span><span style="flex:2;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{k.contents}}</span><span style="width:90px;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{k.weight}}</span><span style="width:120px;font-family:var(--gp-font-mono);font-size:11px;color:#6B6B70">{{k.status}}</span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ============ TASKS ============ -->
+        <sc-if value="{{showTasks}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Tasks</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">31 total</span></div><span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ New task</span></div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <div style="display:flex;gap:16px;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="width:26px"></span><span style="flex:2">Task</span><span style="flex:1">Event</span><span style="width:110px">Assignee</span><span style="width:80px">Due</span><span style="width:120px">Status</span></div>
+            <sc-for list="{{tasks}}" as="t" hint-placeholder-count="6">
+              <div style="display:flex;gap:16px;align-items:center;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light)"><span style="width:26px;flex:none"><span style="width:16px;height:16px;border:1px solid #c2bfb6;border-radius:2px;display:inline-block"></span></span><span style="flex:2;font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">{{t.task}}</span><span style="flex:1;font-family:var(--gp-font-mono);font-size:11px;color:#B07A00">{{t.event}}</span><span style="width:110px;font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{t.who}}</span><span style="width:80px;font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{t.due}}</span><span style="width:120px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{t.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{t.status}}</span></span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    section: "events", layout: "board", open: null, draggedId: null,
+    events: [
+      { id: 1, client: "Stanley Park Brewing", title: "Brewery Launch Party", date: "Jun 14", loc: "Vancouver", status: "In prep", techs: 3, asset: "Assets locked" },
+      { id: 2, client: "Nike Jordan", title: "All-Star Activation", date: "Feb 16", loc: "San Francisco", status: "Confirmed", techs: 4, asset: "Assets pending" },
+      { id: 3, client: "Hennessy", title: "Flagship Opening", date: "Mar 02", loc: "New York", status: "Confirmed", techs: 2, asset: "Assets pending" },
+      { id: 4, client: "Red Bull", title: "Rampage", date: "Oct 11", loc: "Virgin, UT", status: "On site", techs: 5, asset: "Assets locked" },
+      { id: 5, client: "Samsung", title: "Unpacked Lounge", date: "Jul 20", loc: "Seoul", status: "Confirmed", techs: 4, asset: "Assets pending" },
+      { id: 6, client: "Google", title: "I/O Wall", date: "May 14", loc: "Mountain View", status: "Done", techs: 3, asset: "Assets locked" },
+      { id: 7, client: "Disney", title: "D23 Wall", date: "Aug 09", loc: "Anaheim", status: "Done", techs: 2, asset: "Archived" },
+      { id: 8, client: "Chanel", title: "Beauty Pop-up", date: "Apr 05", loc: "Miami", status: "In prep", techs: 3, asset: "Assets pending" },
+    ],
+  };
+  renderVals() {
+    const { section, layout, open } = this.state;
+    const setSection = (s) => this.setState({ section: s, open: null });
+    const openRecord = () => this.setState({ open: "record" });
+    const back = () => this.setState({ open: null });
+
+    const navDefs = [
+      { key: "events", label: "Events", count: 8 },
+      { key: "clients", label: "Clients", count: 24 },
+      { key: "technicians", label: "Technicians", count: 12 },
+      { key: "systems", label: "Systems", count: 6 },
+      { key: "cases", label: "Cases", count: 18 },
+    ];
+    const nav = navDefs.map((n) => ({
+      label: n.label, count: n.count,
+      active: section === n.key, notActive: section !== n.key,
+      go: () => setSection(n.key),
+    }));
+
+    const statuses = [
+      { label: "Confirmed", dot: "#2A6FDB" },
+      { label: "In prep", dot: "#FEBD17" },
+      { label: "On site", dot: "#16744B" },
+      { label: "Done", dot: "#6B6B70" },
+    ];
+    const dotFor = (s) => (statuses.find((x) => x.label === s) || {}).dot || "#9A9A96";
+    const events = this.state.events.map((e) => ({ ...e, dot: dotFor(e.status), techLabel: e.techs ? e.techs + " techs" : "Unstaffed", open: openRecord, onDragStart: () => this.setState({ draggedId: e.id }) }));
+    const moveTo = (label) => this.setState((s) => ({ events: s.events.map((e) => (e.id === s.draggedId ? { ...e, status: label } : e)), draggedId: null }));
+    const columns = statuses.map((s) => {
+      const items = events.filter((e) => e.status === s.label);
+      return { label: s.label, dot: s.dot, count: items.length, items, drop: () => moveTo(s.label) };
+    });
+
+    const clients = [
+      { name: "Stanley Park Brewing Co.", events: 3, contact: "Dana Whitfield", status: "Active", dot: "#16744B" },
+      { name: "Nike Jordan", events: 6, contact: "M. Alvarez", status: "Active", dot: "#16744B" },
+      { name: "Hennessy", events: 1, contact: "C. Dubois", status: "Inquiry", dot: "#9A9A96" },
+      { name: "Red Bull", events: 4, contact: "T. Hoffmann", status: "Active", dot: "#16744B" },
+      { name: "Samsung", events: 2, contact: "J. Lee", status: "Active", dot: "#16744B" },
+      { name: "Google", events: 5, contact: "P. Nair", status: "Active", dot: "#16744B" },
+    ].map((c) => ({ ...c, open: openRecord }));
+
+    const technicians = [
+      { name: "M. Okafor", role: "Lead technician", base: "Vancouver", status: "On event", dot: "#FEBD17" },
+      { name: "A. Reyes", role: "Technician", base: "Los Angeles", status: "Available", dot: "#16744B" },
+      { name: "J. Park", role: "Technician", base: "Seattle", status: "On event", dot: "#FEBD17" },
+      { name: "S. Nguyen", role: "AV engineer", base: "Vancouver", status: "Available", dot: "#16744B" },
+      { name: "D. Cole", role: "Technician", base: "Toronto", status: "Travel", dot: "#9A9A96" },
+      { name: "R. Mbeki", role: "Lead technician", base: "London", status: "Available", dot: "#16744B" },
+    ].map((t) => ({ ...t, open: openRecord }));
+
+    const systems = [
+      { name: "GRFT+ Wall v4", type: "4K wall", status: "Deployed", service: "May 2026", dot: "#FEBD17" },
+      { name: "GRFT+ Wall v4 · #2", type: "4K wall", status: "Available", service: "Apr 2026", dot: "#16744B" },
+      { name: "GRFT+ Wall v3", type: "HD wall", status: "Available", service: "Jan 2026", dot: "#16744B" },
+      { name: "Mini Wall", type: "Compact", status: "Deployed", service: "Mar 2026", dot: "#FEBD17" },
+      { name: "Dual Wall Rig", type: "2× 4K", status: "Available", service: "Feb 2026", dot: "#16744B" },
+      { name: "Legacy v2", type: "HD wall", status: "Retired", service: "—", dot: "#9A9A96" },
+    ];
+    const cases = [
+      { name: "Case A · Wall", contents: "Panels, frame", weight: "48 kg", status: "Packed" },
+      { name: "Case B · Compute", contents: "Server, cabling", weight: "22 kg", status: "Packed" },
+      { name: "Case C · Cans", contents: "12 cans, chargers", weight: "14 kg", status: "Prep" },
+      { name: "Case D · AV", contents: "Projector, audio", weight: "30 kg", status: "Storage" },
+      { name: "Case E · Spares", contents: "Spare panels", weight: "18 kg", status: "Storage" },
+    ];
+    const tasks = [
+      { task: "Confirm power drop with venue", event: "Brewery Launch Party", who: "M. Okafor", due: "Jun 10", status: "Open", dot: "#9A9A96" },
+      { task: "Ship cases by Jun 10", event: "Brewery Launch Party", who: "Logistics", due: "Jun 10", status: "Open", dot: "#9A9A96" },
+      { task: "Chase signed SOW", event: "Unpacked Lounge", who: "P. Nair", due: "Jun 18", status: "Open", dot: "#9A9A96" },
+      { task: "Asset review", event: "All-Star Activation", who: "Design", due: "Jun 22", status: "In progress", dot: "#FEBD17" },
+      { task: "Book flights LAX→SFO", event: "All-Star Activation", who: "Travel", due: "Jun 24", status: "Open", dot: "#9A9A96" },
+      { task: "Recap video edit", event: "I/O Wall", who: "Post", due: "May 20", status: "Done", dot: "#16744B" },
+    ];
+
+    return {
+      nav, columns, listEvents: events, clients, technicians, systems, cases,
+      allowDrop: (e) => e.preventDefault(),
+      showEventsBoard: section === "events" && !open && layout === "board",
+      showEventsList: section === "events" && !open && layout === "list",
+      showEventRecord: section === "events" && open === "record",
+      showClientsList: section === "clients" && !open,
+      showClientRecord: section === "clients" && open === "record",
+      showTechList: section === "technicians" && !open,
+      showTechRecord: section === "technicians" && open === "record",
+      showSystems: section === "systems",
+      showCases: section === "cases",
+      showBoard: () => this.setState({ layout: "board" }),
+      showList: () => this.setState({ layout: "list" }),
+      back,
+    };
+  }
+}
+</script>
+</body>
+</html>

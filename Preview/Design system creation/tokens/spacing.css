@@ -1,0 +1,38 @@
+/* Graffiti+ spacing & layout.
+   Use these steps only. Hairline grids structure cells — borders divide, don't contain. */
+:root {
+  /* Spacing scale (rem) */
+  --gp-space-1:  0.5rem;
+  --gp-space-2:  0.75rem;
+  --gp-space-3:  1rem;
+  --gp-space-4:  1.5rem;
+  --gp-space-5:  2rem;
+  --gp-space-6:  3rem;
+  --gp-space-7:  4rem;
+  --gp-space-8:  6rem;
+  --gp-space-9:  8rem;
+
+  /* Section rhythm + measure */
+  --gp-section-pad:  clamp(4rem, 10vw, 9rem); /* vertical section padding */
+  --gp-content-max:  1240px;                  /* max content width */
+  --gp-gutter:       clamp(1.25rem, 5vw, 4rem);
+  --gp-measure:      70ch;                     /* body line length */
+
+  /* Slide canvas */
+  --gp-slide-w: 1920px;
+  --gp-slide-h: 1080px;
+  --gp-slide-pad: 80px 96px;
+
+  /* Radius — none / minimal. No rounded accent cards. */
+  --gp-radius: 0px;
+  --gp-radius-btn: 2px;
+
+  /* Border / hairline weight */
+  --gp-hairline-w: 1px;
+
+  /* Motion */
+  --gp-ease: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+  --gp-dur-fast: 160ms;
+  --gp-dur: 200ms;
+  --gp-dur-reveal: 400ms;
+}
