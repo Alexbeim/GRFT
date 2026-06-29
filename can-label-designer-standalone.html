@@ -1,0 +1,1472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GRFT+ Can Label Designer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta property="og:title" content="">
+<meta property="og:description" content="">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+
+<style>
+  /* ── Self-contained: GRFT+ design tokens the designer depends on.
+     Override these in your host app to re-skin the embed. */
+  :root {
+    --obsidian: #000d10;
+    --canvas:   #f5f1ea;
+    --accent:   #FEBD17;
+    --r-pill:   999px;
+    --w-bold:   700;
+  }
+  /* Inter is the only typeface used in the UI; load it from Google Fonts
+     so the standalone file doesn't ship a font binary. */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+
+  /* Minimal page reset so the embed renders consistently in any host. */
+  html, body { margin: 0; padding: 0; background: #04090b; color: #f5f1ea; font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+</style>
+
+<style>
+  /* ── designer shell ────────────────────────────────────────────────
+     Single self-contained block sized to drop into any host page.
+     Max-width caps the layout, padding is tight so the whole thing reads
+     as one compact compartment. */
+  .designer-shell {
+    background: var(--obsidian, #000d10);
+    color: var(--canvas, #f5f1ea);
+    padding: 18px 22px 22px;
+    max-width: 1080px;
+    margin: 12px auto;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+  }
+  @media (max-width: 900px) {
+    .designer-shell { padding: 14px; margin: 8px; }
+  }
+
+  /* can-type selector */
+  .ct-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .ct-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-right: 6px;
+  }
+  .ct-buttons { display: inline-flex; gap: 6px; }
+  .ct-btn {
+    background: transparent;
+    color: rgba(255,255,255,0.65);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 999px;
+    padding: 9px 18px;
+    font: 700 12px/1 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .ct-btn:hover { border-color: rgba(255,255,255,0.45); color: #fff; }
+  .ct-btn.active {
+    background: var(--accent, #FEBD17);
+    color: var(--obsidian, #000d10);
+    border-color: var(--accent, #FEBD17);
+  }
+  .ct-spec {
+    margin-left: auto;
+    font: 500 12px/1.4 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.02em;
+  }
+
+  /* two-column layout — flat takes more space, 3D is smaller + "cuter" */
+  .designer-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 900px) {
+    .designer-cols { grid-template-columns: 1fr; }
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .col-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+  }
+  .col-title em {
+    font-style: normal;
+    color: var(--accent, #FEBD17);
+    margin-left: 8px;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    font-weight: 500;
+  }
+
+  /* flat canvas surface */
+  .flat-wrap {
+    position: relative;
+    background:
+      linear-gradient(rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
+      repeating-conic-gradient(rgba(255,255,255,0.04) 0% 25%, transparent 0% 50%) 0 0 / 18px 18px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 6px;
+    padding: 12px;
+    overflow: hidden;
+  }
+  .flat-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2520 / 1440; /* set by JS per-can */
+    background: #1a1410;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.5);
+  }
+  .flat-stage canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    image-rendering: optimizeQuality;
+  }
+
+  /* seam + front guide overlays (HUD only, not exported) */
+  .guide {
+    position: absolute;
+    pointer-events: none;
+    font: 700 9px/1 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.16em;
+    color: rgba(255,255,255,0.75);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .guide-line {
+    position: absolute;
+    background: rgba(255,255,255,0.18);
+    pointer-events: none;
+  }
+  .guide-seam-l { top: -12px; left: -2px; }
+  .guide-seam-r { top: -12px; right: -2px; }
+  .guide-front  { top: -12px; left: 50%; transform: translateX(-50%); color: var(--accent, #FEBD17); }
+  .line-v {
+    width: 1px;
+    top: 0;
+    bottom: 0;
+  }
+  .line-seam-l { left: 0; background: rgba(255,255,255,0.35); }
+  .line-seam-r { right: 0; background: rgba(255,255,255,0.35); }
+  .line-front  { left: 50%; background: rgba(254,189,23,0.45); }
+
+  /* 3D preview surface — smaller, "cuter". Capped width so the column
+     doesn't blow up on wide screens; aspect 3:4 makes the can read
+     vertical without dominating the layout. */
+  .three-wrap {
+    position: relative;
+    background: radial-gradient(ellipse at center, #0e1d22 0%, #04090b 100%);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 6px;
+    aspect-ratio: 3 / 4;
+    max-width: 280px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+  .three-wrap canvas { display: block; width: 100%; height: 100%; }
+  .three-loading {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    color: rgba(255,255,255,0.4);
+    font: 600 11px/1 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* control panels */
+  .panel {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 11px 13px;
+  }
+  .panel-title {
+    font: 700 10px/1 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 10px;
+  }
+  .panel-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-row + .panel-row { margin-top: 7px; }
+  .panel-row label {
+    font: 500 12px/1 'Inter', system-ui, sans-serif;
+    color: rgba(255,255,255,0.75);
+    flex-shrink: 0;
+    min-width: 80px;
+  }
+
+  /* color input — strip native chrome */
+  input[type="color"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 44px;
+    height: 32px;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 999px;
+    cursor: pointer;
+    padding: 0;
+    background: transparent;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
+  input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 999px; }
+
+  /* hex input */
+  .hex-input {
+    width: 90px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font: 600 12px/1 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    letter-spacing: 0.04em;
+  }
+  .hex-input:focus { outline: none; border-color: var(--accent, #FEBD17); }
+
+  /* range slider */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 4px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent, #FEBD17);
+    cursor: pointer;
+    border: 2px solid #0a0f12;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent, #FEBD17);
+    cursor: pointer;
+    border: 2px solid #0a0f12;
+  }
+
+  /* export bar */
+  .export-bar {
+    margin-top: 18px;
+    padding: 13px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .export-label {
+    font: 700 11px/1 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    margin-right: 6px;
+  }
+  .export-btn {
+    background: var(--accent, #FEBD17);
+    color: var(--obsidian, #000d10);
+    border: 0;
+    border-radius: 999px;
+    padding: 11px 22px;
+    font: 800 12px/1 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .export-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(254,189,23,0.3); }
+  .export-btn.alt {
+    background: transparent;
+    color: rgba(255,255,255,0.85);
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  .export-btn.alt:hover { background: rgba(255,255,255,0.06); box-shadow: none; }
+  .export-spec {
+    margin-left: auto;
+    font: 500 12px/1.4 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    color: rgba(255,255,255,0.5);
+  }
+
+  /* background mode tabs */
+  .bg-tabs {
+    display: inline-flex;
+    gap: 0;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    padding: 3px;
+  }
+  .bg-tab {
+    background: transparent;
+    border: 0;
+    color: rgba(255,255,255,0.6);
+    padding: 7px 16px;
+    font: 700 11px/1 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .bg-tab.active {
+    background: var(--accent, #FEBD17);
+    color: var(--obsidian, #000d10);
+  }
+  .bg-mode-panel[hidden] { display: none; }
+
+  /* logo list */
+  .logo-list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .logo-row:hover { background: rgba(255,255,255,0.06); }
+  .logo-row.active {
+    background: rgba(254,189,23,0.10);
+    border-color: rgba(254,189,23,0.45);
+  }
+  .logo-row .thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 3px;
+    background: #1a1410 center/contain no-repeat;
+    border: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+  }
+  .logo-row .lname {
+    flex: 1;
+    font: 500 12px/1.3 'Inter', system-ui, sans-serif;
+    color: rgba(255,255,255,0.85);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .logo-row .lmeta {
+    font: 500 11px/1 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    color: rgba(255,255,255,0.4);
+  }
+  .layer-arrows {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+  .layer-arrow {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.7);
+    width: 24px;
+    height: 14px;
+    font-size: 8px;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+  .layer-arrow:hover {
+    background: var(--accent, #FEBD17);
+    color: var(--obsidian, #000d10);
+    border-color: var(--accent, #FEBD17);
+  }
+  .layer-arrow:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+  .layer-arrow:disabled:hover {
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.7);
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  /* logo controls (per-selected-logo sliders) */
+  .logo-controls {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .lc-title {
+    font: 700 10px/1 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent, #FEBD17);
+    margin-bottom: 12px;
+  }
+  .lc-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 50px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .lc-row label {
+    font: 500 12px/1 'Inter', system-ui, sans-serif;
+    color: rgba(255,255,255,0.65);
+  }
+  .lc-readout {
+    font: 600 11px/1 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    color: rgba(255,255,255,0.7);
+    text-align: right;
+  }
+  .lc-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .lc-act {
+    font-size: 11px !important;
+    padding: 7px 12px !important;
+  }
+  .lc-danger {
+    border-color: rgba(255,80,80,0.4) !important;
+    color: #ff8080 !important;
+  }
+  .lc-danger:hover {
+    background: rgba(255,80,80,0.12) !important;
+    color: #ffb0b0 !important;
+  }
+
+  /* phase 1 notice */
+  .phase-note {
+    margin-top: 24px;
+    font: 500 12px/1.6 'Inter', system-ui, sans-serif;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.01em;
+  }
+  .phase-note b { color: rgba(255,255,255,0.7); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="designer-shell">
+
+  <!-- can-type selector -->
+  <div class="ct-bar">
+    <span class="ct-label">Can</span>
+    <div class="ct-buttons">
+      <button type="button" class="ct-btn active" data-can="2d-tracking">2D Tracking System</button>
+      <button type="button" class="ct-btn" data-can="3d-tracking">3D Tracking System</button>
+    </div>
+    <span class="ct-spec" id="ct-spec">8.4″ × 4.8″ · 2520 × 1440 px @ 300 DPI</span>
+  </div>
+
+  <!-- main two-column layout -->
+  <div class="designer-cols">
+
+    <!-- LEFT: flat label (the print master) -->
+    <section class="col">
+      <div class="col-title">Flat label <em>your print master</em></div>
+      <div class="flat-wrap">
+        <div class="flat-stage" id="flat-stage">
+          <canvas id="flat-canvas"></canvas>
+          <div class="guide-line line-v line-seam-l"></div>
+          <div class="guide-line line-v line-front"></div>
+          <div class="guide-line line-v line-seam-r"></div>
+          <div class="guide guide-seam-l">← Seam</div>
+          <div class="guide guide-front">Front</div>
+          <div class="guide guide-seam-r">Seam →</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Background</div>
+        <div class="bg-tabs">
+          <button type="button" class="bg-tab active" data-mode="solid">Solid</button>
+          <button type="button" class="bg-tab" data-mode="gradient">Gradient</button>
+        </div>
+        <div id="bg-solid" class="bg-mode-panel">
+          <div class="panel-row">
+            <label>Colour</label>
+            <input type="color" id="bg-color" value="#febd17">
+            <input type="text" class="hex-input" id="bg-hex" value="#febd17">
+          </div>
+        </div>
+        <div id="bg-gradient" class="bg-mode-panel" hidden>
+          <div class="panel-row">
+            <label>Top</label>
+            <input type="color" id="bg-g1" value="#febd17">
+            <input type="text" class="hex-input" id="bg-g1-hex" value="#febd17">
+          </div>
+          <div class="panel-row">
+            <label>Bottom</label>
+            <input type="color" id="bg-g2" value="#ff7a00">
+            <input type="text" class="hex-input" id="bg-g2-hex" value="#ff7a00">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Logos</div>
+        <div class="panel-row">
+          <input type="file" id="logo-file" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden>
+          <button type="button" class="ct-btn" id="logo-pick">+ Add logo</button>
+          <span id="logo-count" style="font:500 12px/1 'JetBrains Mono',monospace;color:rgba(255,255,255,0.45);margin-left:auto;">0 logos</span>
+        </div>
+        <ul id="logo-list" class="logo-list"></ul>
+
+        <div id="logo-controls" class="logo-controls" hidden>
+          <div class="lc-title"><span id="lc-name">Logo</span></div>
+          <div class="lc-row">
+            <label>X position</label>
+            <input type="range" id="lc-x" min="0" max="100" step="0.5" value="50">
+            <span class="lc-readout" id="lc-x-r">50%</span>
+          </div>
+          <div class="lc-row">
+            <label>Y position</label>
+            <input type="range" id="lc-y" min="0" max="100" step="0.5" value="50">
+            <span class="lc-readout" id="lc-y-r">50%</span>
+          </div>
+          <div class="lc-row">
+            <label>Scale</label>
+            <input type="range" id="lc-s" min="2" max="100" step="0.5" value="35">
+            <span class="lc-readout" id="lc-s-r">35%</span>
+          </div>
+          <div class="lc-row">
+            <label>Rotation</label>
+            <input type="range" id="lc-r" min="-180" max="180" step="1" value="0">
+            <span class="lc-readout" id="lc-r-r">0°</span>
+          </div>
+          <div class="lc-actions">
+            <button type="button" class="ct-btn lc-act" data-act="back">⤵ Send back</button>
+            <button type="button" class="ct-btn lc-act" data-act="front">⤴ Bring front</button>
+            <button type="button" class="ct-btn lc-act lc-danger" data-act="delete">✕ Delete</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: 3D preview -->
+    <section class="col">
+      <div class="col-title">3D preview <em>live mirror</em></div>
+      <div class="three-wrap" id="three-wrap">
+        <div class="three-loading" id="three-loading">Loading 3D preview…</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Inspect — <em style="color:rgba(255,255,255,0.35);font-style:normal;letter-spacing:0.04em;font-weight:500;text-transform:none;">click + drag the can to rotate</em></div>
+        <div class="panel-row" style="gap:14px;">
+          <span style="font:600 12px/1 'JetBrains Mono',monospace;color:rgba(255,255,255,0.6);">Yaw <span id="yaw-readout" style="color:#fff;">0°</span></span>
+          <span style="font:600 12px/1 'JetBrains Mono',monospace;color:rgba(255,255,255,0.6);">Pitch <span id="pitch-readout" style="color:#fff;">0°</span></span>
+          <button type="button" class="ct-btn" id="reset-view" style="margin-left:auto;">↺ Reset to front</button>
+        </div>
+      </div>
+
+      <div class="panel" id="cap-debug" hidden>
+        <div class="panel-title">Debug · cap tuning <em style="color:rgba(255,255,255,0.35);font-style:normal;letter-spacing:0.04em;font-weight:500;text-transform:none;">drag the sliders, then copy the values</em></div>
+
+        <div class="lc-row">
+          <label>Cap Y offset</label>
+          <input type="range" id="cp-offY" min="-0.5" max="0.5" step="0.01" value="0">
+          <span class="lc-readout" id="cp-offY-r">0.00″</span>
+        </div>
+        <div class="lc-row">
+          <label>Ring height</label>
+          <input type="range" id="cp-ringH" min="0.02" max="0.40" step="0.01" value="0.10">
+          <span class="lc-readout" id="cp-ringH-r">0.10″</span>
+        </div>
+        <div class="lc-row">
+          <label>Ring width ×</label>
+          <input type="range" id="cp-ringF" min="0.95" max="1.15" step="0.005" value="1.02">
+          <span class="lc-readout" id="cp-ringF-r">1.02</span>
+        </div>
+        <div class="lc-row">
+          <label>Lip height</label>
+          <input type="range" id="cp-lipH" min="0.00" max="0.30" step="0.01" value="0.07">
+          <span class="lc-readout" id="cp-lipH-r">0.07″</span>
+        </div>
+        <div class="lc-row">
+          <label>Lip width ×</label>
+          <input type="range" id="cp-lipF" min="0.80" max="1.10" step="0.005" value="1.00">
+          <span class="lc-readout" id="cp-lipF-r">1.00</span>
+        </div>
+        <div class="lc-row">
+          <label>Dome height</label>
+          <input type="range" id="cp-domeH" min="0.20" max="2.20" step="0.02" value="1.10">
+          <span class="lc-readout" id="cp-domeH-r">1.10″</span>
+        </div>
+        <div class="lc-row">
+          <label>Dome width ×</label>
+          <input type="range" id="cp-domeF" min="0.50" max="1.10" step="0.01" value="1.00">
+          <span class="lc-readout" id="cp-domeF-r">1.00</span>
+        </div>
+        <div class="lc-row">
+          <label>Valve radius</label>
+          <input type="range" id="cp-valveR" min="0.04" max="0.40" step="0.01" value="0.16">
+          <span class="lc-readout" id="cp-valveR-r">0.16″</span>
+        </div>
+        <div class="lc-row">
+          <label>Valve height</label>
+          <input type="range" id="cp-valveH" min="0.05" max="0.60" step="0.01" value="0.26">
+          <span class="lc-readout" id="cp-valveH-r">0.26″</span>
+        </div>
+
+        <div class="lc-actions">
+          <button type="button" class="ct-btn lc-act" id="cp-copy">📋 Copy values</button>
+          <button type="button" class="ct-btn lc-act" id="cp-reset">↺ Defaults</button>
+        </div>
+
+        <textarea id="cp-output" readonly style="margin-top:10px;width:100%;height:78px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);border-radius:4px;color:#fff;font:600 11px/1.45 'JetBrains Mono','SF Mono',Menlo,monospace;padding:8px 10px;letter-spacing:0.01em;resize:vertical;"></textarea>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- export -->
+  <div class="export-bar">
+    <span class="export-label">Export to printer</span>
+    <button type="button" class="export-btn" id="export-png">Download PNG</button>
+    <span class="export-spec" id="export-spec">2520 × 1440 px · 300 DPI · sRGB</span>
+  </div>
+
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+/* ─────────────────────────────────────────────────────────────────────
+   Can specs — the print label is the source of truth.
+   Circumference = label width. Diameter = circumference / π.
+   ───────────────────────────────────────────────────────────────────── */
+const CANS = {
+  '2d-tracking': {
+    label: '2D Tracking System',
+    size: '8.4″ × 4.8″',
+    pixW: 2520, pixH: 1440,    // 300 DPI
+    circIn: 8.4, heightIn: 4.8,
+  },
+  '3d-tracking': {
+    label: '3D Tracking System',
+    size: '8″ × 3.73″',
+    pixW: 2400, pixH: 1119,    // 300 DPI (8 * 300, 3.73 * 300 = 1119)
+    circIn: 8.0, heightIn: 3.73,
+  },
+};
+
+/* Each can type has its OWN design (background + logos + selection).
+   Switching cans swaps the whole design context — logo placements never
+   leak between cans, so changing can size never crops the wrong artwork. */
+function newDesign() {
+  return {
+    bgMode: 'solid',                                             // 'solid' | 'gradient'
+    bgColor: '#febd17',                                          // used when mode = solid
+    bgGradient: { c1: '#febd17', c2: '#ff7a00', angle: 90 },     // used when mode = gradient (angle in deg, 0=L→R, 90=T→B)
+    logos: [],            // { id, name, img, xFrac, yFrac, scaleFrac, rotation }
+    selectedLogoId: null,
+  };
+}
+const state = {
+  canKey: '2d-tracking',
+  designs: {
+    '2d-tracking': newDesign(),
+    '3d-tracking': newDesign(),
+  },
+};
+function currentDesign() { return state.designs[state.canKey]; }
+let nextLogoId = 1;
+
+/* ─────────────────────────────────────────────────────────────────────
+   Flat canvas — backed at exact print pixel size.
+   This IS what gets exported.
+   ───────────────────────────────────────────────────────────────────── */
+const flatStage = document.getElementById('flat-stage');
+const flatCanvas = document.getElementById('flat-canvas');
+const flatCtx = flatCanvas.getContext('2d', { alpha: false });
+
+function resizeFlat() {
+  const can = CANS[state.canKey];
+  flatCanvas.width = can.pixW;
+  flatCanvas.height = can.pixH;
+  flatStage.style.aspectRatio = `${can.pixW} / ${can.pixH}`;
+  /* Canvas was just resized — the underlying GPU texture must be rebuilt
+     before we redraw, otherwise the body shows whatever pixels were on the
+     old-sized GPU buffer until they're overwritten on the next render. */
+  recreateCanvasTex();
+  redrawFlat();
+}
+
+function redrawFlat() {
+  const D = currentDesign();
+
+  /* Background — solid or 2-stop linear gradient (always top → bottom) */
+  if (D.bgMode === 'gradient') {
+    const g = D.bgGradient;
+    const grad = flatCtx.createLinearGradient(0, 0, 0, flatCanvas.height);
+    grad.addColorStop(0, g.c1);
+    grad.addColorStop(1, g.c2);
+    flatCtx.fillStyle = grad;
+  } else {
+    flatCtx.fillStyle = D.bgColor;
+  }
+  flatCtx.fillRect(0, 0, flatCanvas.width, flatCanvas.height);
+
+  /* Logo layer (drawn over background, in insertion order — first = bottom) */
+  for (const L of D.logos) {
+    if (!L.img.complete || !L.img.naturalWidth) continue;
+    const imgAspect = L.img.naturalWidth / L.img.naturalHeight;
+    const h = flatCanvas.height * L.scaleFrac;
+    const w = h * imgAspect;
+    const cx = flatCanvas.width * L.xFrac;
+    const cy = flatCanvas.height * L.yFrac;
+    flatCtx.save();
+    flatCtx.translate(cx, cy);
+    flatCtx.rotate(L.rotation);
+    flatCtx.drawImage(L.img, -w / 2, -h / 2, w, h);
+    flatCtx.restore();
+  }
+
+  if (canvasTex) canvasTex.needsUpdate = true;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Three.js scene — procedural can with the body sized to the current
+   label spec. 1 scene unit = 1 inch.
+   ───────────────────────────────────────────────────────────────────── */
+const mount = document.getElementById('three-wrap');
+const loading = document.getElementById('three-loading');
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+mount.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
+
+/* Lights */
+const key = new THREE.DirectionalLight(0xfff4e0, 2.2);
+key.position.set(2.5, 4, 3);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.radius = 6;
+scene.add(key);
+const rim = new THREE.DirectionalLight(0x9fd8ff, 1.2);
+rim.position.set(-3, 2, -2);
+scene.add(rim);
+scene.add(new THREE.AmbientLight(0x223038, 0.6));
+
+/* Soft contact-shadow floor */
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(30, 30),
+  new THREE.ShadowMaterial({ opacity: 0.4 })
+);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+/* The "rig" carries the whole can. Spin it for orbit. */
+const rig = new THREE.Group();
+scene.add(rig);
+
+/* The body texture lives on a canvas that mirrors the flat canvas live.
+   THREE.CanvasTexture wraps it. We do NOT mirror at the texel level —
+   `thetaStart = π` on the cylinder geometry handles the wrap direction so
+   letters stay right-reading and canvas-LEFT lands on can-LEFT.
+
+   IMPORTANT: when the source canvas dimensions change (e.g. switching can
+   types), we throw the texture away and build a fresh one. Three.js's
+   CanvasTexture caches GPU storage size at creation; just calling
+   needsUpdate after the canvas was resized leaves stale pixels on the GPU
+   texture, which is exactly what produced the "old can's design appearing
+   on the new can" bug. The recreate helper is only used for SWAPS — the
+   initial texture is built inline below since bodyMat needs it. */
+let canvasTex = new THREE.CanvasTexture(flatCanvas);
+canvasTex.colorSpace = THREE.SRGBColorSpace;
+canvasTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+canvasTex.flipY = true;
+
+/* Materials */
+const bodyMat = new THREE.MeshPhysicalMaterial({
+  map: canvasTex,
+  roughness: 0.45,
+  metalness: 0.15,
+  envMapIntensity: 1.0,
+  side: THREE.FrontSide,
+});
+
+/* Cap materials — tuned to look like a real Montana Black:
+   - chrome ring at the body→cap join
+   - smooth pale-yellow domed cap
+   - dark grey valve nub on top */
+const chromeRingMat = new THREE.MeshPhysicalMaterial({
+  color: 0xb8b8b8,
+  roughness: 0.18,
+  metalness: 0.95,
+  envMapIntensity: 1.4,
+});
+const capDomeMat = new THREE.MeshPhysicalMaterial({
+  color: 0xf5d77a,
+  roughness: 0.42,
+  metalness: 0.08,
+  clearcoat: 0.6,
+  clearcoatRoughness: 0.3,
+});
+const capLipMat = new THREE.MeshPhysicalMaterial({
+  color: 0xd0d0d0,
+  roughness: 0.25,
+  metalness: 0.8,
+});
+const valveMat = new THREE.MeshPhysicalMaterial({
+  color: 0x222222,
+  roughness: 0.55,
+  metalness: 0.2,
+});
+
+/* Rebuild the canvas texture from scratch — used whenever the source canvas
+   dimensions change (can-type switch). Disposes the old texture, creates a
+   fresh CanvasTexture sized to the new canvas, and re-binds it to the body
+   material so the GPU storage is reset. */
+function recreateCanvasTex() {
+  if (canvasTex) canvasTex.dispose();
+  canvasTex = new THREE.CanvasTexture(flatCanvas);
+  canvasTex.colorSpace = THREE.SRGBColorSpace;
+  canvasTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  canvasTex.flipY = true;
+  bodyMat.map = canvasTex;
+  bodyMat.needsUpdate = true;
+}
+
+/* Body + cap meshes that get rebuilt when the can changes */
+let body = null;
+let canParts = [];                            // every mesh that gets rebuilt
+let cachedTotalH = 0, cachedR = 0;
+
+/* Cap-tuning parameters — driven by the debug sliders. All values in
+   inches (or unitless ratios). Tweak these live then call rebuildCan(). */
+const CAP_DEFAULTS = {
+  offY:  -0.01,    // vertical shift of the whole cap stack
+  ringH:  0.10,    // chrome ring height
+  ringF:  1.02,    // chrome ring radius factor (× body radius)
+  lipH:   0.00,    // grey lip height
+  lipF:   1.00,    // grey lip radius factor
+  domeH:  0.46,    // total dome height
+  domeF:  0.92,    // dome base radius factor
+  valveR: 0.35,    // valve absolute radius
+  valveH: 0.42,    // valve height
+};
+const CAP_PARAMS = { ...CAP_DEFAULTS };
+
+function rebuildCan() {
+  const can = CANS[state.canKey];
+  const r = can.circIn / (2 * Math.PI);     // body radius from circumference
+  const h = can.heightIn;                    // body height
+
+  /* Dispose old meshes */
+  for (const m of canParts) {
+    rig.remove(m);
+    m.geometry.dispose();
+  }
+  canParts = [];
+  body = null;
+
+  /* ── BODY ──────────────────────────────────────────────────────────
+     Three.js's CylinderGeometry places vertex at angle θ using
+     x = sin(θ)·r, z = cos(θ)·r (NOT the standard math convention).
+     With thetaStart = π:
+       u=0 at θ=π → (0, y, -r) = -Z (BACK, the seam)
+       u=0.5 at θ=2π → (0, y, +r) = +Z (FRONT centre)
+     This makes canvas LEFT-to-RIGHT wrap onto the can LEFT-to-RIGHT
+     as viewed from the front, with text staying right-reading.
+     No UV inversion, no texture mirror. */
+  const bodyGeom = new THREE.CylinderGeometry(r, r, h, 96, 1, false, Math.PI, Math.PI * 2);
+  body = new THREE.Mesh(bodyGeom, bodyMat);
+  body.position.y = h / 2;
+  body.castShadow = true;
+  rig.add(body); canParts.push(body);
+
+  /* ── BOTTOM CHROME RING — mirrors the top ring, the can sits on this. */
+  const ringH = CAP_PARAMS.ringH;
+  const ringR = r * CAP_PARAMS.ringF;
+  const bottomRingGeom = new THREE.CylinderGeometry(ringR, ringR, ringH, 96);
+  const bottomRing = new THREE.Mesh(bottomRingGeom, chromeRingMat);
+  bottomRing.position.y = -ringH / 2;            // hangs below the body
+  bottomRing.castShadow = true;
+  rig.add(bottomRing); canParts.push(bottomRing);
+
+  /* ── TOP CHROME RING — the seam between body and cap (clear overhang) ── */
+  const capBaseY = h + CAP_PARAMS.offY;
+  const ringGeom = new THREE.CylinderGeometry(ringR, ringR, ringH, 96);
+  const chromeRing = new THREE.Mesh(ringGeom, chromeRingMat);
+  chromeRing.position.y = capBaseY + ringH / 2;
+  chromeRing.castShadow = true;
+  rig.add(chromeRing); canParts.push(chromeRing);
+
+  /* ── CAP LIP — grey ring just above the chrome where the cap seats ── */
+  const lipH = CAP_PARAMS.lipH;
+  const lipR = r * CAP_PARAMS.lipF;
+  const lipGeom = new THREE.CylinderGeometry(lipR, lipR, lipH, 64);
+  const capLip = new THREE.Mesh(lipGeom, capLipMat);
+  capLip.position.y = capBaseY + ringH + lipH / 2;
+  capLip.castShadow = true;
+  rig.add(capLip); canParts.push(capLip);
+
+  /* ── CAP DOME — Montana Black profile via LatheGeometry, parameterised
+     by base radius (Rdome) and total height (Hdome). All inner ratios are
+     fixed to keep the same dome SHAPE while you scale it. */
+  const Rdome = r * CAP_PARAMS.domeF;
+  const Hdome = CAP_PARAMS.domeH;
+  const profile = [
+    new THREE.Vector2(Rdome,        Hdome * 0.000),  // outer bottom edge
+    new THREE.Vector2(Rdome,        Hdome * 0.091),  // small straight skirt
+    new THREE.Vector2(Rdome * 0.99, Hdome * 0.200),  // start of curve
+    new THREE.Vector2(Rdome * 0.95, Hdome * 0.382),
+    new THREE.Vector2(Rdome * 0.86, Hdome * 0.564),
+    new THREE.Vector2(Rdome * 0.72, Hdome * 0.727),
+    new THREE.Vector2(Rdome * 0.54, Hdome * 0.855),
+    new THREE.Vector2(Rdome * 0.32, Hdome * 0.945),
+    new THREE.Vector2(Rdome * 0.15, Hdome * 0.982),
+    new THREE.Vector2(0,            Hdome * 1.000),  // dome apex
+  ];
+  const domeGeom = new THREE.LatheGeometry(profile, 64);
+  const dome = new THREE.Mesh(domeGeom, capDomeMat);
+  dome.position.y = capBaseY + ringH + lipH;
+  dome.castShadow = true;
+  rig.add(dome); canParts.push(dome);
+
+  /* ── VALVE NUB — defines "front" of the can. Sits at the top centre. */
+  const valveR = CAP_PARAMS.valveR;
+  const valveH = CAP_PARAMS.valveH;
+  const valveGeom = new THREE.CylinderGeometry(valveR, valveR * 1.05, valveH, 24);
+  const valve = new THREE.Mesh(valveGeom, valveMat);
+  const domeApexY = capBaseY + ringH + lipH + Hdome;
+  valve.position.set(0, domeApexY + valveH / 2 - 0.02, 0);
+  valve.castShadow = true;
+  rig.add(valve); canParts.push(valve);
+
+  /* Yellow dot on the FRONT of the valve (orientation anchor only).
+     Sits ~0.02″ outside the cylinder's front-most point and uses
+     polygonOffset so the GPU always treats it as in-front of the curved
+     valve surface. Earlier the gap at the dot's CENTRE (0.005″) was below
+     z-buffer precision at this camera distance, which let the dark cylinder
+     show through the middle — produced the "yellow crescents, dark centre"
+     look. */
+  const dotR = 0.06;
+  const dotGeom = new THREE.CircleGeometry(dotR, 32);
+  const dotMat = new THREE.MeshBasicMaterial({
+    color: 0xf5d77a,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -2,
+    depthWrite: true,
+  });
+  const dot = new THREE.Mesh(dotGeom, dotMat);
+  dot.position.set(0, domeApexY + valveH / 2, valveR + 0.02);
+  dot.renderOrder = 10;
+  rig.add(dot); canParts.push(dot);
+
+  /* Lower the floor by the bottom ring's height so the can visually rests
+     on its chrome rim instead of the body protruding through the floor. */
+  floor.position.y = -CAP_PARAMS.ringH;
+
+  /* Cache for camera framing */
+  cachedTotalH = domeApexY + valveH + CAP_PARAMS.ringH;
+  cachedR = r;
+  fitCamera(cachedTotalH, r);
+}
+
+function fitCamera(totalH, bodyR) {
+  /* Aspect-aware distance — fit the whole can vertically with a bit of margin */
+  const aspect = mount.clientWidth / mount.clientHeight || (4/3);
+  camera.aspect = aspect;
+  const vFov = THREE.MathUtils.degToRad(camera.fov);
+  const distV = (totalH * 1.18) / (2 * Math.tan(vFov / 2));
+  const distH = (bodyR * 2.3) / (2 * Math.tan(vFov / 2) * aspect);
+  const dist = Math.max(distV, distH);
+  camera.position.set(0, totalH * 0.5, dist);
+  camera.lookAt(0, totalH * 0.5, 0);
+  camera.updateProjectionMatrix();
+  /* floor.position.y is owned by rebuildCan() so the bottom chrome ring
+     can rest on it — don't override here. */
+}
+
+function onResize() {
+  const w = mount.clientWidth;
+  const h = mount.clientHeight;
+  if (w === 0 || h === 0) return;
+  renderer.setSize(w, h, false);
+  if (cachedTotalH > 0) fitCamera(cachedTotalH, cachedR);
+}
+new ResizeObserver(onResize).observe(mount);
+
+/* ── animation loop ───────────────────────────────────────────────── */
+let yawDeg = 0;     // around Y (left/right drag)
+let pitchDeg = 0;   // around X (up/down drag)
+const PITCH_MIN = -45, PITCH_MAX = 45;     // keep cap visible
+function tick() {
+  rig.rotation.y = THREE.MathUtils.degToRad(yawDeg);
+  rig.rotation.x = THREE.MathUtils.degToRad(pitchDeg);
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Controls
+   ───────────────────────────────────────────────────────────────────── */
+/* Can type — switching swaps to the OTHER can's independent design state.
+   Scoped to the can-selector strip only — .ct-btn is reused elsewhere. */
+document.querySelectorAll('.ct-buttons .ct-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.classList.contains('active')) return;
+    document.querySelectorAll('.ct-buttons .ct-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.canKey = btn.dataset.can;
+    const c = CANS[state.canKey];
+    document.getElementById('ct-spec').textContent = `${c.size} · ${c.pixW} × ${c.pixH} px @ 300 DPI`;
+    document.getElementById('export-spec').textContent = `${c.pixW} × ${c.pixH} px · 300 DPI · sRGB`;
+    /* Update flat canvas pixel dims AND swap to this can's design + UI */
+    syncDesignUI();
+    resizeFlat();
+    rebuildCan();
+    onResize();
+  });
+});
+
+/* Background colour — color picker + hex input stay in sync.
+   Writes to the CURRENT can's design (not shared between cans). */
+const bgColorEl = document.getElementById('bg-color');
+const bgHexEl = document.getElementById('bg-hex');
+function setBgColor(hex) {
+  const clean = (hex || '').trim();
+  if (!/^#?[0-9a-fA-F]{6}$/.test(clean)) return;
+  const norm = clean.startsWith('#') ? clean : ('#' + clean);
+  currentDesign().bgColor = norm;
+  bgColorEl.value = norm;
+  bgHexEl.value = norm;
+  redrawFlat();
+}
+bgColorEl.addEventListener('input', () => setBgColor(bgColorEl.value));
+bgHexEl.addEventListener('change', () => setBgColor(bgHexEl.value));
+bgHexEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); setBgColor(bgHexEl.value); }
+});
+
+/* Re-sync the design UI from the current can's design. Called when the can
+   type changes (so the bg controls, logo list, and sliders reflect the new
+   design). */
+function syncDesignUI() {
+  const D = currentDesign();
+  /* Solid */
+  bgColorEl.value = D.bgColor;
+  bgHexEl.value = D.bgColor;
+  /* Gradient */
+  document.getElementById('bg-g1').value = D.bgGradient.c1;
+  document.getElementById('bg-g1-hex').value = D.bgGradient.c1;
+  document.getElementById('bg-g2').value = D.bgGradient.c2;
+  document.getElementById('bg-g2-hex').value = D.bgGradient.c2;
+  /* Mode tabs */
+  document.querySelectorAll('.bg-tab').forEach(b => b.classList.toggle('active', b.dataset.mode === D.bgMode));
+  document.getElementById('bg-solid').hidden = D.bgMode !== 'solid';
+  document.getElementById('bg-gradient').hidden = D.bgMode !== 'gradient';
+  /* Logos */
+  rebuildLogoList();
+  syncLogoControls();
+}
+
+/* Background mode tabs — switch between Solid and Gradient per can. */
+document.querySelectorAll('.bg-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const D = currentDesign();
+    D.bgMode = btn.dataset.mode;
+    document.querySelectorAll('.bg-tab').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('bg-solid').hidden = D.bgMode !== 'solid';
+    document.getElementById('bg-gradient').hidden = D.bgMode !== 'gradient';
+    redrawFlat();
+  });
+});
+
+/* Gradient colour pickers + angle slider */
+function bindGradientColor(pickerId, hexId, key) {
+  const picker = document.getElementById(pickerId);
+  const hex = document.getElementById(hexId);
+  const setIt = (val) => {
+    const v = (val || '').trim();
+    if (!/^#?[0-9a-fA-F]{6}$/.test(v)) return;
+    const norm = v.startsWith('#') ? v : '#' + v;
+    currentDesign().bgGradient[key] = norm;
+    picker.value = norm;
+    hex.value = norm;
+    redrawFlat();
+  };
+  picker.addEventListener('input', () => setIt(picker.value));
+  hex.addEventListener('change', () => setIt(hex.value));
+  hex.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); setIt(hex.value); } });
+}
+bindGradientColor('bg-g1', 'bg-g1-hex', 'c1');
+bindGradientColor('bg-g2', 'bg-g2-hex', 'c2');
+
+/* Two-axis drag rotation. Horizontal drag = yaw (around Y). Vertical drag
+   = pitch (around X), clamped so the cap stays visible. */
+const yawReadout = document.getElementById('yaw-readout');
+const pitchReadout = document.getElementById('pitch-readout');
+function setView(yaw, pitch) {
+  /* normalize yaw to -180..180 */
+  let y = yaw;
+  while (y > 180) y -= 360;
+  while (y < -180) y += 360;
+  yawDeg = y;
+  pitchDeg = Math.max(PITCH_MIN, Math.min(PITCH_MAX, pitch));
+  yawReadout.textContent = `${Math.round(yawDeg)}°`;
+  pitchReadout.textContent = `${Math.round(pitchDeg)}°`;
+}
+
+const glCanvas = renderer.domElement;
+glCanvas.style.cursor = 'grab';
+glCanvas.style.touchAction = 'none';   // prevent page scrolling while dragging
+let dragging = false, lastX = 0, lastY = 0;
+glCanvas.addEventListener('pointerdown', (e) => {
+  dragging = true;
+  lastX = e.clientX; lastY = e.clientY;
+  glCanvas.style.cursor = 'grabbing';
+  try { glCanvas.setPointerCapture(e.pointerId); } catch (_) {}
+});
+glCanvas.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  const dx = e.clientX - lastX;
+  const dy = e.clientY - lastY;
+  /* +X drag → spin can to show right side (positive yaw rotates +X → +Z toward camera, so
+     we want negative-direction yaw on right-drag to expose +X side. tweak feel ~0.5°/px) */
+  setView(yawDeg - dx * 0.5, pitchDeg + dy * 0.3);
+  lastX = e.clientX; lastY = e.clientY;
+});
+function endDrag() {
+  dragging = false;
+  glCanvas.style.cursor = 'grab';
+}
+glCanvas.addEventListener('pointerup', endDrag);
+glCanvas.addEventListener('pointercancel', endDrag);
+glCanvas.addEventListener('pointerleave', endDrag);
+
+/* Reset to front */
+document.getElementById('reset-view').addEventListener('click', () => setView(0, 0));
+
+/* Export — render the flat canvas to PNG / JPG at exact print dimensions */
+function ts() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
+}
+function download(format) {
+  const ext = format === 'image/png' ? 'png' : 'jpg';
+  const filename = `grft-label-${state.canKey}-${ts()}.${ext}`;
+  flatCanvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }, format, 1.0);
+}
+document.getElementById('export-png').addEventListener('click', () => download('image/png'));
+
+/* ─────────────────────────────────────────────────────────────────────
+   Logo library — upload, select, transform via sliders.
+   Drag-handles on the flat canvas come next pass; for now the sliders
+   give full move / resize / rotate control of the selected logo.
+   ───────────────────────────────────────────────────────────────────── */
+const logoFile = document.getElementById('logo-file');
+const logoCount = document.getElementById('logo-count');
+const logoListEl = document.getElementById('logo-list');
+const logoControls = document.getElementById('logo-controls');
+
+const lcName = document.getElementById('lc-name');
+const lcX = document.getElementById('lc-x'),   lcXR = document.getElementById('lc-x-r');
+const lcY = document.getElementById('lc-y'),   lcYR = document.getElementById('lc-y-r');
+const lcS = document.getElementById('lc-s'),   lcSR = document.getElementById('lc-s-r');
+const lcR = document.getElementById('lc-r'),   lcRR = document.getElementById('lc-r-r');
+
+function getSelectedLogo() {
+  const D = currentDesign();
+  return D.logos.find(L => L.id === D.selectedLogoId) || null;
+}
+function selectLogo(id) {
+  currentDesign().selectedLogoId = id;
+  rebuildLogoList();
+  syncLogoControls();
+}
+function rebuildLogoList() {
+  const D = currentDesign();
+  logoListEl.innerHTML = '';
+  /* show top-of-stack first — D.logos[last] is the topmost */
+  const arr = [...D.logos].reverse();
+  for (const L of arr) {
+    const idx = D.logos.indexOf(L);
+    const isTop = idx === D.logos.length - 1;
+    const isBot = idx === 0;
+    const li = document.createElement('li');
+    li.className = 'logo-row' + (L.id === D.selectedLogoId ? ' active' : '');
+    li.dataset.id = String(L.id);
+    li.innerHTML = `
+      <div class="thumb" style="background-image:url('${L.img.src}')"></div>
+      <div class="lname">${L.name}</div>
+      <div class="lmeta">${Math.round(L.scaleFrac * 100)}% · ${Math.round(L.rotation * 180 / Math.PI)}°</div>
+      <div class="layer-arrows">
+        <button type="button" class="layer-arrow up" title="Raise layer" ${isTop ? 'disabled' : ''}>▲</button>
+        <button type="button" class="layer-arrow down" title="Lower layer" ${isBot ? 'disabled' : ''}>▼</button>
+      </div>
+    `;
+    li.addEventListener('click', () => selectLogo(L.id));
+    li.querySelector('.layer-arrow.up').addEventListener('click', (e) => {
+      e.stopPropagation();
+      moveLayer(L.id, +1);
+    });
+    li.querySelector('.layer-arrow.down').addEventListener('click', (e) => {
+      e.stopPropagation();
+      moveLayer(L.id, -1);
+    });
+    logoListEl.appendChild(li);
+  }
+  const n = D.logos.length;
+  logoCount.textContent = `${n} logo${n === 1 ? '' : 's'}`;
+}
+
+/* Move one logo up (+1) or down (-1) one layer in the stack. */
+function moveLayer(id, dir) {
+  const D = currentDesign();
+  const i = D.logos.findIndex(L => L.id === id);
+  if (i < 0) return;
+  const j = i + dir;
+  if (j < 0 || j >= D.logos.length) return;
+  [D.logos[i], D.logos[j]] = [D.logos[j], D.logos[i]];
+  rebuildLogoList();
+  redrawFlat();
+}
+function syncLogoControls() {
+  const L = getSelectedLogo();
+  if (!L) { logoControls.hidden = true; return; }
+  logoControls.hidden = false;
+  lcName.textContent = L.name;
+  lcX.value = (L.xFrac * 100).toFixed(1); lcXR.textContent = `${Math.round(L.xFrac * 100)}%`;
+  lcY.value = (L.yFrac * 100).toFixed(1); lcYR.textContent = `${Math.round(L.yFrac * 100)}%`;
+  lcS.value = (L.scaleFrac * 100).toFixed(1); lcSR.textContent = `${Math.round(L.scaleFrac * 100)}%`;
+  const deg = L.rotation * 180 / Math.PI;
+  lcR.value = deg.toFixed(0); lcRR.textContent = `${Math.round(deg)}°`;
+}
+function bindSlider(input, readout, getVal, setVal, suffix) {
+  input.addEventListener('input', () => {
+    const L = getSelectedLogo();
+    if (!L) return;
+    setVal(L, parseFloat(input.value));
+    readout.textContent = `${Math.round(parseFloat(input.value))}${suffix}`;
+    redrawFlat();
+    rebuildLogoList();
+  });
+}
+bindSlider(lcX, lcXR, L => L.xFrac, (L, v) => L.xFrac = v / 100, '%');
+bindSlider(lcY, lcYR, L => L.yFrac, (L, v) => L.yFrac = v / 100, '%');
+bindSlider(lcS, lcSR, L => L.scaleFrac, (L, v) => L.scaleFrac = v / 100, '%');
+
+/* Rotation slider — snaps to 0 / ±90 / ±180 within a 2° magnet zone, free
+   anywhere outside the zones. */
+const ROTATION_SNAPS = [-180, -90, 0, 90, 180];
+const SNAP_TOLERANCE_DEG = 2;
+lcR.addEventListener('input', () => {
+  const L = getSelectedLogo();
+  if (!L) return;
+  let deg = parseFloat(lcR.value);
+  for (const s of ROTATION_SNAPS) {
+    if (Math.abs(deg - s) <= SNAP_TOLERANCE_DEG) {
+      deg = s;
+      lcR.value = String(s);
+      break;
+    }
+  }
+  L.rotation = deg * Math.PI / 180;
+  lcRR.textContent = `${Math.round(deg)}°`;
+  redrawFlat();
+  rebuildLogoList();
+});
+
+/* Action buttons */
+document.querySelectorAll('.lc-act').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const L = getSelectedLogo();
+    if (!L) return;
+    const D = currentDesign();
+    const i = D.logos.indexOf(L);
+    if (btn.dataset.act === 'delete') {
+      D.logos.splice(i, 1);
+      D.selectedLogoId = D.logos.length ? D.logos[D.logos.length - 1].id : null;
+    } else if (btn.dataset.act === 'front' && i < D.logos.length - 1) {
+      D.logos.splice(i, 1);
+      D.logos.push(L);
+    } else if (btn.dataset.act === 'back' && i > 0) {
+      D.logos.splice(i, 1);
+      D.logos.unshift(L);
+    }
+    rebuildLogoList();
+    syncLogoControls();
+    redrawFlat();
+  });
+});
+
+/* Upload */
+document.getElementById('logo-pick').addEventListener('click', () => logoFile.click());
+logoFile.addEventListener('change', () => {
+  const f = logoFile.files?.[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const id = nextLogoId++;
+      const L = {
+        id, name: f.name || `logo ${id}`, img,
+        xFrac: 0.5, yFrac: 0.5, scaleFrac: 0.35, rotation: 0,
+      };
+      const D = currentDesign();
+      D.logos.push(L);
+      D.selectedLogoId = id;
+      rebuildLogoList();
+      syncLogoControls();
+      redrawFlat();
+    };
+    img.onerror = () => console.warn('logo failed to load');
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(f);
+  logoFile.value = '';   // allow re-uploading the same file
+});
+
+/* Nav hamburger */
+document.getElementById('nav-hamburger')?.addEventListener('click', () => {
+  document.getElementById('nav-links')?.classList.toggle('open');
+});
+
+/* ─────────────────────────────────────────────────────────────────────
+   Boot
+   ───────────────────────────────────────────────────────────────────── */
+resizeFlat();
+rebuildCan();
+onResize();
+loading.style.display = 'none';
+tick();
+
+/* ─────────────────────────────────────────────────────────────────────
+   Cap-tuning debug sliders. Each slider mutates CAP_PARAMS and rebuilds.
+   ───────────────────────────────────────────────────────────────────── */
+const CAP_KEYS = ['offY','ringH','ringF','lipH','lipF','domeH','domeF','valveR','valveH'];
+const CAP_UNITS = { ringF: '', lipF: '', domeF: '' };  // ratios = unitless, rest = ″
+function fmt(key, v) {
+  const unit = CAP_UNITS[key] ?? '″';
+  return `${v.toFixed(unit === '″' ? 2 : 3)}${unit}`;
+}
+function syncCapPanel() {
+  for (const k of CAP_KEYS) {
+    const inp = document.getElementById(`cp-${k}`);
+    const out = document.getElementById(`cp-${k}-r`);
+    if (inp) inp.value = String(CAP_PARAMS[k]);
+    if (out) out.textContent = fmt(k, CAP_PARAMS[k]);
+  }
+  document.getElementById('cp-output').value = JSON.stringify(CAP_PARAMS, null, 2);
+}
+function onCapSlider(key, raw) {
+  const v = parseFloat(raw);
+  if (Number.isFinite(v)) {
+    CAP_PARAMS[key] = v;
+    document.getElementById(`cp-${key}-r`).textContent = fmt(key, v);
+    document.getElementById('cp-output').value = JSON.stringify(CAP_PARAMS, null, 2);
+    rebuildCan();
+  }
+}
+for (const k of CAP_KEYS) {
+  const inp = document.getElementById(`cp-${k}`);
+  if (inp) inp.addEventListener('input', () => onCapSlider(k, inp.value));
+}
+document.getElementById('cp-reset').addEventListener('click', () => {
+  Object.assign(CAP_PARAMS, CAP_DEFAULTS);
+  syncCapPanel();
+  rebuildCan();
+});
+document.getElementById('cp-copy').addEventListener('click', async () => {
+  const txt = JSON.stringify(CAP_PARAMS, null, 2);
+  try { await navigator.clipboard.writeText(txt); } catch (_) {}
+  /* select the textarea so the user can copy from there too if clipboard
+     write was blocked */
+  const out = document.getElementById('cp-output');
+  out.value = txt;
+  out.select();
+});
+/* Initialise the panel + textarea on boot */
+syncCapPanel();
+
+/* debug hook */
+window.__designer = { CANS, state, rig, body, canvasTex, flatCanvas, CAP_PARAMS };
+</script>
+
+</body>
+</html>

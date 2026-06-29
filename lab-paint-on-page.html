@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graffiti+ | Paint experiment</title>
+  <meta name="robots" content="noindex,nofollow">
+
+  <!-- Use the ORIGINAL site stylesheets so the hero looks exactly like
+       graffitiplus.io — nothing about the existing design is overridden. -->
+  <link rel="stylesheet" href="style.css?v=design-2026-05-22-s">
+  <link rel="stylesheet" href="style-v4.css?v=design-2026-05-22-s">
+
+  <!-- QRious — self-contained browser QR generator (~17 KB) -->
+  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+
+  <!-- opentype.js (parses the GRFT+ TTF so the hero can-writer can extract glyph paths) -->
+  <script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+
+  <style>
+    /* Font + base resets already come from style.css / style-v4.css.
+       This <style> block holds ONLY the paint-experiment chrome
+       (brick wall, paint canvas, HUD, can cursor, exit button). */
+    :root {
+      --accent: #ffc800;
+    }
+
+    /* Experiment shell: lock viewport (no scroll) so the reveal has a clean
+       stage. `perspective` enables the 3D tip-forward on the site frame. */
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      perspective: 1400px;
+      perspective-origin: 50% 30%;
+    }
+
+    /* ════════════════════════════════════════════
+       BRICK WALL — slams in from below behind the falling site
+       ════════════════════════════════════════════ */
+    .brick-wall {
+      position: fixed; inset: 0;
+      z-index: 0;
+      background-color: #2a1b14;
+      background-image:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='120'><rect width='240' height='120' fill='%23271710'/><g><rect x='3' y='3' width='112' height='52' fill='%239c4a2f'/><rect x='119' y='3' width='118' height='52' fill='%23b35836'/><rect x='-55' y='63' width='112' height='54' fill='%23a64f30'/><rect x='61' y='63' width='112' height='54' fill='%2394462a'/><rect x='177' y='63' width='118' height='54' fill='%23aa5232'/></g><g fill='%23000' fill-opacity='0.18'><rect x='3' y='49' width='112' height='6'/><rect x='119' y='49' width='118' height='6'/><rect x='-55' y='109' width='112' height='8'/><rect x='61' y='109' width='112' height='8'/><rect x='177' y='109' width='118' height='8'/></g><g fill='%23fff' fill-opacity='0.05'><rect x='3' y='3' width='112' height='5'/><rect x='119' y='3' width='118' height='5'/><rect x='-55' y='63' width='112' height='5'/><rect x='61' y='63' width='112' height='5'/><rect x='177' y='63' width='118' height='5'/></g></svg>");
+      background-size: 240px 120px;
+      background-repeat: repeat;
+      box-shadow: inset 0 0 200px rgba(0,0,0,0.65);
+      /* Resting state: zoomed-in, pulled down, hidden */
+      opacity: 0;
+      transform: translateY(20vh) scale(1.18);
+      transition:
+        transform 0.95s cubic-bezier(.18,.89,.32,1.18),
+        opacity 0.55s ease-out;
+    }
+    body.paint-mode .brick-wall {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    /* Brief impact flash overlay — fires once when entering paint mode */
+    .brick-wall::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 60%, rgba(255,200,0,0.35), transparent 60%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    body.paint-mode .brick-wall::after { animation: brickFlash 0.9s ease-out forwards; }
+    @keyframes brickFlash {
+      0%   { opacity: 0; }
+      18%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* ════════════════════════════════════════════
+       SITE FRAME — tips forward, slides down, blurs out
+       ════════════════════════════════════════════ */
+    .site-frame {
+      position: relative;
+      z-index: 5;
+      transform-origin: 50% 0%;
+      transform-style: preserve-3d;
+      will-change: transform, opacity, filter;
+      transition:
+        transform 0.85s cubic-bezier(.55,.05,.45,1),
+        opacity  0.7s cubic-bezier(.4,0,.2,1),
+        filter   0.7s ease-out;
+    }
+    body.paint-mode .site-frame {
+      /* Tips forward toward the viewer as it falls — heavy, cinematic */
+      transform: translateY(110vh) rotateX(-18deg) scale(0.92);
+      opacity: 0;
+      filter: blur(10px);
+      pointer-events: none;
+    }
+
+    /* Hero canvas where the GRFT+ spray-can writes "since 2008" in place of
+       the static graffiti span. Sized to match the ORIGINAL .hero-tagged text
+       (clamp(4.4rem, 10.5vw, 11rem)) — the GRFT+ glyphs in the SVG occupy
+       ~56% of the SVG height, so the stage height needs to be ~1.8× the
+       target glyph height. */
+    .hero-anim-stage {
+      display: block;
+      pointer-events: none;       /* only the can within receives clicks */
+      line-height: 0;
+      /* The viewBox is 14:5 with the text baseline at y=340 (68% of 500).
+         The top 38% of the SVG box is empty space above the glyphs — which,
+         left alone, creates a gap between "digital graffiti" and the wordmark.
+         Pull the stage UP by that empty-top portion so the text visually
+         adjoins the heading above it. */
+      --stage-h: clamp(7.5rem, 18vw, 18rem);
+      margin-top: calc(var(--stage-h) * -0.42);
+    }
+    .hero-anim-stage svg {
+      display: block;
+      height: var(--stage-h);
+      width: auto;
+      max-width: 100%;
+      overflow: visible;
+    }
+    /* The spray can image inside the stage is the only interactive bit.
+       Always-on drop-shadow gives it presence — lifts off the hero background
+       like a real object resting on top of the wall. */
+    .hero-anim-stage image {
+      pointer-events: auto;
+      filter: drop-shadow(0 28px 42px rgba(0,0,0,0.55))
+              drop-shadow(0 10px 14px rgba(0,0,0,0.40));
+    }
+
+    /* ════════════════════════════════════════════
+       PAINT MODE chrome — HUD and exit button
+       ════════════════════════════════════════════ */
+    body.paint-mode { cursor: none; }
+    body.paint-mode #paint { cursor: none; }
+
+    .exit-paint {
+      position: fixed;
+      top: 24px; left: 24px;
+      z-index: 55;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(-60px) scale(0.85);
+      pointer-events: none;
+      transition:
+        opacity 0.45s 0.45s,
+        transform 0.55s 0.45s cubic-bezier(.18,.89,.32,1.28),
+        background 0.2s;
+    }
+    body.paint-mode .exit-paint {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+    .exit-paint:hover { background: var(--accent); color: #000d10; border-color: var(--accent); }
+
+    /* ════════════════════════════════════════════
+       MAKE-IT-AR MODAL — fullscreen blackout, QR is the hero
+       ════════════════════════════════════════════ */
+    /* The yellow CTA in the HUD that opens the modal */
+    .hud-cta.hud-cta {
+      background: var(--accent) !important;
+      color: #000d10 !important;
+      border-color: var(--accent) !important;
+    }
+    .hud-cta.hud-cta:hover {
+      background: #fff !important;
+      color: #000 !important;
+      border-color: #fff !important;
+    }
+
+    .share-modal {
+      position: fixed; inset: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at center, rgba(20,8,4,0.92), rgba(0,0,0,0.97));
+      backdrop-filter: blur(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+    .share-modal.open { opacity: 1; pointer-events: auto; }
+    .share-close {
+      position: fixed; top: 24px; right: 24px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent; color: #fff;
+      cursor: pointer; font-size: 18px;
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+      z-index: 101;
+    }
+    .share-close:hover { background: #fff; color: #000; transform: rotate(90deg); }
+
+    .share-stage {
+      text-align: center;
+      max-width: 480px;
+      padding: 0 24px;
+      transform: scale(0.85);
+      opacity: 0;
+      transition:
+        transform 0.7s cubic-bezier(.18,.89,.32,1.28),
+        opacity 0.5s 0.1s;
+    }
+    .share-modal.open .share-stage {
+      transform: scale(1);
+      opacity: 1;
+    }
+    .share-eyebrow {
+      display: block;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .share-title {
+      font-size: clamp(28px, 4.5vw, 44px);
+      font-weight: 800;
+      margin: 0 0 28px;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+    .share-qr-wrap {
+      background: #fff;
+      padding: 22px;
+      border-radius: 18px;
+      box-shadow:
+        0 30px 80px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 0 60px rgba(255,200,0,0.18);
+      display: inline-block;
+      transition: transform 0.3s;
+    }
+    .share-qr-wrap:hover { transform: scale(1.02); }
+    .share-qr {
+      width: 320px; height: 320px;
+      display: block;
+    }
+    .share-sub {
+      font-size: 15px;
+      color: rgba(255,255,255,0.78);
+      line-height: 1.55;
+      margin: 24px 0 18px;
+    }
+    .share-actions {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .share-preview-link {
+      font-size: 12px;
+      color: rgba(255,255,255,0.75);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      letter-spacing: 0.05em;
+      padding: 8px 14px;
+    }
+    .share-preview-link:hover { color: var(--accent); }
+    .share-download {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .share-download:hover { background: #fff; color: #000; }
+    .share-url {
+      display: block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      word-break: break-all;
+      margin: 8px 0;
+    }
+    .share-demo-note {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      font-style: italic;
+      margin: 0;
+    }
+
+    /* ════════════════════════════════════════════
+       AR VIEWER MODE — same page, activated by URL ?view=<id>
+       Renders the artwork fullscreen for the "boom" moment.
+       ════════════════════════════════════════════ */
+    .ar-viewer {
+      position: fixed; inset: 0;
+      z-index: 200;
+      display: none;
+      /* Mid-grey instead of pure black so black paint strokes stay visible
+         against the backdrop. Subtle radial vignette adds depth. */
+      background: radial-gradient(ellipse at center, #4a4a4a, #2a2a2a 80%);
+      align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    body.ar-view .ar-viewer { display: flex; }
+    body.ar-view .site-frame,
+    body.ar-view .brick-wall,
+    body.ar-view #paint,
+    body.ar-view .can-cursor,
+    body.ar-view .hud,
+    body.ar-view .exit-paint,
+    body.ar-view .share-modal { display: none !important; }
+    body.ar-view { cursor: default; }
+    .ar-art {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 30px 60px rgba(0,0,0,0.8));
+    }
+    .ar-art-fallback,
+    .ar-quicklook img { animation: arFloat 6s ease-in-out infinite; }
+    .ar-quicklook {
+      display: flex; align-items: center; justify-content: center;
+      width: 100vw; height: 100vh;
+    }
+    /* AR-viewer launch button — yellow circle stacked over a label */
+    .ar-launch {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-decoration: none;
+      color: #fff;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .ar-launch-bubble {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      transition: background 0.2s, transform 0.2s;
+    }
+    .ar-launch:hover .ar-launch-bubble {
+      background: #fff;
+      transform: translateY(-2px);
+    }
+    .ar-launch-icon {
+      width: 30px; height: 30px;
+      display: block;
+    }
+    @keyframes arFloat {
+      0%, 100% { transform: translateY(0) rotate(-0.5deg); }
+      50%      { transform: translateY(-12px) rotate(0.5deg); }
+    }
+    .ar-viewer-overlay {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* ── PAINT CANVAS — gated on paint mode ── */
+    #paint {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+    body.paint-mode #paint { pointer-events: auto; }
+
+    /* ── HUD (color palette + brush controls) — slides in on paint mode ── */
+    .hud {
+      position: fixed;
+      top: clamp(20px, 3vh, 40px);
+      left: 50%;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 12px 16px;
+      border-radius: 999px;
+      opacity: 0;
+      transform: translate(-50%, -200%) scale(0.8);
+      pointer-events: none;
+      transition:
+        opacity 0.5s 0.45s,
+        transform 0.7s 0.45s cubic-bezier(.18,.89,.32,1.22);
+    }
+    body.paint-mode .hud {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+      pointer-events: auto;
+    }
+
+    .swatch {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .swatch:hover { transform: scale(1.1); }
+    .swatch.active {
+      border-color: #fff;
+      transform: scale(1.15);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+    }
+
+    .hud .divider {
+      width: 1px;
+      height: 24px;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .hud button {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-weight: 700;
+      font-family: inherit;
+      transition: background 0.2s, color 0.2s;
+    }
+    .hud button:hover { background: #fff; color: #000d10; }
+
+    .hud .size-slider {
+      width: 80px;
+      accent-color: var(--accent);
+    }
+    .hud label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.6;
+    }
+
+    /* Cap (brush-shape) picker */
+    .caps { display: flex; gap: 6px; }
+    .caps .cap {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: transparent;
+      color: #fff;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
+      padding: 0;
+    }
+    .caps .cap:hover { transform: scale(1.08); border-color: rgba(255,255,255,0.6); }
+    .caps .cap.active {
+      background: var(--accent);
+      color: #000d10;
+      border-color: var(--accent);
+    }
+
+    /* ── Spray-can cursor (paint-mode only) ── */
+    .can-cursor {
+      position: fixed;
+      height: 150px;
+      width: auto;
+      pointer-events: none;
+      z-index: 60;
+      left: -9999px; top: -9999px;
+      /* Nozzle sits ~8px from the top of the PNG — anchor + pivot there. */
+      transform-origin: 50% 8px;
+      transform: translate(-50%, -8px) rotate(0deg);
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.55))
+              drop-shadow(0 3px 6px rgba(0,0,0,0.40));
+      will-change: transform, left, top;
+      -webkit-user-drag: none;
+      user-select: none;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    body.paint-mode .can-cursor { opacity: 1; }
+    /* Keep system cursor over interactive HUD even in paint mode */
+    .hud, .hud * { cursor: pointer; }
+    .hud input[type=range], .hud input[type=range] * { cursor: ew-resize; }
+    .exit-paint { cursor: pointer; }
+
+    /* ── Top corner badge ── */
+    .badge {
+      position: fixed;
+      top: 24px; left: 24px;
+      z-index: 50;
+      font-family: "GraffitiPlus Display", sans-serif;
+      font-size: 36px;
+      color: #ffffff;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BRICK WALL behind everything — revealed in paint mode -->
+  <div class="brick-wall"></div>
+
+  <!-- SITE FRAME — original markup from index.html, untouched.
+       Slides down when the can is clicked to reveal the brick wall. -->
+  <div class="site-frame">
+    <!-- NAV — copied verbatim from index.html -->
+    <nav>
+      <a class="nav-logo" href="index.html">
+        <img src="images/logo-v4.webp" alt="Graffiti+">
+      </a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="rentals.html">Rentals</a></li>
+        <li><a href="add-ons.html">Add-ons</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <button class="nav-hamburger" aria-label="Menu" id="nav-hamburger">☰</button>
+    </nav>
+
+    <!-- HERO — copied verbatim from index.html -->
+    <section class="v2-hero">
+      <img src="images/hero.webp" alt="Graffiti+ interactive digital graffiti wall — live event activation">
+      <div class="v2-hero-overlay"></div>
+      <div class="v2-hero-content">
+        <p class="v2-eyebrow">The original.</p>
+        <h1 class="v2-hero-tag">
+          <span class="hero-typed">
+            <span class="line">Pioneering</span>
+            <span class="line">digital graffiti</span>
+          </span>
+          <!-- "since 2008" is now spray-can-written by hero-can-writer.js.
+               The SVG is injected into this div; after animation completes,
+               the can settles next to the wordmark and becomes the paint-
+               mode trigger (replaces the old 3D model-viewer hero can). -->
+          <div class="hero-anim-stage" id="hero-anim" aria-label="since 2008"></div>
+        </h1>
+        <a href="#contact" class="btn-primary">Book a demo</a>
+      </div>
+      <div class="v2-hero-scroll">Scroll</div>
+    </section>
+
+    <!-- STATS BAR — copied verbatim from index.html -->
+    <div class="v2-stats-bar">
+      <div class="v2-stat-item">
+        <span class="v2-stat-num grft">18</span>
+        <span class="v2-stat-label">Years of deployment</span>
+      </div>
+      <div class="v2-stat-divider"></div>
+      <div class="v2-stat-item">
+        <span class="v2-stat-num grft">500+</span>
+        <span class="v2-stat-label">Global activations</span>
+      </div>
+      <div class="v2-stat-divider"></div>
+      <div class="v2-stat-item">
+        <span class="v2-stat-num grft">6</span>
+        <span class="v2-stat-label">Continents</span>
+      </div>
+      <div class="v2-stat-divider"></div>
+      <div class="v2-stat-item">
+        <span class="v2-stat-num grft">2008</span>
+        <span class="v2-stat-label">Vancouver, BC</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exit-paint button — visible only in paint mode -->
+  <button class="exit-paint" id="exitPaint">← Back to the website</button>
+
+  <!-- Paint canvas (always on, full-window) -->
+  <canvas id="paint"></canvas>
+
+  <!-- Spray-can cursor -->
+  <!-- Static PNG cursor — much lighter than a live WebGL scene, so paint
+       strokes don't compete with the cursor for GPU time. The 3D can lives
+       only in the hero now. -->
+  <img class="can-cursor" id="canCursor" src="images/grft_branded_can.png" alt="" draggable="false">
+
+  <!-- HUD -->
+  <div class="hud" id="hud">
+    <button class="swatch active" style="background:#ffc800" data-color="#ffc800"></button>
+    <button class="swatch"        style="background:#ffffff" data-color="#ffffff"></button>
+    <button class="swatch"        style="background:#ff3a78" data-color="#ff3a78"></button>
+    <button class="swatch"        style="background:#3acfff" data-color="#3acfff"></button>
+    <button class="swatch"        style="background:#3aff8c" data-color="#3aff8c"></button>
+    <button class="swatch"        style="background:#000000" data-color="#000000"></button>
+    <span class="divider"></span>
+    <div class="caps" id="caps">
+      <button class="cap active" data-cap="flare"   title="Flare (spray cap)">F</button>
+      <button class="cap"        data-cap="chisel"  title="Chisel-tip marker">▱</button>
+    </div>
+    <span class="divider"></span>
+    <label>Size</label>
+    <input type="range" min="15" max="220" value="60" class="size-slider" id="sizeSlider">
+    <label>Drip</label>
+    <input type="range" min="0" max="100" value="20" class="size-slider" id="dripSlider">
+    <span class="divider"></span>
+    <button id="clearBtn">Clear</button>
+    <button id="saveBtn" class="hud-cta">Make it AR</button>
+  </div>
+
+  <!-- MAKE-IT-AR MODAL — fullscreen, QR is the hero -->
+  <div class="share-modal" id="shareModal" aria-hidden="true">
+    <button class="share-close" id="shareClose" aria-label="Close">✕</button>
+    <div class="share-stage">
+      <span class="share-eyebrow">Your tag — IRL</span>
+      <h2 class="share-title">Scan to make it real.</h2>
+      <div class="share-qr-wrap">
+        <canvas class="share-qr" id="shareQR" width="320" height="320"></canvas>
+      </div>
+      <p class="share-sub">Point your phone camera at the code.<br>Your graffiti opens in AR, ready to drop on any wall.</p>
+      <div class="share-actions">
+        <a class="share-preview-link" id="sharePreviewLink" target="_blank">↗ Preview on this device</a>
+        <a class="share-download" id="shareDownload" download="grft-tag.png">⬇ Save PNG</a>
+      </div>
+      <code class="share-url" id="shareUrl">—</code>
+      <p class="share-demo-note" id="shareNote">Demo mode — same-browser only. Cross-device needs a backend (next step).</p>
+    </div>
+  </div>
+
+  <!-- AR-VIEWER MODE — same page, activated by ?view=<id> in URL.
+       On iOS the <a rel="ar"> link triggers native AR Quick Look — no
+       library needed. Non-iOS visitors just see the static image. -->
+  <div class="ar-viewer" id="arViewer" aria-hidden="true">
+    <a id="arLink" rel="ar" href="" class="ar-quicklook" style="display:none">
+      <img class="ar-art" id="arArt" alt="Your graffiti tag">
+    </a>
+    <img class="ar-art ar-art-fallback" id="arArtFallback" alt="Your graffiti tag" style="display:none">
+    <!-- Just the AR launch button — no eyebrow, no title, no secondary CTA.
+         The painted tag is the only other thing visible against the backdrop. -->
+    <div class="ar-viewer-overlay">
+      <a class="ar-launch" id="arLaunch" rel="ar" href="" style="display:none">
+        <span class="ar-launch-bubble">
+          <img class="ar-launch-icon" alt="" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000d10' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2 L21 7 V17 L12 22 L3 17 V7 Z'/><path d='M12 12 L12 22'/><path d='M12 12 L21 7'/><path d='M12 12 L3 7'/></svg>">
+        </span>
+        <span class="ar-launch-text">View in AR</span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    /* ════════════════════════════════════════════
+       PAINT CANVAS
+       ════════════════════════════════════════════ */
+    const paint = document.getElementById('paint');
+    const pctx = paint.getContext('2d');
+    function resizePaint() {
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      // Preserve existing artwork across resizes
+      const old = document.createElement('canvas');
+      old.width = paint.width; old.height = paint.height;
+      old.getContext('2d').drawImage(paint, 0, 0);
+      paint.width  = window.innerWidth  * dpr;
+      paint.height = window.innerHeight * dpr;
+      paint.style.width  = window.innerWidth + 'px';
+      paint.style.height = window.innerHeight + 'px';
+      pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      pctx.drawImage(old, 0, 0, old.width / dpr, old.height / dpr);
+    }
+    resizePaint();
+    window.addEventListener('resize', resizePaint);
+
+    let painting = false;
+    let color = '#ffc800';
+    let brushSize = 60;
+    let cap = 'flare';
+    let dripChance = 0.20;
+    let lastX = 0, lastY = 0;
+    let lastMoveT = 0;
+    let lastVel = 0;
+
+    /* ════════════════════════════════════════════
+       BRUSH ENGINE — stamp pre-render cache
+       ════════════════════════════════════════════ */
+    const stampCache = new Map();
+    const sizeBucket = (s) => Math.max(2, Math.round(s / 2) * 2);
+
+    function buildStamp(capName, col, size) {
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const x = c.getContext('2d');
+      const r = size / 2;
+      x.translate(r, r);
+      if (capName === 'flare') {
+        // ── IRREGULAR HALO ──
+        // Real spray stamps aren't perfect circles. The bright spot sits
+        // slightly off-centre (can wasn't perfectly perpendicular) and the
+        // outer cloud has an angle-dependent wobble in its radius.
+        // Three pre-baked sine harmonics with random phases give a unique
+        // organic boundary per cached stamp.
+        const cx = (Math.random() - 0.5) * r * 0.18;
+        const cy = (Math.random() - 0.5) * r * 0.18;
+        const ph1 = Math.random() * Math.PI * 2;
+        const ph2 = Math.random() * Math.PI * 2;
+        const ph3 = Math.random() * Math.PI * 2;
+        // Noisy radius at angle `a` — varies smoothly between ~0.8r and ~1.15r
+        const noisyR = (a) =>
+          r * (1 + 0.14 * Math.sin(2 * a + ph1)
+                 + 0.09 * Math.sin(3 * a + ph2)
+                 + 0.05 * Math.sin(5 * a + ph3));
+
+        // Layered halo: two overlapping radial gradients with the off-centre
+        // bright spot — produces an asymmetric soft cloud, not a perfect disc.
+        const g1 = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+        g1.addColorStop(0,    hexA(col, 0.42));
+        g1.addColorStop(0.35, hexA(col, 0.13));
+        g1.addColorStop(0.80, hexA(col, 0.025));
+        g1.addColorStop(1,    hexA(col, 0));
+        x.fillStyle = g1;
+        x.beginPath(); x.arc(0, 0, r, 0, Math.PI * 2); x.fill();
+        // Secondary lobe slightly offset for asymmetry
+        const ox = (Math.random() - 0.5) * r * 0.4;
+        const oy = (Math.random() - 0.5) * r * 0.4;
+        const g2 = x.createRadialGradient(ox, oy, 0, ox, oy, r * 0.7);
+        g2.addColorStop(0, hexA(col, 0.18));
+        g2.addColorStop(1, hexA(col, 0));
+        x.fillStyle = g2;
+        x.beginPath(); x.arc(0, 0, r, 0, Math.PI * 2); x.fill();
+
+        // ── GRAIN ── with noisy-boundary falloff
+        const grainCount = Math.min(900, Math.round(r * r * 0.7));
+        for (let i = 0; i < grainCount; i++) {
+          const a   = Math.random() * Math.PI * 2;
+          const rEdge = noisyR(a);                     // boundary at this angle
+          // Center-biased toward the off-center bright spot (cx, cy)
+          const rr  = Math.pow(Math.random(), 1.4) * rEdge;
+          const dx  = cx + Math.cos(a) * rr;
+          const dy  = cy + Math.sin(a) * rr;
+          const edge = rr / rEdge;                     // 0 at peak, 1 at edge
+          const sz   = (0.35 + Math.random() * 1.1) * (1 - edge * 0.5);
+          const alpha = (0.05 + Math.random() * 0.18) * (1 - edge * 0.7);
+          x.fillStyle = hexA(col, alpha);
+          x.beginPath(); x.arc(dx, dy, sz, 0, Math.PI * 2); x.fill();
+        }
+        // Fly specks beyond the noisy boundary
+        const flyCount = Math.round(grainCount * 0.05);
+        for (let i = 0; i < flyCount; i++) {
+          const a  = Math.random() * Math.PI * 2;
+          const rr = noisyR(a) * (1.0 + Math.random() * 0.22);
+          const sz = 0.4 + Math.random() * 0.9;
+          x.fillStyle = hexA(col, 0.10 + Math.random() * 0.18);
+          x.beginPath(); x.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, sz, 0, Math.PI * 2); x.fill();
+        }
+      } else if (capName === 'chisel') {
+        // Slanted chisel-tip marker nib — flat rectangle tilted ~35°.
+        // Stroking against the nib's long axis = wide line; with it = thin line.
+        const nibW = r * 1.75;            // long axis (full nib width)
+        const nibH = r * 0.42;            // short axis (nib thickness)
+        x.rotate(-Math.PI / 5);           // ~-36° slant
+        x.fillStyle = hexA(col, 1);
+        x.fillRect(-nibW / 2, -nibH / 2, nibW, nibH);
+      }
+      return c;
+    }
+
+    function getStamp(capName, col, size) {
+      const bucket = sizeBucket(size);
+      const k = `${capName}|${col}|${bucket}`;
+      let s = stampCache.get(k);
+      if (!s) { s = buildStamp(capName, col, bucket); stampCache.set(k, s); }
+      if (stampCache.size > 120) stampCache.delete(stampCache.keys().next().value);
+      return s;
+    }
+
+    function hexA(hex, a) {
+      const n = parseInt(hex.slice(1), 16);
+      return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+    }
+
+    const SPACING = { flare: 0.06, chisel: 0.08 };
+
+    // Real-can behaviour: when the can moves fast, less paint lands per
+    // unit length so the line looks THINNER; slow passes pile up paint and
+    // look FATTER. Only the flare (spray) cap behaves this way — the hard
+    // circle is a constant-width fill.
+    function flareSpeedScale() {
+      // lastVel is in px/ms. 0 = still, ~2-4 = fast swipe.
+      // Narrower range so the size change is subtle, not dramatic.
+      // Map: 0 → 0.95, 1 → 0.83, 2 → 0.71, 2.5+ → 0.65 (floor).
+      return Math.max(0.65, 0.95 - lastVel * 0.12);
+    }
+
+    // Last flare scale actually applied to a stamp — used to LERP smoothly
+    // across the gap between two pointermove samples so we never see a
+    // hard step from "thin" to "fat".
+    let lastFlareScale = 1.0;
+
+    function stampAt(x, y, scaleOverride) {
+      const stamp = getStamp(cap, color, brushSize);
+      let s = stamp.width;
+      if (cap === 'flare') {
+        s = s * (scaleOverride != null ? scaleOverride : flareSpeedScale());
+        // Random rotation per stamp — breaks the cached grain pattern so it
+        // never visibly repeats along the stroke.
+        pctx.save();
+        pctx.translate(x, y);
+        pctx.rotate(Math.random() * Math.PI * 2);
+        pctx.drawImage(stamp, -s / 2, -s / 2, s, s);
+        pctx.restore();
+      } else {
+        pctx.drawImage(stamp, x - s / 2, y - s / 2, s, s);
+      }
+    }
+
+    function strokeSegment(x0, y0, x1, y1) {
+      const dx = x1 - x0, dy = y1 - y0;
+      const dist = Math.hypot(dx, dy);
+      const spacing = Math.max(1, brushSize * (SPACING[cap] || 0.12));
+      const steps = Math.max(1, Math.ceil(dist / spacing));
+      const targetScale = cap === 'flare' ? flareSpeedScale() : 1;
+      for (let i = 1; i <= steps; i++) {
+        const t = i / steps;
+        if (cap === 'flare') {
+          // LERP between last stamp's scale and this segment's target
+          const scale = lastFlareScale + (targetScale - lastFlareScale) * t;
+          stampAt(x0 + dx * t, y0 + dy * t, scale);
+        } else {
+          stampAt(x0 + dx * t, y0 + dy * t);
+        }
+      }
+      if (cap === 'flare') lastFlareScale = targetScale;
+    }
+
+    /* ════════════════════════════════════════════
+       DRIP — real physics
+       Wetness builds at the brush tip while the user is slow or stationary.
+       When wetness exceeds 1, a drip is spawned — an ANIMATED particle that
+       falls under gravity, accelerates briefly, then drag slows it to a stop.
+       Each frame extends the drip's trail by one segment.
+       ════════════════════════════════════════════ */
+    const SLOW_THRESHOLD = 0.35;   // px/ms — below this the brush is "leaking"
+    const drips = [];              // active falling drips
+    let dripAccum = 0;             // wetness accumulator
+    let dripAccumPos = null;       // {x,y} where wetness is currently building
+
+    function tickWetness(dtMs) {
+      if (!painting || dripChance <= 0) { dripAccum = 0; dripAccumPos = null; return; }
+      const stillMs = performance.now() - lastMoveT;
+      // Velocity decays toward 0 when stationary so the slow-spawn path
+      // takes over after a brief pause.
+      if (stillMs > 30) lastVel *= Math.pow(0.5, dtMs / 100);
+
+      // Wetness deposition (per ms) — tuned so 1 unit ≈ one drip
+      let depPerMs = 0;
+      if (stillMs > 60) {
+        // Pointer held in place — paint pools fast (~1 drip every 0.5s at full dial)
+        depPerMs = 0.0020 * dripChance;
+      } else if (lastVel < SLOW_THRESHOLD) {
+        // Slow stroke — moderate pooling
+        const slowness = 1 - Math.min(1, lastVel / SLOW_THRESHOLD);
+        depPerMs = 0.0007 * dripChance * slowness;
+      }
+      // Bigger brush = more paint laid down = more drip potential
+      depPerMs *= 0.6 + brushSize / 80;
+
+      // If the pointer moved a lot since last accumulation, reset position
+      if (!dripAccumPos || Math.hypot(lastX - dripAccumPos.x, lastY - dripAccumPos.y) > brushSize * 0.4) {
+        dripAccumPos = { x: lastX, y: lastY };
+        dripAccum = 0;
+      } else {
+        // Drift the accumulation point with the brush
+        dripAccumPos.x = lastX;
+        dripAccumPos.y = lastY;
+      }
+
+      dripAccum += depPerMs * dtMs;
+      while (dripAccum >= 1) {
+        spawnDrip(dripAccumPos.x, dripAccumPos.y);
+        dripAccum -= 1;
+      }
+    }
+
+    function spawnDrip(x, y) {
+      drips.push({
+        x: x + (Math.random() - 0.5) * brushSize * 0.18,
+        y: y,
+        vy: 0.15 + Math.random() * 0.25,    // initial fall speed (px/frame @60fps)
+        width: Math.max(1.4, brushSize * (0.08 + Math.random() * 0.10)),
+        color,
+        phase: Math.random() * Math.PI * 2,
+        age: 0,
+        travelled: 0,
+        maxLength: brushSize * (1.5 + Math.random() * 4.5),
+        alive: true,
+      });
+    }
+
+    function tickDrips(dtMs) {
+      const f = dtMs / 16.667;  // frame factor, 1.0 at 60fps
+      for (const d of drips) {
+        if (!d.alive) continue;
+        const px = d.x, py = d.y;
+
+        // PHYSICS:
+        //   Phase 1 (first ~25 frames): tiny gravity accelerates the bead
+        //   Phase 2: drag dominates → vy decays exponentially toward 0
+        const accel = d.age < 25 ? 0.06 : 0;
+        d.vy = d.vy * Math.pow(0.985, f) + accel * f;
+        // Subtle wobble — drips don't fall perfectly straight
+        d.phase += 0.18 * f;
+        d.x += Math.sin(d.phase) * 0.12 * f;
+        d.y += d.vy * f;
+        d.travelled += d.vy * f;
+        d.age += f;
+
+        // Trail segment — constant width so the drip ends crisply, not feathered
+        pctx.lineCap = 'round';
+        pctx.strokeStyle = hexA(d.color, 1);
+        pctx.lineWidth = d.width;
+        pctx.beginPath();
+        pctx.moveTo(px, py);
+        pctx.lineTo(d.x, d.y);
+        pctx.stroke();
+
+        // Death: ran out of paint or slowed below visible threshold
+        if (d.vy * f < 0.025 || d.travelled > d.maxLength) {
+          // Solid heavy bead at the resting point — a defined dot, no fade
+          const beadR = d.width * 0.85;
+          pctx.fillStyle = hexA(d.color, 1);
+          pctx.beginPath();
+          pctx.arc(d.x, d.y, beadR, 0, Math.PI * 2);
+          pctx.fill();
+          d.alive = false;
+        }
+      }
+      // Garbage-collect dead drips
+      for (let i = drips.length - 1; i >= 0; i--) if (!drips[i].alive) drips.splice(i, 1);
+    }
+
+    /* Single animation loop — runs continuously so drips keep falling
+       even after the user lifts the pointer. */
+    let lastFrameT = performance.now();
+    function rafLoop(now) {
+      const dt = Math.min(50, now - lastFrameT);   // clamp huge gaps (tab blur)
+      lastFrameT = now;
+      tickWetness(dt);
+      tickDrips(dt);
+      // Can tilt is click-state driven, not motion-driven:
+      // while painting → lean LEFT firmly; on release → take ~1s to return.
+      const targetTilt    = painting ? PAINTING_TILT    : 0;
+      const targetForward = painting ? PAINTING_FORWARD : 0;
+      // Asymmetric easing: snap into the lean fast on click; ease out slowly
+      // after release so the can doesn't feel like it's snapping back.
+      const easeFactor = painting
+        ? Math.min(1, dt / 40)    // ~3 frames to commit
+        : Math.min(1, dt / 600);  // ~1s to return to upright
+      canTilt    += (targetTilt    - canTilt)    * easeFactor;
+      canForward += (targetForward - canForward) * easeFactor;
+      placeCan();
+      requestAnimationFrame(rafLoop);
+    }
+    requestAnimationFrame(rafLoop);
+
+    /* ════════════════════════════════════════════
+       AEROSOL HISS via Web Audio
+       ════════════════════════════════════════════ */
+    let audioCtx, noise, noiseGain;
+    function ensureAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.6;
+      noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      noise.loop = true;
+      const bp = audioCtx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 1800;
+      bp.Q.value = 0.6;
+      noiseGain = audioCtx.createGain();
+      noiseGain.gain.value = 0;
+      noise.connect(bp).connect(noiseGain).connect(audioCtx.destination);
+      noise.start();
+    }
+    function hissOn()  { ensureAudio(); noiseGain.gain.cancelScheduledValues(audioCtx.currentTime); noiseGain.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.04); }
+    function hissOff() { if (!audioCtx) return; noiseGain.gain.cancelScheduledValues(audioCtx.currentTime); noiseGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.08); }
+
+    /* ════════════════════════════════════════════
+       INPUT
+       ════════════════════════════════════════════ */
+    /* ════════════════════════════════════════════
+       SPRAY-CAN CURSOR — follows pointer, tilts trailing horizontal motion
+       ════════════════════════════════════════════ */
+    const canEl = document.getElementById('canCursor');
+    let canTilt = 0;        // currently displayed left/right tilt (rotateZ)
+    let canForward = 0;     // currently displayed forward tilt (rotateX) — into the wall
+    let canX = -9999, canY = -9999;
+    const PAINTING_TILT = -22;     // deg — sideways lean while click is held
+    const PAINTING_FORWARD = -22;  // deg — forward "into the wall" while painting
+
+    function placeCan() {
+      canEl.style.left = canX + 'px';
+      canEl.style.top  = canY + 'px';
+      canEl.style.transform = `translate(-50%, -8px) rotate(${canTilt}deg)`;
+    }
+    function updateCursor(x, y) {
+      canX = x; canY = y;
+      placeCan();
+    }
+    updateCursor(-9999, -9999);
+
+    // Hide the can when the pointer is over the HUD so it doesn't obscure controls
+    document.addEventListener('pointermove', (e) => {
+      canEl.style.opacity = e.target.closest('.hud') ? '0' : '1';
+    });
+
+    paint.addEventListener('pointerdown', (e) => {
+      painting = true;
+      // Don't reset lastVel — keep the velocity the cursor had right before
+      // the click so a fast-moving click immediately stamps thin (real spray
+      // can: pressing the nozzle while already in motion starts thin).
+      lastX = e.clientX; lastY = e.clientY;
+      lastMoveT = performance.now();
+      // Sync flare-size baseline to whatever speed the cursor had right before
+      // the click — first stamp + first segment lerp from this value.
+      if (cap === 'flare') lastFlareScale = flareSpeedScale();
+      stampAt(e.clientX, e.clientY);
+      hissOn();
+    });
+    function endStroke() {
+      if (!painting) return;
+      painting = false;
+      hissOff();
+    }
+    paint.addEventListener('pointerup',    endStroke);
+    paint.addEventListener('pointerleave', endStroke);
+    paint.addEventListener('pointercancel', endStroke);
+    paint.addEventListener('pointermove', (e) => {
+      updateCursor(e.clientX, e.clientY);
+      // Always track velocity, even when not painting — so the first stamp on
+      // pointerdown already reflects current cursor speed.
+      const now = performance.now();
+      const dt = Math.max(1, now - lastMoveT);
+      const dx = e.clientX - lastX, dy = e.clientY - lastY;
+      const dist = Math.hypot(dx, dy);
+      // Asymmetric smoothing: react FAST when the cursor speeds up (so an
+       // incoming click already shows thin paint), and decay SLOWLY when it
+       // slows down — so a fast sweep that ends in a natural deceleration
+       // before lifting still draws thin lines all the way to the tip.
+       // (If you actually want to pool paint, just hold the cursor still —
+       // the drip/wetness system handles that branch.)
+      const newV = dist / dt;
+      lastVel = newV > lastVel
+        ? lastVel * 0.15 + newV * 0.85    // accelerating — track quickly
+        : lastVel * 0.93 + newV * 0.07;   // decelerating — long memory of speed
+      lastMoveT = now;
+      if (!painting) {
+        lastX = e.clientX; lastY = e.clientY;
+        return;
+      }
+      strokeSegment(lastX, lastY, e.clientX, e.clientY);
+      lastX = e.clientX; lastY = e.clientY;
+    });
+
+    /* ════════════════════════════════════════════
+       HUD WIRING
+       ════════════════════════════════════════════ */
+    document.querySelectorAll('.swatch').forEach(sw => {
+      sw.addEventListener('click', () => {
+        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+        color = sw.dataset.color;
+      });
+    });
+    document.querySelectorAll('.cap').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.cap').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        cap = b.dataset.cap;
+      });
+    });
+    document.getElementById('sizeSlider').addEventListener('input', (e) => {
+      brushSize = +e.target.value;
+    });
+    document.getElementById('dripSlider').addEventListener('input', (e) => {
+      dripChance = (+e.target.value) / 100;
+    });
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      pctx.clearRect(0, 0, paint.width, paint.height);
+    });
+
+    /* ════════════════════════════════════════════
+       PAINT MODE TOGGLE
+       Hero is the resting state. Clicking the hero spray can swaps the
+       site content out (slide-down) and reveals the brick wall behind it.
+       The exit button (or Esc) returns to the hero and wipes the canvas.
+       ════════════════════════════════════════════ */
+    const body = document.body;
+    function enterPaintMode() {
+      body.classList.add('paint-mode');
+      // The can-cursor needs to start at the current pointer location;
+      // until first move, place it where the hero can WAS so the transition
+      // feels like the same can flying into the cursor role. We find the
+      // (now SVG) hero can image instead of the old <model-viewer>.
+      const heroCanImg = document.querySelector('#hero-anim image');
+      if (heroCanImg) {
+        const r = heroCanImg.getBoundingClientRect();
+        updateCursor(r.left + r.width / 2, r.top + 8);
+      }
+    }
+    function exitPaintMode() {
+      body.classList.remove('paint-mode');
+      painting = false;
+      hissOff();
+      pctx.clearRect(0, 0, paint.width, paint.height);
+      drips.length = 0;
+      dripAccum = 0;
+      dripAccumPos = null;
+      // Park the can cursor far offscreen so its fade-out doesn't leave a
+      // ghost hovering in the hero.
+      updateCursor(-9999, -9999);
+      canTilt = 0;
+    }
+    // The hero can's click handler is wired by hero-can-writer.js once
+    // the animation settles — it sits at the end of "2008" and triggers
+    // enterPaintMode on click.
+    document.getElementById('exitPaint').addEventListener('click', exitPaintMode);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && body.classList.contains('paint-mode')) exitPaintMode();
+    });
+
+    /* ════════════════════════════════════════════
+       MAKE-IT-AR — capture canvas, composite over brick, store under a
+       short ID, generate a QR pointing at this SAME page with ?view=<id>.
+       On a phone (same origin) the page boots into the AR viewer instead
+       of paint mode.  Cross-device sharing needs a real backend — for the
+       demo, localStorage holds the artwork (same browser only).
+       ════════════════════════════════════════════ */
+    const shareModal       = document.getElementById('shareModal');
+    const shareQR          = document.getElementById('shareQR');
+    const shareUrlEl       = document.getElementById('shareUrl');
+    const shareDownload    = document.getElementById('shareDownload');
+    const sharePreviewLink = document.getElementById('sharePreviewLink');
+
+    function shortId() {
+      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      let s = '';
+      for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
+      return s;
+    }
+
+    function buildCompositePNG() {
+      const w = paint.width, h = paint.height;
+      const out = document.createElement('canvas');
+      out.width = w; out.height = h;
+      const o = out.getContext('2d');
+      const brickImg = new Image();
+      brickImg.src = "data:image/svg+xml;utf8," + encodeURIComponent(
+        "<svg xmlns='http://www.w3.org/2000/svg' width='240' height='120'><rect width='240' height='120' fill='#271710'/><g><rect x='3' y='3' width='112' height='52' fill='#9c4a2f'/><rect x='119' y='3' width='118' height='52' fill='#b35836'/><rect x='-55' y='63' width='112' height='54' fill='#a64f30'/><rect x='61' y='63' width='112' height='54' fill='#94462a'/><rect x='177' y='63' width='118' height='54' fill='#aa5232'/></g><g fill='#000' fill-opacity='0.18'><rect x='3' y='49' width='112' height='6'/><rect x='119' y='49' width='118' height='6'/><rect x='-55' y='109' width='112' height='8'/><rect x='61' y='109' width='112' height='8'/><rect x='177' y='109' width='118' height='8'/></g></svg>"
+      );
+      return new Promise(resolve => {
+        brickImg.onload = () => {
+          const dpr = window.devicePixelRatio || 1;
+          const tileW = 240 * dpr, tileH = 120 * dpr;
+          for (let y = 0; y < h; y += tileH) {
+            for (let x = 0; x < w; x += tileW) {
+              o.drawImage(brickImg, x, y, tileW, tileH);
+            }
+          }
+          const grad = o.createRadialGradient(w/2, h/2, Math.min(w,h)*0.3, w/2, h/2, Math.max(w,h)*0.65);
+          grad.addColorStop(0, 'rgba(0,0,0,0)');
+          grad.addColorStop(1, 'rgba(0,0,0,0.55)');
+          o.fillStyle = grad; o.fillRect(0, 0, w, h);
+          o.drawImage(paint, 0, 0);
+          resolve(out.toDataURL('image/png'));
+        };
+      });
+    }
+
+    // Build the same-page view URL. Uses the current host so a phone on the
+    // same LAN can resolve it (open the experiment via your Mac's LAN IP
+    // instead of localhost for cross-device demos).
+    function buildViewUrl(id) {
+      const loc = window.location;
+      const path = loc.pathname.split('/').slice(0, -1).join('/') + '/experiment-paint.html';
+      return `${loc.protocol}//${loc.host}${path}?view=${id}`;
+    }
+
+    // Convert a data URL string to a Blob so we can POST raw PNG bytes
+    function dataUrlToBlob(dataUrl) {
+      const [head, b64] = dataUrl.split(',');
+      const mime = head.match(/data:(.*?);/)[1];
+      const bin = atob(b64);
+      const u8 = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      return new Blob([u8], { type: mime });
+    }
+
+    // Upload a single blob under (id, kind). If id is null/undefined the
+    // server mints a fresh one and returns it.
+    async function uploadKind(blob, kind, id) {
+      const qs = new URLSearchParams({ kind });
+      if (id) qs.set('id', id);
+      try {
+        const r = await fetch('/upload?' + qs, {
+          method: 'POST',
+          headers: { 'Content-Type': blob.type || 'application/octet-stream' },
+          body: blob,
+        });
+        if (!r.ok) return null;
+        const j = await r.json();
+        return j.id || null;
+      } catch (e) { return null; }
+    }
+
+    // Upload the painted PNG. The server auto-generates a USDZ from it
+    // (tools/usdz.py) so iOS Quick Look can open it as native AR.
+    // Returns { id, hasAR } or null on failure.
+    async function uploadArtBundle(paintOnly) {
+      const pngBlob = dataUrlToBlob(paintOnly);
+      const id = await uploadKind(pngBlob, 'png');
+      if (!id) return null;
+      // Verify the server-generated USDZ exists (auto-USDZ may have errored)
+      let hasAR = false;
+      try {
+        const r = await fetch(`/art/${encodeURIComponent(id)}.usdz`, { method: 'HEAD' });
+        hasAR = r.ok;
+      } catch (e) { hasAR = false; }
+      return { id, hasAR };
+    }
+    let lastBuildError = null;
+
+    async function openShareModal() {
+      // paintOnly = transparent strokes only (used in AR — graffiti
+      //             floating in space, no fake wall behind it)
+      // composite = paint over brick (used for "wall photo" download)
+      const paintOnly = paint.toDataURL('image/png');
+      const composite = await buildCompositePNG();
+
+      // Prefer server upload (cross-device + real AR files). Fall back
+      // to localStorage if the server isn't reachable.
+      const bundle = await uploadArtBundle(paintOnly);
+      const isServer = !!bundle;
+      const hasAR = !!(bundle && bundle.hasAR);
+      const id = bundle ? bundle.id : shortId();
+      const url = buildViewUrl(id);
+
+      // Always cache locally so same-browser preview works instantly
+      try {
+        localStorage.setItem('grft-tag-latest', JSON.stringify({
+          id, paintOnly, ts: Date.now()
+        }));
+      } catch(e) { console.warn('localStorage save failed', e); }
+
+      shareUrlEl.textContent = url;
+      new QRious({
+        element: shareQR,
+        value: url,
+        size: 320,
+        padding: 8,
+        level: 'M',
+        background: '#ffffff',
+        foreground: '#000000'
+      });
+      shareDownload.href = composite;
+      shareDownload.download = `grft-tag-${id}.png`;
+      sharePreviewLink.href = url;
+
+      // Surface the cross-device situation honestly:
+      const note = document.getElementById('shareNote');
+      const onLocalhost = window.location.hostname === 'localhost'
+                       || window.location.hostname === '127.0.0.1';
+      if (isServer && hasAR && !onLocalhost) {
+        note.innerHTML = "✓ Real AR ready — phone scan opens 'View in AR' on iPhone (USDZ) or Android (GLB).";
+        note.style.color = '#7eff9b';
+      } else if (isServer && !hasAR && !onLocalhost) {
+        const why = lastBuildError ? ` (${lastBuildError.message})` : '';
+        note.innerHTML = "⚠ AR-file build failed" + why + " — phone will see the PNG only, no AR button.";
+        note.style.color = '#ffb347';
+      } else if (isServer && onLocalhost) {
+        note.innerHTML = "Backend up ✓ but you're on <b>localhost</b>. " +
+          "Open the page from your Mac's LAN IP (e.g. " +
+          "<code>http://192.168.1.25:8766/experiment-paint.html</code>) so the phone can resolve it.";
+        note.style.color = '#ffb347';
+      } else {
+        note.innerHTML = "⚠ Upload server not running — same-browser only. " +
+          "Start it: <code>python3 tools/grft-dev-server.py 8766</code>";
+        note.style.color = '#ffb347';
+      }
+
+      shareModal.classList.add('open');
+      shareModal.setAttribute('aria-hidden', 'false');
+    }
+    function closeShareModal() {
+      shareModal.classList.remove('open');
+      shareModal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', openShareModal);
+    document.getElementById('shareClose').addEventListener('click', closeShareModal);
+    shareModal.addEventListener('click', (e) => {
+      if (e.target === shareModal) closeShareModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && shareModal.classList.contains('open')) closeShareModal();
+    });
+
+    /* ════════════════════════════════════════════
+       AR VIEWER BOOT — runs on page load. If URL has ?view=<id>, swap
+       the page into viewer mode and render the stored artwork.
+       ════════════════════════════════════════════ */
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const viewId = params.get('view');
+      if (!viewId) return;
+      document.body.classList.add('ar-view');
+
+      const arLink   = document.getElementById('arLink');
+      const arLaunch = document.getElementById('arLaunch');
+      const poster   = document.getElementById('arArt');
+      const fallback = document.getElementById('arArtFallback');
+
+      async function head(ext) {
+        try {
+          const r = await fetch(`/art/${encodeURIComponent(viewId)}.${ext}`, { method: 'HEAD' });
+          return r.ok;
+        } catch (e) { return false; }
+      }
+      const hasPng  = await head('png');
+      const hasUsdz = await head('usdz');
+
+      let pngSrc = null;
+      if (hasPng) {
+        pngSrc = `/art/${encodeURIComponent(viewId)}.png`;
+      } else {
+        const stored = localStorage.getItem('grft-tag-latest');
+        if (stored) {
+          try {
+            const { id, paintOnly } = JSON.parse(stored);
+            if (id === viewId && paintOnly) pngSrc = paintOnly;
+          } catch (e) { /* corrupted */ }
+        }
+      }
+      if (pngSrc) {
+        poster.src = pngSrc;
+        fallback.src = pngSrc;
+        // The AR launch button uses a static SVG icon (inline data URL) —
+        // no need to inject the painted tag PNG into the button.
+      }
+
+      if (hasUsdz) {
+        // <a rel="ar" href=".usdz"> triggers iOS AR Quick Look natively.
+        // Hash fragments tell Quick Look to apply wall anchoring and to
+        // label its bottom CTA "Tag the wall" so the experience feels
+        // committed rather than a generic 3D object preview.
+        const usdzBase = `/art/${encodeURIComponent(viewId)}.usdz`;
+        const usdzUrl  = `${usdzBase}#callToAction=Tag%20the%20wall&canonicalWebPageURL=${encodeURIComponent(window.location.href)}`;
+        arLink.href = usdzUrl;
+        arLink.style.display = 'flex';
+        arLaunch.href = usdzUrl;
+        arLaunch.style.display = 'inline-block';
+      } else {
+        fallback.style.display = 'block';
+      }
+
+      // (No title element anymore — nothing to update on empty state.)
+    })();
+  </script>
+
+  <!-- Hero spray-can writer: writes "since 2008" with the can; settles next
+       to the wordmark and becomes the paint-mode trigger. -->
+  <script src="js/hero-can-writer.js"></script>
+  <script>
+    (function() {
+      function boot() {
+        if (!window.GrftHeroCanWriter || !window.opentype) {
+          // dependencies still loading
+          return setTimeout(boot, 50);
+        }
+        GrftHeroCanWriter.init({
+          container:  '#hero-anim',
+          text:       'since 2008',
+          color:      'var(--accent)',     // yellow #ffc800 from :root
+          align:      'left',              // align with "Pioneering" / "digital graffiti" column
+          renderMode: 'paint',             // real spray-paint stamps along the recorded path
+          paintBrushSize: 60,              // matches the default paint-mode brush
+          paintCap:   'flare',
+          // EASTER EGG paused — uncomment to make the wordmark a paint-mode trigger again.
+          // onCanClick: enterPaintMode,
+          assets: {
+            font:   'Fonts/GraffitiPlusDisplay-Regular.ttf',
+            can:    'images/grft_branded_can.png',
+            traces: 'Letter animations/grft-traced-paths.json'
+          }
+        });
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot);
+      } else {
+        boot();
+      }
+    })();
+  </script>
+</body>
+</html>
