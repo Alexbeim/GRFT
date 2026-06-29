@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#0A0B0C"/><text x="50" y="63" font-family="Arial, sans-serif" font-weight="700" font-size="30" fill="#FEBD17" text-anchor="middle">G+</text></svg>
+</template>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#e7e5df}
+    textarea.gp-goals{font-family:var(--gp-font-body);font-size:14px;line-height:1.55;color:#0A0B0C;border:1px solid var(--gp-hairline-light);border-radius:2px;background:#FAF9F6;outline:none;width:100%;padding:12px 14px;resize:vertical}
+    textarea.gp-goals:focus{border-color:#0A0B0C;background:#fff}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:#e7e5df;padding:40px;font-family:var(--gp-font-body)">
+
+  <div style="max-width:1320px;margin:0 auto 22px">
+    <div style="display:flex;margin-bottom:18px">
+      <a href="Prototype Hub.dc.html" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:9px 14px;border-radius:2px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;background:#fff;color:#6B6B70;border:1px solid var(--gp-hairline-light)" style-hover="border-color:#0A0B0C;color:#0A0B0C"><span style="font-size:13px">←</span>All modules</a>
+    </div>
+    <div style="font-family:var(--gp-font-mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#B07A00;display:flex;align-items:center;gap:.6em;margin-bottom:10px"><span style="width:7px;height:7px;border-radius:50%;background:#FEBD17;display:inline-block"></span>Module 1 · Internal · Event tracker</div>
+    <div style="font-family:var(--gp-font-mono);font-size:12px;letter-spacing:.04em;color:#6B6B70">Replaces Notion. Use the left nav for each table; click any row to open its record. Happy path.</div>
+  </div>
+
+  <!-- app frame -->
+  <div style="max-width:1320px;margin:0 auto;height:880px;background:#fff;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.10);overflow:hidden;display:flex;flex-direction:column;position:relative">
+    <!-- app bar -->
+    <div style="height:56px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#0A0B0C;border-bottom:1px solid rgba(244,244,242,0.14)">
+      <div style="display:flex;align-items:center;gap:18px">
+        <img src="../assets/logo-grft.png" alt="GRFT+" style="height:20px;filter:brightness(0) invert(1)">
+        <span style="width:1px;height:22px;background:rgba(244,244,242,0.18);display:inline-block"></span>
+        <span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#9A9A96">Event Tracker · Internal</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div onClick="{{search}}" style="width:240px;height:32px;border-radius:2px;background:#16181b;border:1px solid rgba(244,244,242,0.12);display:flex;align-items:center;gap:8px;padding:0 12px;cursor:pointer"><span style="color:#6B6B70;font-size:12px">⌕</span><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#6B6B70">Search</span></div>
+        <div style="width:26px;height:26px;border-radius:50%;background:#2a2c2f"></div>
+      </div>
+    </div>
+
+    <div style="flex:1;display:flex;min-height:0">
+      <!-- left nav -->
+      <div style="width:208px;flex:none;border-right:1px solid var(--gp-hairline-light);padding:18px 12px;background:#FAF9F6;display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{nav}}" as="n" hint-placeholder-count="6">
+          <sc-if value="{{n.active}}" hint-placeholder-val="{{true}}">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 10px;background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#0A0B0C;font-weight:700">{{n.label}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;color:#9A9A96">{{n.count}}</span></div>
+          </sc-if>
+          <sc-if value="{{n.notActive}}" hint-placeholder-val="{{false}}">
+            <div onClick="{{n.go}}" style="display:flex;align-items:center;justify-content:space-between;padding:10px 10px;cursor:pointer;border-radius:2px" style-hover="background:#fff"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70">{{n.label}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;color:#9A9A96">{{n.count}}</span></div>
+          </sc-if>
+        </sc-for>
+      </div>
+
+      <!-- main -->
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+
+        <!-- ============ EVENTS ============ -->
+        <sc-if value="{{showEventsBoard}}" hint-placeholder-val="{{true}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+            <div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">All events</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">8 active</span></div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <span onClick="{{showCalendar}}" style="height:32px;border:1px solid var(--gp-hairline-light);border-radius:2px;display:flex;align-items:center;gap:7px;padding:0 12px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70;cursor:pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4"></path></svg>Calendar</span>
+              <span onClick="{{showMap}}" style="height:32px;border:1px solid var(--gp-hairline-light);border-radius:2px;display:flex;align-items:center;gap:7px;padding:0 12px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70;cursor:pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2zM9 3v16M15 5v16"></path></svg>Map</span>
+              <div onClick="{{filter}}" style="height:32px;border:1px solid var(--gp-hairline-light);border-radius:2px;display:flex;align-items:center;padding:0 12px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70;cursor:pointer">Filter ▾</div>
+              <span onClick="{{newEvent}}" style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ New event</span>
+            </div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:20px 24px;display:flex;gap:16px;align-items:flex-start">
+            <sc-for list="{{columns}}" as="col" hint-placeholder-count="6">
+              <div onDragOver="{{allowDrop}}" onDrop="{{col.drop}}" style="flex:none;width:248px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:9px;padding-bottom:10px;border-bottom:1px solid var(--gp-hairline-light)"><span style="width:8px;height:8px;border-radius:50%;background:{{col.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#0A0B0C;font-weight:700">{{col.label}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;color:#9A9A96;margin-left:auto">{{col.count}}</span></div>
+                <sc-for list="{{col.items}}" as="ev" hint-placeholder-count="2">
+                  <div onClick="{{ev.open}}" draggable="true" onDragStart="{{ev.onDragStart}}" style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px;cursor:grab;display:flex;flex-direction:column;gap:9px" style-hover="border-color:#0A0B0C">
+                    <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#B07A00">{{ev.client}}</div>
+                    <div style="font-family:var(--gp-font-display);font-weight:700;font-size:15px;letter-spacing:-0.01em;color:#0A0B0C;line-height:1.1">{{ev.title}}</div>
+                    <div style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">{{ev.date}} · {{ev.loc}}</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--gp-hairline-light);padding-top:9px;margin-top:2px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;color:#6B6B70">{{ev.techLabel}}</span><span style="font-family:var(--gp-font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70;background:#FAF9F6;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:3px 7px">{{ev.asset}}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ============ EVENTS · MAP ============ -->
+        <sc-if value="{{showEventsMap}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <span onClick="{{showBoard}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70;cursor:pointer">← Board</span>
+              <h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Events map</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">Present &amp; past</span>
+            </div>
+            <span onClick="{{newEvent}}" style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ New event</span>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:24px">
+            <div style="{{mapPanelStyle}}">
+              <span onClick="{{toggleMapFull}}" title="Fullscreen" style="position:absolute;top:12px;right:12px;z-index:3;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:rgba(10,11,12,0.72);border:1px solid rgba(244,244,242,0.22);border-radius:2px;cursor:pointer">
+                <sc-if value="{{mapNotFull}}" hint-placeholder-val="{{true}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F4F4F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"></path></svg></sc-if>
+                <sc-if value="{{mapFull}}" hint-placeholder-val="{{false}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F4F4F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h4V4M20 8h-4V4M4 16h4v4M20 16h-4v4"></path></svg></sc-if>
+              </span>
+              <svg viewBox="0 0 360 180" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%">
+                <g stroke="rgba(255,255,255,0.05)" stroke-width="0.5">
+                  <line x1="0" y1="45" x2="360" y2="45"></line>
+                  <line x1="0" y1="90" x2="360" y2="90"></line>
+                  <line x1="0" y1="135" x2="360" y2="135"></line>
+                  <line x1="90" y1="0" x2="90" y2="180"></line>
+                  <line x1="180" y1="0" x2="180" y2="180"></line>
+                  <line x1="270" y1="0" x2="270" y2="180"></line>
+                </g>
+                <sc-for list="{{continents}}" as="c" hint-placeholder-count="6"><polygon points="{{c.points}}" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.16)" stroke-width="0.4"></polygon></sc-for>
+              </svg>
+              <sc-for list="{{mapPins}}" as="p" hint-placeholder-count="8">
+                <div onClick="{{p.open}}" title="{{p.title}}" style="position:absolute;left:{{p.x}}%;top:{{p.y}}%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;z-index:2">
+                  <span style="width:11px;height:11px;border-radius:50%;background:{{p.color}};box-shadow:0 0 0 3px rgba(255,255,255,0.14), 0 1px 3px rgba(0,0,0,0.4)"></span>
+                  <span style="font-family:var(--gp-font-mono);font-size:9px;letter-spacing:.04em;color:#F4F4F2;background:rgba(10,11,12,0.72);border-radius:2px;padding:2px 5px;white-space:nowrap">{{p.loc}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ EVENTS · CALENDAR ============ -->
+        <sc-if value="{{showEventsCalendar}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <span onClick="{{showBoard}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70;cursor:pointer">← Board</span>
+              <h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Events calendar</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">Spot open dates</span>
+            </div>
+            <span onClick="{{newEvent}}" style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ New event</span>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:20px 24px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:14px">
+                <span onClick="{{calPrev}}" style="width:30px;height:30px;border:1px solid var(--gp-hairline-light);border-radius:2px;display:flex;align-items:center;justify-content:center;color:#0A0B0C;cursor:pointer" style-hover="border-color:#0A0B0C">‹</span>
+                <span style="font-family:var(--gp-font-display);font-weight:700;font-size:18px;letter-spacing:-0.01em;color:#0A0B0C;min-width:170px;text-align:center">{{calLabel}}</span>
+                <span onClick="{{calNext}}" style="width:30px;height:30px;border:1px solid var(--gp-hairline-light);border-radius:2px;display:flex;align-items:center;justify-content:center;color:#0A0B0C;cursor:pointer" style-hover="border-color:#0A0B0C">›</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px">
+                <span style="display:flex;align-items:center;gap:7px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70"><span style="width:9px;height:9px;border-radius:2px;background:#fff;border:1px solid #c2bfb6;display:inline-block"></span>Booked</span>
+                <span style="display:flex;align-items:center;gap:7px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70"><span style="width:9px;height:9px;border-radius:2px;background:#16744B;display:inline-block"></span>Free</span>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-bottom:1px">
+              <sc-for list="{{calDows}}" as="w" hint-placeholder-count="7"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96;padding:6px 8px;text-align:left">{{w}}</div></sc-for>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--gp-hairline-light);border:1px solid var(--gp-hairline-light);border-radius:2px;overflow:hidden">
+              <sc-for list="{{calCells}}" as="c" hint-placeholder-count="35">
+                <div style="min-height:104px;background:{{c.bg}};padding:7px 8px;display:flex;flex-direction:column;gap:5px">
+                  <sc-if value="{{c.isDay}}" hint-placeholder-val="{{true}}">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                      <span style="font-family:var(--gp-font-mono);font-size:12px;color:#0A0B0C">{{c.day}}</span>
+                      <sc-if value="{{c.free}}" hint-placeholder-val="{{false}}"><span style="width:7px;height:7px;border-radius:50%;background:#16744B;display:inline-block"></span></sc-if>
+                    </div>
+                    <sc-for list="{{c.evs}}" as="e" hint-placeholder-count="0">
+                      <div onClick="{{e.open}}" style="background:#fff;border:1px solid var(--gp-hairline-light);border-left:3px solid {{e.dot}};border-radius:2px;padding:4px 6px;cursor:pointer" style-hover="border-color:#0A0B0C">
+                        <div style="font-family:var(--gp-font-mono);font-size:8px;letter-spacing:.04em;text-transform:uppercase;color:#B07A00;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{e.client}}</div>
+                        <div style="font-family:var(--gp-font-body);font-size:11px;color:#0A0B0C;line-height:1.2">{{e.title}}</div>
+                      </div>
+                    </sc-for>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showEventRecord}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;border-bottom:1px solid var(--gp-hairline-light);padding:18px 24px">
+            <div onClick="{{back}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70;cursor:pointer;margin-bottom:14px">← Events</div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
+              <div>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#B07A00">Stanley Park Brewing</span><span style="display:flex;align-items:center;gap:7px;background:#FAF9F6;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:3px 9px"><span style="width:7px;height:7px;border-radius:50%;background:#FEBD17;display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#33333A">In prep</span></span></div>
+                <h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:26px;letter-spacing:-0.01em;color:#0A0B0C;margin:0 0 6px">Brewery Launch Party</h2>
+                <div style="font-family:var(--gp-font-mono);font-size:12px;color:#9A9A96">Jun 14, 2026 · Stanley Park, Vancouver BC</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span onClick="{{edit}}" style="border:1px solid #0A0B0C;color:#0A0B0C;border-radius:2px;padding:10px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Edit</span>
+                <span onClick="{{goShare}}" style="border:1px solid #0A0B0C;color:#0A0B0C;border-radius:2px;padding:10px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Create &amp; share</span>
+                <a href="Module 3 - Call Sheet.dc.html" style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:11px 18px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block">Generate call sheet →</a>
+              </div>
+            </div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;display:flex;gap:0">
+            <div style="flex:1;min-width:0;padding:26px 28px">
+              <div style="margin-bottom:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Core</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Event name</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">Brewery Launch Party</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Client</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">Stanley Park Brewing Co.</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Event date</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">Jun 14, 2026</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Venue</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">Stanley Park Pavilion, Vancouver</span></div>
+              </div>
+              <div style="margin-bottom:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Tech spec</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:10px 0">
+                  <span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Display type</span>
+                  <div style="display:inline-flex;border:1px solid var(--gp-hairline-light);border-radius:2px;overflow:hidden">
+                    <sc-for list="{{displayTypes}}" as="d" hint-placeholder-count="3">
+                      <sc-if value="{{d.active}}" hint-placeholder-val="{{false}}"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#0A0B0C;background:#FEBD17;padding:7px 13px;font-weight:700;cursor:pointer">{{d.label}}</span></sc-if>
+                      <sc-if value="{{d.notActive}}" hint-placeholder-val="{{true}}"><span onClick="{{d.go}}" style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#6B6B70;padding:7px 13px;border-left:1px solid var(--gp-hairline-light);cursor:pointer" style-hover="color:#0A0B0C">{{d.label}}</span></sc-if>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;color:#9A9A96;padding-bottom:4px">Drives the can model &amp; label size in Client Space</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">System</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">GRFT+ Wall v4 · 4K</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Wall size</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">6.0 × 3.4 m · 3840 × 2160</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Power</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">2 × 20A circuits</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Network</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">Hardline + 4G backup</span></div>
+              </div>
+              <div style="margin-bottom:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Schedule</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Load-in</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">2:00 PM</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Live</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">6:30 – 10:30 PM</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Wrap</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">11:30 PM</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Load-out</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">11:30 PM – 1:00 AM</span></div>
+                <div style="border-top:1px solid var(--gp-hairline-light);padding-top:12px;margin-top:0"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Load-out instructions</div><div style="font-family:var(--gp-font-body);font-size:14px;line-height:1.55;color:#33333A">Power down and cool 15 min before strike. Panels back in Case A in numbered order; compute + cans in Case B. Wipe cans, dock to charge. Exit via north service door — security escort after midnight. Pickup van booked 1:00 AM.</div></div>
+              </div>
+              <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96">Timeline &amp; assets</span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;color:#9A9A96">Feeds Client Space</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Assets lock-in date</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">Jun 06, 2026 · 5:00 PM</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0">
+                  <span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Assets complete?</span>
+                  <span onClick="{{toggleAssets}}" style="cursor:pointer">
+                    <sc-if value="{{assetsComplete}}" hint-placeholder-val="{{false}}"><span style="display:inline-flex;align-items:center;gap:7px;background:#E3F1EA;border:1px solid #16744B;border-radius:2px;padding:6px 12px"><span style="width:7px;height:7px;border-radius:50%;background:#16744B;display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#16744B;font-weight:700">Yes</span></span></sc-if>
+                    <sc-if value="{{assetsNotComplete}}" hint-placeholder-val="{{true}}"><span style="display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:6px 12px"><span style="width:7px;height:7px;border-radius:50%;background:#C7402F;display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70">No</span></span></sc-if>
+                  </span>
+                </div>
+                <div style="border-top:1px solid var(--gp-hairline-light);padding-top:12px">
+                  <sc-for list="{{milestones}}" as="m" hint-placeholder-count="7">
+                    <div style="display:flex;align-items:flex-start;gap:12px;padding:6px 0">
+                      <span style="width:74px;flex:none;font-family:var(--gp-font-mono);font-size:11px;color:#0A0B0C">{{m.date}}</span>
+                      <span style="width:9px;height:9px;border-radius:50%;background:{{m.dot}};box-shadow:0 0 0 1px {{m.ring}};flex:none;margin-top:3px"></span>
+                      <span style="font-family:var(--gp-font-body);font-size:13px;color:{{m.subColor}}">{{m.label}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="margin-top:26px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96">Travel</span><span onClick="{{addTraveler}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;color:#B07A00;cursor:pointer">+ Add traveler</span></div>
+                <sc-for list="{{travelers}}" as="t" hint-placeholder-count="2">
+                  <div style="border-top:1px solid var(--gp-hairline-light);padding:12px 0">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:24px;height:24px;border-radius:50%;background:#ECEAE4;flex:none"></span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;font-weight:600">{{t.name}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">{{t.role}}</span></div>
+                    <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;padding-left:34px">
+                      <span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Travel dates</span><span style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">{{t.dates}}</span>
+                      <span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Flight number</span><span style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">{{t.flight}}</span>
+                      <span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Reservation #</span><span style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">{{t.reservation}}</span>
+                      <span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Notes</span><span style="font-family:var(--gp-font-body);font-size:13px;color:#33333A">{{t.notes}}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="margin-top:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Onsite &amp; support</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 4px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70">Onsite contacts</span><span onClick="{{addOnsite}}" style="font-family:var(--gp-font-mono);font-size:11px;color:#B07A00;cursor:pointer">+ Add</span></div>
+                <sc-for list="{{onsiteContacts}}" as="o" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="width:26px;height:26px;border-radius:50%;background:#ECEAE4;flex:none"></span><span style="flex:1"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;display:block">{{o.name}}</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">{{o.role}}</span></span><span style="font-family:var(--gp-font-mono);font-size:12px;color:#0A0B0C">{{o.phone}}</span></div>
+                </sc-for>
+                <div style="margin-top:14px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70;margin-bottom:4px">Remote support</div>
+                <div style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="width:26px;height:26px;border-radius:50%;background:#ECEAE4;flex:none"></span><span style="flex:1"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;display:block">{{remoteSupport.name}}</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">{{remoteSupport.role}} · {{remoteSupport.window}}</span></span><span style="font-family:var(--gp-font-mono);font-size:12px;color:#0A0B0C">{{remoteSupport.phone}}</span></div>
+              </div>
+              <div style="margin-top:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">License &amp; access</div>
+                <div onClick="{{copyKey}}" style="display:flex;justify-content:space-between;align-items:center;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0;cursor:pointer"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">License key</span><span style="display:flex;align-items:center;gap:10px"><span style="font-family:var(--gp-font-mono);font-size:13px;color:#0A0B0C">GRFT4-9X2K-7QPL-A1V8</span><span style="font-family:var(--gp-font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#B07A00;font-weight:700">Copy</span></span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Wall app version</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">v4.8.2</span></div>
+              </div>
+              <div style="margin-top:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Inventory</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0">
+                  <div><div style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Cases A &amp; B · 18 items</div><div style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96;margin-top:2px">Checked against the equipment list</div></div>
+                  <span onClick="{{toggleInv}}" style="cursor:pointer">
+                    <sc-if value="{{invDone}}" hint-placeholder-val="{{false}}"><span style="display:inline-flex;align-items:center;gap:7px;background:#E3F1EA;border:1px solid #16744B;border-radius:2px;padding:7px 12px"><span style="width:7px;height:7px;border-radius:50%;background:#16744B;display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#16744B;font-weight:700">Inventory done</span></span></sc-if>
+                    <sc-if value="{{invNotDone}}" hint-placeholder-val="{{true}}"><span style="display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:7px 12px"><span style="width:7px;height:7px;border-radius:50%;background:#9A9A96;display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70">Not done</span></span></sc-if>
+                  </span>
+                </div>
+              </div>
+              <div style="margin-top:26px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                  <span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96">Setup diagram</span>
+                  <a href="Setup Diagram.dc.html?event=brewery-launch-party" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#0A0B0C;border:1px solid #0A0B0C;border-radius:2px;padding:7px 12px;text-decoration:none">Open setup diagram <span style="font-size:12px">↗</span></a>
+                </div>
+                <div style="font-family:var(--gp-font-body);font-size:13px;color:#6B6B70;margin-bottom:12px">Each event has its own setup. Open it in a separate page to build the wall &amp; sensor layout — this preview updates with the result.</div>
+                <a href="Setup Diagram.dc.html?event=brewery-launch-party" target="_blank" rel="noopener" style="display:block;text-decoration:none">
+                  <div style="border:1px solid var(--gp-hairline-light);border-radius:3px;overflow:hidden;position:relative">
+                    <div style="position:absolute;inset:0;z-index:2;cursor:pointer;background:transparent"></div>
+                    <dc-import name="Setup Diagram" editable="{{false}}" compact="{{true}}" show-header="{{false}}" sync-key="gp-setup-brewery-launch-party" hint-size="100%,260px"></dc-import>
+                  </div>
+                </a>
+              </div>
+              <div style="margin-top:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:8px">Tech notes</div>
+                <div style="border-top:1px solid var(--gp-hairline-light);padding-top:12px;font-family:var(--gp-font-body);font-size:14px;line-height:1.55;color:#33333A">Wall v4 on hardline; 4G backup in Case B lid. Pair all 12 cans before doors — dock #3 is slow, allow extra time. Run the 12-point pre-event check.</div>
+              </div>
+              <div style="margin-top:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:8px">Logistics notes</div>
+                <div style="border-top:1px solid var(--gp-hairline-light);padding-top:12px;font-family:var(--gp-font-body);font-size:14px;line-height:1.55;color:#33333A">Load-in via the north service door. Parking pass at front desk. All-black dress. Crew meal at 5 PM.</div>
+              </div>
+              <div style="margin-top:26px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96">Custom requirements</span><span onClick="{{addReq}}" style="font-family:var(--gp-font-mono);font-size:11px;color:#B07A00;cursor:pointer">+ Add</span></div>
+                <div style="font-family:var(--gp-font-body);font-size:13px;color:#9A9A96;margin-bottom:4px">Anything specific about this setup that doesn't fit a field — e.g. how the interface is divided.</div>
+                <sc-for list="{{customReqs}}" as="r" hint-placeholder-count="3">
+                  <div style="display:flex;gap:11px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="width:6px;height:6px;border-radius:50%;background:#FEBD17;display:inline-block;margin-top:7px;flex:none"></span><span style="font-family:var(--gp-font-body);font-size:14px;line-height:1.5;color:#33333A">{{r}}</span></div>
+                </sc-for>
+              </div>
+              <div style="margin-top:26px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96">General updates</span><span onClick="{{addUpdate}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;color:#B07A00;cursor:pointer">+ Add update</span></div>
+                <div style="font-family:var(--gp-font-body);font-size:13px;color:#9A9A96;margin-bottom:4px">Anything that doesn't fit a field — share it with the team here.</div>
+                <sc-for list="{{updates}}" as="u" hint-placeholder-count="3">
+                  <div style="border-top:1px solid var(--gp-hairline-light);padding:12px 0">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px"><span style="width:22px;height:22px;border-radius:50%;background:#ECEAE4;flex:none"></span><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;color:#0A0B0C">{{u.author}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;color:#9A9A96">{{u.time}}</span></div>
+                    <div style="font-family:var(--gp-font-body);font-size:14px;line-height:1.5;color:#33333A;padding-left:32px">{{u.text}}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="margin-top:26px">
+                <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Tasks · 3 open</div>
+                <sc-for list="{{recTasks}}" as="t" hint-placeholder-count="3">
+                  <div onClick="{{t.toggle}}" style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--gp-hairline-light);padding:11px 0;cursor:pointer">
+                    <sc-if value="{{t.checked}}" hint-placeholder-val="{{false}}"><span style="width:16px;height:16px;background:#16744B;border:1px solid #16744B;border-radius:2px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px">✓</span></sc-if>
+                    <sc-if value="{{t.notChecked}}" hint-placeholder-val="{{true}}"><span style="width:16px;height:16px;border:1px solid #c2bfb6;border-radius:2px;flex:none"></span></sc-if>
+                    <span style="flex:1;font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">{{t.label}}</span>
+                    <span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">{{t.meta}}</span>
+                  </div>
+                </sc-for>
+                <div onClick="{{newTask}}" style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--gp-hairline-light);padding:11px 0;cursor:pointer"><span style="font-family:var(--gp-font-mono);font-size:13px;letter-spacing:.04em;color:#B07A00">+ Add task</span></div>
+              </div>
+            </div>
+            <div style="width:340px;flex:none;border-left:1px solid var(--gp-hairline-light);background:#FAF9F6;padding:26px 22px;display:flex;flex-direction:column;gap:14px">
+              <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#0A0B0C;font-weight:700">Linked records</div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96">Client</span></div><div style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Stanley Park Brewing Co.</div><div style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96;margin-top:3px">Dana Whitfield · Brand lead</div></div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96">Technicians assigned</span><span onClick="{{assignTech}}" style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;color:#B07A00;cursor:pointer">+ Assign</span></div>
+                <sc-for list="{{assignedTechs}}" as="t" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:10px;padding:6px 0"><span style="width:26px;height:26px;border-radius:50%;background:#ECEAE4;flex:none"></span><span style="flex:1;font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">{{t.name}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">{{t.role}}</span></div>
+                </sc-for>
+              </div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96;margin-bottom:8px">System</div><div style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">GRFT+ Wall v4 · 4K</div></div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                  <span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96">Cases &amp; equipment</span>
+                  <sc-if value="{{invDone}}" hint-placeholder-val="{{false}}"><span style="font-family:var(--gp-font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#16744B;background:#E3F1EA;border-radius:2px;padding:3px 7px">Inventory done</span></sc-if>
+                  <sc-if value="{{invNotDone}}" hint-placeholder-val="{{true}}"><span style="font-family:var(--gp-font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70;background:#FAF9F6;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:3px 7px">Not done</span></sc-if>
+                </div>
+                <sc-for list="{{eqCases}}" as="c" hint-placeholder-count="3">
+                  <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--gp-hairline-light);padding:8px 0"><span style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">{{c.name}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;color:#9A9A96;text-align:right">{{c.contents}}</span></div>
+                </sc-for>
+                <span onClick="{{goCases}}" style="font-family:var(--gp-font-mono);font-size:11px;color:#B07A00;margin-top:8px;border-bottom:2px solid #FEBD17;display:inline-block;cursor:pointer">Open in Cases →</span>
+              </div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96">Assets · from Client Space</span><span style="font-family:var(--gp-font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#0A0B0C;background:#FEBD17;border-radius:2px;padding:3px 7px">Locked</span></div><div style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">2 logos · 5 colors · 8 assets</div><a href="Module 1 - Asset Manager.dc.html" style="font-family:var(--gp-font-mono);font-size:11px;color:#B07A00;margin-top:6px;border-bottom:2px solid #FEBD17;display:inline-block;text-decoration:none;cursor:pointer">Open in Client Space →</a></div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96;margin-bottom:8px">Media · from technicians</div><div style="font-family:var(--gp-font-body);font-size:13px;color:#9A9A96">Lands here after the event</div></div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ CLIENTS ============ -->
+        <sc-if value="{{showClientsList}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Clients</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">24 total</span></div><span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer" onClick="{{newClient}}">+ New client</span></div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <div style="display:flex;gap:16px;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="flex:2">Client</span><span style="width:90px">Events</span><span style="flex:1">Primary contact</span><span style="width:120px">Status</span></div>
+            <sc-for list="{{clients}}" as="c" hint-placeholder-count="6">
+              <div onClick="{{c.open}}" style="display:flex;gap:16px;align-items:center;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);cursor:pointer" style-hover="background:#FAF9F6"><span style="flex:2;font-family:var(--gp-font-display);font-weight:700;font-size:15px;color:#0A0B0C">{{c.name}}</span><span style="width:90px;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{c.events}}</span><span style="flex:1;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{c.contact}}</span><span style="width:120px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{c.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{c.status}}</span></span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showClientRecord}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;border-bottom:1px solid var(--gp-hairline-light);padding:18px 24px">
+            <div onClick="{{back}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70;cursor:pointer;margin-bottom:14px">← Clients</div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px"><div><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:26px;letter-spacing:-0.01em;color:#0A0B0C;margin:0 0 6px">Stanley Park Brewing Co.</h2><div style="font-family:var(--gp-font-mono);font-size:12px;color:#9A9A96">3 events · Active since 2024</div></div><span onClick="{{edit}}" style="border:1px solid #0A0B0C;color:#0A0B0C;border-radius:2px;padding:10px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Edit</span></div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;display:flex;gap:0">
+            <div style="flex:1;min-width:0;padding:26px 28px">
+              <div style="margin-bottom:26px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Contact</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Primary contact</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Dana Whitfield · Brand lead</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Email</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">dana@stanleyparkbrewing.com</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Account lead</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">P. Nair (GRFT+)</span></div>
+              </div>
+              <div><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Events</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Brewery Launch Party</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">Jun 14, 2026 · In prep</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Taproom 5th Birthday</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">Nov 02, 2025 · Closed</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Summer Series</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">Jul 20, 2024 · Closed</span></div>
+              </div>
+            </div>
+            <div style="width:340px;flex:none;border-left:1px solid var(--gp-hairline-light);background:#FAF9F6;padding:26px 22px;display:flex;flex-direction:column;gap:14px">
+              <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#0A0B0C;font-weight:700">Linked records</div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96">Brand assets</span><span style="font-family:var(--gp-font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#0A0B0C;background:#FEBD17;border-radius:2px;padding:3px 7px">Locked</span></div><div style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">2 logos · 5 colors · 8 assets</div></div>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96;margin-bottom:8px">Billing</div><div style="font-family:var(--gp-font-body);font-size:13px;color:#0A0B0C">Net 30 · On file</div></div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ TECHNICIANS ============ -->
+        <sc-if value="{{showTechList}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Technicians</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">12 total</span></div><span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer" onClick="{{newTech}}">+ New technician</span></div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <div style="display:flex;gap:16px;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="flex:2">Name</span><span style="flex:1">Role</span><span style="flex:1">Home base</span><span style="width:130px">Status</span></div>
+            <sc-for list="{{technicians}}" as="t" hint-placeholder-count="6">
+              <div onClick="{{t.open}}" style="display:flex;gap:16px;align-items:center;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);cursor:pointer" style-hover="background:#FAF9F6"><span style="flex:2;display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:50%;background:#ECEAE4;flex:none"></span><span style="font-family:var(--gp-font-display);font-weight:700;font-size:15px;color:#0A0B0C">{{t.name}}</span></span><span style="flex:1;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{t.role}}</span><span style="flex:1;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{t.base}}</span><span style="width:130px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{t.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{t.status}}</span></span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showTechRecord}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;border-bottom:1px solid var(--gp-hairline-light);padding:18px 24px">
+            <div onClick="{{back}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70;cursor:pointer;margin-bottom:14px">← Technicians</div>
+            <div style="display:flex;align-items:center;gap:16px"><span style="width:48px;height:48px;border-radius:50%;background:#ECEAE4;flex:none"></span><div><div style="display:flex;align-items:center;gap:12px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:24px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">M. Okafor</h2><span style="display:flex;align-items:center;gap:7px;background:#FAF9F6;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:3px 9px"><span style="width:7px;height:7px;border-radius:50%;background:#FEBD17;display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#33333A">On event</span></span></div><div style="font-family:var(--gp-font-mono);font-size:12px;color:#9A9A96;margin-top:4px">Lead technician · Vancouver</div></div></div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;display:flex;gap:0">
+            <div style="flex:1;min-width:0;padding:26px 28px">
+              <div style="margin-bottom:26px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Profile</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Phone</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">+1 (604) 555-0148</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Email</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">okafor@graffitiplus.io</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Home address</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C;text-align:right">2204 Cypress St, Vancouver BC V6J 3N4</span></div>
+              </div>
+              <div><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Assigned events</div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Brewery Launch Party</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">Jun 14 · Lead</span></div>
+                <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Rampage</span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">Oct 11 · Lead</span></div>
+              </div>
+            </div>
+            <div style="width:340px;flex:none;border-left:1px solid var(--gp-hairline-light);background:#FAF9F6;padding:26px 22px;display:flex;flex-direction:column;gap:14px">
+              <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#0A0B0C;font-weight:700">Quick actions</div>
+              <a href="Module 3 - Call Sheet.dc.html" style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:13px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;text-decoration:none;text-align:center">View call sheet →</a>
+              <div style="background:#fff;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:14px"><div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96;margin-bottom:8px">Media uploaded</div><div style="font-family:var(--gp-font-body);font-size:13px;color:#9A9A96">Flows to the event record</div></div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ SYSTEMS ============ -->
+        <sc-if value="{{showSystems}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Systems</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">6 units</span></div><span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer" onClick="{{newSystem}}">+ New system</span></div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <div style="display:flex;gap:16px;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="flex:2">System</span><span style="flex:1">Type</span><span style="width:130px">Status</span><span style="width:120px">Last service</span></div>
+            <sc-for list="{{systems}}" as="s" hint-placeholder-count="6">
+              <div onClick="{{s.open}}" style="display:flex;gap:16px;align-items:center;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);cursor:pointer" style-hover="background:#FAF9F6"><span style="flex:2;font-family:var(--gp-font-display);font-weight:700;font-size:15px;color:#0A0B0C">{{s.name}}</span><span style="flex:1;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{s.type}}</span><span style="width:130px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{s.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{s.status}}</span></span><span style="width:120px;font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">{{s.service}}</span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ============ CASES ============ -->
+        <sc-if value="{{showCases}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Cases</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">{{caseTotal}} total · 3 types</span></div><span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer" onClick="{{newCase}}">+ New case</span></div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <sc-for list="{{caseSections}}" as="grp" hint-placeholder-count="3">
+              <div style="margin-bottom:26px">
+                <div style="display:flex;align-items:center;gap:10px;padding:14px 2px 10px"><span style="width:8px;height:8px;border-radius:50%;background:{{grp.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#0A0B0C;font-weight:700">{{grp.label}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;color:#9A9A96">{{grp.count}}</span></div>
+                <div style="display:flex;gap:16px;padding:10px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="flex:1">Case</span><span style="flex:2">Contents</span><span style="width:90px">Weight</span><span style="width:120px">Status</span></div>
+                <sc-for list="{{grp.items}}" as="k" hint-placeholder-count="2">
+                  <div onClick="{{k.open}}" style="display:flex;gap:16px;align-items:center;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);cursor:pointer" style-hover="background:#FAF9F6"><span style="flex:1;font-family:var(--gp-font-display);font-weight:700;font-size:15px;color:#0A0B0C">{{k.name}}</span><span style="flex:2;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{k.contents}}</span><span style="width:90px;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{k.weight}}</span><span style="width:120px;font-family:var(--gp-font-mono);font-size:11px;color:#6B6B70">{{k.status}}</span></div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ============ INVENTORY ============ -->
+        <sc-if value="{{showInventory}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Inventory</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">All gear · location &amp; status</span></div><span onClick="{{newGear}}" style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ Add gear</span></div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <div style="display:flex;gap:16px;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="flex:2">Item</span><span style="width:90px">Asset tag</span><span style="width:80px">Case</span><span style="flex:1.6">Location</span><span style="width:120px">Status</span><span style="width:90px">Checked</span></div>
+            <sc-for list="{{inventory}}" as="g" hint-placeholder-count="8">
+              <div style="display:flex;gap:16px;align-items:center;padding:13px 14px;border-bottom:1px solid var(--gp-hairline-light)" style-hover="background:#FAF9F6">
+                <span style="flex:2;font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">{{g.item}}</span>
+                <span style="width:90px;font-family:var(--gp-font-mono);font-size:11px;color:#6B6B70">{{g.tag}}</span>
+                <span style="width:80px;font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{g.caseId}}</span>
+                <span style="flex:1.6;font-family:var(--gp-font-mono);font-size:12px;color:#33333A">{{g.loc}}</span>
+                <span style="width:120px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{g.dot}};display:inline-block;flex:none"></span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{g.status}}</span></span>
+                <span style="width:90px;font-family:var(--gp-font-mono);font-size:11px;color:#9A9A96">{{g.checked}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ============ TASKS ============ -->
+        <sc-if value="{{showTasks}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;height:60px;border-bottom:1px solid var(--gp-hairline-light);display:flex;align-items:center;justify-content:space-between;padding:0 24px"><div style="display:flex;align-items:center;gap:14px"><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:22px;letter-spacing:-0.01em;color:#0A0B0C;margin:0">Tasks</h2><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#9A9A96">31 total</span></div><span style="background:#FEBD17;color:#0A0B0C;border-radius:2px;padding:9px 16px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">+ New task</span></div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:8px 24px 24px">
+            <div style="display:flex;gap:16px;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light);font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9A9A96"><span style="width:26px"></span><span style="flex:2">Task</span><span style="flex:1">Event</span><span style="width:110px">Assignee</span><span style="width:80px">Due</span><span style="width:120px">Status</span></div>
+            <sc-for list="{{tasks}}" as="t" hint-placeholder-count="6">
+              <div style="display:flex;gap:16px;align-items:center;padding:14px 14px;border-bottom:1px solid var(--gp-hairline-light)"><span onClick="{{t.toggle}}" style="width:26px;flex:none;cursor:pointer"><sc-if value="{{t.checked}}" hint-placeholder-val="{{false}}"><span style="width:16px;height:16px;background:#16744B;border:1px solid #16744B;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:10px">✓</span></sc-if><sc-if value="{{t.notChecked}}" hint-placeholder-val="{{true}}"><span style="width:16px;height:16px;border:1px solid #c2bfb6;border-radius:2px;display:inline-block"></span></sc-if></span><span style="flex:2;font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">{{t.task}}</span><span style="flex:1;font-family:var(--gp-font-mono);font-size:11px;color:#B07A00">{{t.event}}</span><span style="width:110px;font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{t.who}}</span><span style="width:80px;font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{t.due}}</span><span style="width:120px;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{t.dot}};display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:11px;color:#33333A">{{t.status}}</span></span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ============ CREATE & SHARE ============ -->
+        <sc-if value="{{showShare}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;border-bottom:1px solid var(--gp-hairline-light);padding:18px 24px">
+            <div onClick="{{goRecord}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70;cursor:pointer;margin-bottom:14px">← Brewery Launch Party</div>
+            <h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:24px;letter-spacing:-0.01em;color:#0A0B0C;margin:0 0 6px">Create &amp; share</h2>
+            <div style="font-family:var(--gp-font-mono);font-size:12px;color:#9A9A96">Creating the event generated these pages automatically — email the client their Client Space link, no account needed on their end.</div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:24px;display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;align-items:center;gap:10px;background:#EAF4EE;border:1px solid #BFE0CC;border-radius:2px;padding:11px 14px;max-width:740px">
+              <span style="width:18px;height:18px;border-radius:50%;background:#16744B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none">✓</span>
+              <span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.02em;color:#16744B">Auto-created with this event · Client Space + Call Sheet + client status page</span>
+            </div>
+            <div style="border:1px solid var(--gp-hairline-light);border-radius:2px;padding:20px;max-width:740px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px">
+                <div><div style="font-family:var(--gp-font-display);font-weight:700;font-size:16px;color:#0A0B0C;margin-bottom:4px">Client Space · client self-serve</div><div style="font-family:var(--gp-font-body);font-size:13px;line-height:1.5;color:#6B6B70;max-width:50ch">The client builds their own wall — logos, colors, spray cans, wall overlay. Everything they approve flows back into this event.</div></div>
+                <span style="font-family:var(--gp-font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#0A0B0C;background:#FEBD17;border-radius:2px;padding:4px 8px;font-weight:700;white-space:nowrap">Editable</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:12px">
+                <div style="flex:1;background:#FAF9F6;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:11px 13px;font-family:var(--gp-font-mono);font-size:12px;color:#33333A;display:flex;align-items:center">graffitiplus.io/build/spb-brewery-2026</div>
+                <span onClick="{{copyLink}}" style="border:1px solid #0A0B0C;color:#0A0B0C;border-radius:2px;padding:0 16px;display:flex;align-items:center;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">Copy</span>
+                <span onClick="{{emailClient}}" style="background:#0A0B0C;color:#fff;border-radius:2px;padding:0 18px;display:flex;align-items:center;gap:7px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6" stroke-linecap="round" stroke-linejoin="round"/></svg>Email client</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="display:inline-flex;align-items:center;gap:7px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16744B" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 7-2.6" stroke-linecap="round"/></svg>Open link · no login needed</span>
+                <a href="Module 1 - Asset Manager.dc.html" style="font-family:var(--gp-font-mono);font-size:11px;color:#B07A00;border-bottom:2px solid #FEBD17;text-decoration:none">Open Client Space →</a>
+              </div>
+            </div>
+            <div style="border:1px solid var(--gp-hairline-light);border-radius:2px;padding:20px;max-width:740px">
+              <div style="margin-bottom:14px"><div style="font-family:var(--gp-font-display);font-weight:700;font-size:16px;color:#0A0B0C;margin-bottom:4px">Client status page</div><div style="font-family:var(--gp-font-body);font-size:13px;line-height:1.5;color:#6B6B70;max-width:50ch">A read-only page the client can check anytime — event details, what's approved, and the recap once it's live.</div></div>
+              <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:12px">
+                <div style="flex:1;background:#FAF9F6;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:11px 13px;font-family:var(--gp-font-mono);font-size:12px;color:#33333A;display:flex;align-items:center">graffitiplus.io/c/spb-brewery</div>
+                <span onClick="{{copyLink}}" style="background:#0A0B0C;color:#fff;border-radius:2px;padding:0 18px;display:flex;align-items:center;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;cursor:pointer">Copy</span>
+              </div>
+              <span style="display:inline-flex;align-items:center;gap:7px;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6B6B70"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16744B" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 7-2.6" stroke-linecap="round"/></svg>Open link · no login needed</span>
+            </div>
+            <div style="background:#FAF9F6;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;max-width:740px">
+              <div><div style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#0A0B0C;margin-bottom:4px">Open access</div><div style="font-family:var(--gp-font-body);font-size:13px;color:#6B6B70">Anyone with the link can open it — no GRFT+ account required.</div></div>
+              <span style="width:38px;height:22px;border-radius:11px;background:#FEBD17;position:relative;flex:none"><span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#0A0B0C"></span></span>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ CASE RECORD ============ -->
+        <sc-if value="{{showCaseRecord}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;border-bottom:1px solid var(--gp-hairline-light);padding:18px 24px">
+            <div onClick="{{back}}" style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B6B70;cursor:pointer;margin-bottom:14px">← Cases</div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px"><div><h2 style="font-family:var(--gp-font-display);font-weight:700;font-size:24px;letter-spacing:-0.01em;color:#0A0B0C;margin:0 0 6px">{{caseName}}</h2><div style="font-family:var(--gp-font-mono);font-size:12px;color:#9A9A96">Inventory checklist · fill out before &amp; after every event</div></div><span style="display:flex;align-items:center;gap:7px;background:#FAF9F6;border:1px solid var(--gp-hairline-light);border-radius:2px;padding:5px 10px"><span style="width:7px;height:7px;border-radius:50%;background:#FEBD17;display:inline-block"></span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#33333A">In prep</span></span></div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:22px 28px;max-width:860px">
+            <div style="margin-bottom:26px">
+              <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9A9A96;margin-bottom:6px">Checklist details</div>
+              <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Tech name</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">M. Okafor</span></div>
+              <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Event</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Brewery Launch Party</span></div>
+              <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Date</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">Jun 13, 2026</span></div>
+              <div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--gp-hairline-light);padding:11px 0"><span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#9A9A96">Case number</span><span style="font-family:var(--gp-font-body);font-size:14px;color:#0A0B0C">{{caseName}}</span></div>
+            </div>
+            <sc-for list="{{caseGroups}}" as="grp" hint-placeholder-count="3">
+              <div style="margin-bottom:26px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:4px"><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#0A0B0C;font-weight:700">{{grp.title}}</span><span style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.04em;color:#6B6B70">{{grp.doneLabel}} present</span></div>
+                <sc-for list="{{grp.items}}" as="i" hint-placeholder-count="6">
+                  <div onClick="{{i.toggle}}" style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--gp-hairline-light);padding:10px 0;cursor:pointer">
+                    <sc-if value="{{i.checked}}" hint-placeholder-val="{{true}}"><span style="width:17px;height:17px;background:#16744B;border:1px solid #16744B;border-radius:2px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px">✓</span></sc-if>
+                    <sc-if value="{{i.notChecked}}" hint-placeholder-val="{{false}}"><span style="width:17px;height:17px;border:1px solid #c2bfb6;border-radius:2px;flex:none;display:inline-block"></span></sc-if>
+                    <span style="flex:1;font-family:var(--gp-font-body);font-size:14px;color:{{i.color}}">{{i.label}}</span>
+                    <span style="width:38px;text-align:right;font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:{{i.stateColor}}">{{i.state}}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+            <div style="margin-bottom:10px">
+              <div style="font-family:var(--gp-font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#0A0B0C;font-weight:700;margin-bottom:4px">Items to repair / buy</div>
+              <div style="border-top:1px solid var(--gp-hairline-light);padding:11px 0;font-family:var(--gp-font-body);font-size:14px;color:#6B6B70">None flagged this round.</div>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+  <div style="position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:50;background:#0A0B0C;color:#F4F4F2;border-radius:4px;padding:12px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,0.28)">
+    <span style="width:7px;height:7px;border-radius:50%;background:#FEBD17;display:inline-block;flex:none"></span>
+    <span style="font-family:var(--gp-font-mono);font-size:11px;letter-spacing:.06em;color:#F4F4F2">{{toast}}</span>
+  </div>
+</sc-if></x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    section: "events", layout: "board", open: null, draggedId: null, toast: null, checkedTasks: [],
+    railOpen: true, mapFull: false, calMonth: 5, calYear: 2026,
+    potentialEvents: [
+      { title: "Beverage Launch", client: "Heineken", loc: "Amsterdam", value: "$48k", prob: "High", probDot: "#16744B", when: "Q3 2026" },
+      { title: "Flagship Store Opening", client: "Aēsop", loc: "London", value: "$22k", prob: "Med", probDot: "#FEBD17", when: "Sep 2026" },
+      { title: "Festival Wall", client: "Spotify", loc: "Austin", value: "$60k", prob: "High", probDot: "#16744B", when: "Mar 2027" },
+      { title: "Gala Activation", client: "Cartier", loc: "Paris", value: "$35k", prob: "Low", probDot: "#9A9A96", when: "TBD" },
+      { title: "Pop-up Tour", client: "Adidas", loc: "Berlin", value: "$54k", prob: "Med", probDot: "#FEBD17", when: "Q4 2026" },
+    ],
+    displayType: "LED", invDone: false, assetsComplete: false, openCase: "LED Case 1", openCaseType: "LED",
+    updates: [
+      { author: "M. Okafor", time: "2h ago", text: "Client wants all-black crew dress — passing to the team." },
+      { author: "P. Nair", time: "Yesterday", text: "Shoe size for the branded sneakers: Dana is US 9. Order before Jun 10." },
+      { author: "Logistics", time: "Jun 6", text: "Venue dock height is 1.2 m — bring the ramp from Case D." },
+    ],
+    clientGoals: "Collect guest emails at the wall before painting. Drive social shares with a branded hashtag overlay. Showcase the new can lineup — keep it family-friendly for the afternoon crowd.",
+    customReqs: [
+      "Split the wall interface into 3 zones — logo, paint, gallery.",
+      "Kids-height paint lane on the left third.",
+      "Email capture screen before guests start painting.",
+    ],
+    events: [
+      { id: 1, client: "Stanley Park Brewing", title: "Brewery Launch Party", date: "Jun 14", loc: "Vancouver", status: "In prep", techs: 3, asset: "Assets locked" },
+      { id: 2, client: "Nike Jordan", title: "All-Star Activation", date: "Feb 16", loc: "San Francisco", status: "Confirmed", techs: 4, asset: "Assets pending" },
+      { id: 3, client: "Hennessy", title: "Flagship Opening", date: "Mar 02", loc: "New York", status: "Confirmed", techs: 2, asset: "Assets pending" },
+      { id: 4, client: "Red Bull", title: "Rampage", date: "Oct 11", loc: "Virgin, UT", status: "On site", techs: 5, asset: "Assets locked" },
+      { id: 5, client: "Samsung", title: "Unpacked Lounge", date: "Jul 20", loc: "Seoul", status: "Confirmed", techs: 4, asset: "Assets pending" },
+      { id: 6, client: "Google", title: "I/O Wall", date: "May 14", loc: "Mountain View", status: "Done", techs: 3, asset: "Assets locked" },
+      { id: 7, client: "Disney", title: "D23 Wall", date: "Aug 09", loc: "Anaheim", status: "Done", techs: 2, asset: "Archived" },
+      { id: 8, client: "Chanel", title: "Beauty Pop-up", date: "Apr 05", loc: "Miami", status: "In prep", techs: 3, asset: "Assets pending" },
+    ],
+  };
+  renderVals() {
+    const { section, layout, open } = this.state;
+    const setSection = (s) => this.setState({ section: s, open: null });
+    const openRecord = () => this.setState({ open: "record" });
+    const back = () => this.setState({ open: null });
+    const flash = (msg) => {
+      this.setState({ toast: msg });
+      clearTimeout(this._t);
+      this._t = setTimeout(() => this.setState({ toast: null }), 1900);
+    };
+    const toggleTask = (id) => this.setState((s) => ({
+      checkedTasks: s.checkedTasks.includes(id) ? s.checkedTasks.filter((x) => x !== id) : [...s.checkedTasks, id],
+    }));
+
+    const navDefs = [
+      { key: "events", label: "Events", count: 8 },
+      { key: "clients", label: "Clients", count: 24 },
+      { key: "technicians", label: "Technicians", count: 12 },
+      { key: "systems", label: "Systems", count: 6 },
+      { key: "cases", label: "Cases", count: 7 },
+      { key: "inventory", label: "Inventory", count: 32 },
+    ];
+    const nav = navDefs.map((n) => ({
+      label: n.label, count: n.count,
+      active: section === n.key, notActive: section !== n.key,
+      go: () => setSection(n.key),
+    }));
+
+    const statuses = [
+      { label: "Confirmed", dot: "#2A6FDB" },
+      { label: "In prep", dot: "#FEBD17" },
+      { label: "On site", dot: "#16744B" },
+      { label: "Done", dot: "#6B6B70" },
+    ];
+    const dotFor = (s) => (statuses.find((x) => x.label === s) || {}).dot || "#9A9A96";
+    const events = this.state.events.map((e) => ({ ...e, dot: dotFor(e.status), techLabel: e.techs ? e.techs + " techs" : "Unstaffed", open: openRecord, onDragStart: () => this.setState({ draggedId: e.id }) }));
+    const moveTo = (label) => this.setState((s) => ({ events: s.events.map((e) => (e.id === s.draggedId ? { ...e, status: label } : e)), draggedId: null }));
+    const statusColumns = statuses.map((s) => {
+      const items = events.filter((e) => e.status === s.label);
+      return { label: s.label, dot: s.dot, count: items.length, items, drop: () => moveTo(s.label) };
+    });
+    const potentialCol = {
+      label: "Potential", dot: "#B07A00",
+      count: this.state.potentialEvents.length,
+      drop: (e) => { if (e && e.preventDefault) e.preventDefault(); },
+      items: this.state.potentialEvents.map((p) => ({
+        client: p.client, title: p.title, date: p.when, loc: p.loc,
+        techLabel: p.value, asset: p.prob,
+        open: () => flash("Promoted “" + p.title + "” to an event (demo)"),
+        onDragStart: () => {},
+      })),
+    };
+    const columns = [potentialCol, ...statusColumns];
+
+    // ---- Geographic map (present + past events) ----
+    const geo = {
+      Vancouver: [-123.1, 49.3], "San Francisco": [-122.4, 37.8], "New York": [-74.0, 40.7],
+      "Virgin, UT": [-113.2, 37.2], Seoul: [127.0, 37.6], "Mountain View": [-122.1, 37.4],
+      Anaheim: [-117.9, 33.8], Miami: [-80.2, 25.8],
+    };
+    const projPct = (lon, lat) => ({ x: (lon + 180) / 360 * 100, y: (90 - lat) / 180 * 100 });
+    const isPast = (s) => s === "Done" || s === "Archived";
+    const mapPins = this.state.events.filter((e) => geo[e.loc]).map((e) => {
+      const p = projPct(geo[e.loc][0], geo[e.loc][1]);
+      const past = isPast(e.status);
+      return { x: p.x.toFixed(1), y: p.y.toFixed(1), title: e.title, loc: e.loc, date: e.date, status: e.status,
+        color: past ? "#9A9A96" : dotFor(e.status), past, upcoming: !past, open: openRecord };
+    });
+    const contData = {
+      na: [[-160,68],[-128,70],[-95,72],[-62,70],[-54,58],[-70,47],[-81,42],[-81,26],[-97,16],[-106,23],[-110,31],[-124,40],[-130,54],[-145,60],[-166,62]],
+      sa: [[-78,8],[-60,10],[-50,0],[-35,-7],[-40,-23],[-58,-35],[-71,-52],[-74,-38],[-79,-18],[-82,-3]],
+      eu: [[-10,36],[-9,44],[2,50],[8,58],[28,60],[40,58],[38,46],[26,40],[12,38],[-2,36]],
+      af: [[-16,14],[-6,30],[10,34],[32,31],[44,12],[51,11],[40,-12],[33,-28],[20,-35],[12,-30],[9,4],[-8,5]],
+      as: [[40,58],[60,68],[100,73],[140,70],[145,58],[133,52],[140,44],[128,34],[122,22],[105,10],[95,8],[90,22],[78,8],[70,22],[58,26],[44,40]],
+      au: [[114,-22],[131,-12],[143,-12],[150,-25],[148,-37],[133,-38],[116,-35]],
+    };
+    const continents = Object.keys(contData).map((k) => ({
+      points: contData[k].map(([lon, lat]) => (lon + 180).toFixed(1) + "," + (90 - lat).toFixed(1)).join(" "),
+    }));
+    const upcomingCount = mapPins.filter((p) => p.upcoming).length;
+    const pastCount = mapPins.filter((p) => p.past).length;
+
+    // ---- Calendar (spot open dates) ----
+    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const monthIdx = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
+    const cm = this.state.calMonth, cy = this.state.calYear;
+    const calDows = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const calEvents = this.state.events.map((e) => { const parts = e.date.split(" "); return { mo: monthIdx[parts[0]], da: parseInt(parts[1], 10), title: e.title, client: e.client, status: e.status }; });
+    const startDow = new Date(cy, cm, 1).getDay();
+    const daysInMonth = new Date(cy, cm + 1, 0).getDate();
+    const calCells = [];
+    for (let i = 0; i < startDow; i++) calCells.push({ isDay: false, bg: "#FAF9F6", evs: [] });
+    for (let d = 1; d <= daysInMonth; d++) {
+      const evs = calEvents.filter((e) => e.mo === cm && e.da === d).map((e) => ({ title: e.title, client: e.client, dot: dotFor(e.status), open: openRecord }));
+      calCells.push({ isDay: true, day: d, evs, free: evs.length === 0, bg: "#fff" });
+    }
+    while (calCells.length % 7 !== 0) calCells.push({ isDay: false, bg: "#FAF9F6", evs: [] });
+    const calLabel = monthNames[cm] + " " + cy;
+    const stepMonth = (delta) => this.setState((s) => { let m = s.calMonth + delta, y = s.calYear; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } return { calMonth: m, calYear: y }; });
+
+    // ---- Potential events (collapsible rail) ----
+    const potentialEvents = this.state.potentialEvents.map((p) => ({ ...p, add: () => flash("Promoted “" + p.title + "” to an event (demo)") }));
+
+    const clients = [
+      { name: "Stanley Park Brewing Co.", events: 3, contact: "Dana Whitfield", status: "Active", dot: "#16744B" },
+      { name: "Nike Jordan", events: 6, contact: "M. Alvarez", status: "Active", dot: "#16744B" },
+      { name: "Hennessy", events: 1, contact: "C. Dubois", status: "Inquiry", dot: "#9A9A96" },
+      { name: "Red Bull", events: 4, contact: "T. Hoffmann", status: "Active", dot: "#16744B" },
+      { name: "Samsung", events: 2, contact: "J. Lee", status: "Active", dot: "#16744B" },
+      { name: "Google", events: 5, contact: "P. Nair", status: "Active", dot: "#16744B" },
+    ].map((c) => ({ ...c, open: openRecord }));
+
+    const technicians = [
+      { name: "M. Okafor", role: "Lead technician", base: "Vancouver", status: "On event", dot: "#FEBD17" },
+      { name: "A. Reyes", role: "Technician", base: "Los Angeles", status: "Available", dot: "#16744B" },
+      { name: "J. Park", role: "Technician", base: "Seattle", status: "On event", dot: "#FEBD17" },
+      { name: "S. Nguyen", role: "AV engineer", base: "Vancouver", status: "Available", dot: "#16744B" },
+      { name: "D. Cole", role: "Technician", base: "Toronto", status: "Travel", dot: "#9A9A96" },
+      { name: "R. Mbeki", role: "Lead technician", base: "London", status: "Available", dot: "#16744B" },
+    ].map((t) => ({ ...t, open: openRecord }));
+
+    const systems = [
+      { name: "GRFT+ Wall v4", type: "4K wall", status: "Deployed", service: "May 2026", dot: "#FEBD17" },
+      { name: "GRFT+ Wall v4 · #2", type: "4K wall", status: "Available", service: "Apr 2026", dot: "#16744B" },
+      { name: "GRFT+ Wall v3", type: "HD wall", status: "Available", service: "Jan 2026", dot: "#16744B" },
+      { name: "Mini Wall", type: "Compact", status: "Deployed", service: "Mar 2026", dot: "#FEBD17" },
+      { name: "Dual Wall Rig", type: "2× 4K", status: "Available", service: "Feb 2026", dot: "#16744B" },
+      { name: "Legacy v2", type: "HD wall", status: "Retired", service: "—", dot: "#9A9A96" },
+    ].map((s) => ({ ...s, open: () => flash("Opening " + s.name + " (demo)") }));
+    const caseDefs = [
+      { name: "LED Case 1", type: "LED", contents: "Laptop, base stations, cans", weight: "24 kg", status: "Packed" },
+      { name: "LED Case 2", type: "LED", contents: "Frame, 24 panels", weight: "48 kg", status: "Packed" },
+      { name: "LED Case 3", type: "LED", contents: "Spare panels, cans", weight: "18 kg", status: "Storage" },
+      { name: "Projection Case 1", type: "Projection", contents: "Projector, lens, mount", weight: "30 kg", status: "Packed" },
+      { name: "Projection Case 2", type: "Projection", contents: "Screen, rigging", weight: "26 kg", status: "Storage" },
+      { name: "Printer Case 1", type: "Printer", contents: "Printer, media, ink", weight: "20 kg", status: "Packed" },
+      { name: "Printer Case 2", type: "Printer", contents: "Printer, spares", weight: "16 kg", status: "Storage" },
+    ];
+    const openCaseRec = (k) => this.setState({ open: "record", openCase: k.name, openCaseType: k.type });
+    const caseTypeDefs = [
+      { key: "LED", label: "LED cases", dot: "#FEBD17" },
+      { key: "Projection", label: "Projection cases", dot: "#2A6FDB" },
+      { key: "Printer", label: "Printer cases", dot: "#16744B" },
+    ];
+    const caseSections = caseTypeDefs.map((ct) => {
+      const items = caseDefs.filter((k) => k.type === ct.key).map((k) => ({ ...k, open: () => openCaseRec(k) }));
+      return { label: ct.label, dot: ct.dot, count: items.length, items };
+    });
+    const caseTotal = caseDefs.length;
+    const tasksRaw = [
+      { task: "Confirm power drop with venue", event: "Brewery Launch Party", who: "M. Okafor", due: "Jun 10", status: "Open", dot: "#9A9A96" },
+      { task: "Ship cases by Jun 10", event: "Brewery Launch Party", who: "Logistics", due: "Jun 10", status: "Open", dot: "#9A9A96" },
+      { task: "Chase signed SOW", event: "Unpacked Lounge", who: "P. Nair", due: "Jun 18", status: "Open", dot: "#9A9A96" },
+      { task: "Asset review", event: "All-Star Activation", who: "Design", due: "Jun 22", status: "In progress", dot: "#FEBD17" },
+      { task: "Book flights LAX→SFO", event: "All-Star Activation", who: "Travel", due: "Jun 24", status: "Open", dot: "#9A9A96" },
+      { task: "Recap video edit", event: "I/O Wall", who: "Post", due: "May 20", status: "Done", dot: "#16744B" },
+    ];
+    const tasks = tasksRaw.map((t, i) => {
+      const checked = this.state.checkedTasks.includes("t" + i);
+      return { ...t, checked, notChecked: !checked, toggle: () => toggleTask("t" + i) };
+    });
+    const recTaskDefs = [
+      { label: "Confirm power drop with venue", meta: "M. Okafor · Jun 10" },
+      { label: "Ship cases to venue", meta: "Logistics · Jun 10" },
+      { label: "Brief crew on brand assets", meta: "M. Okafor · Jun 13" },
+    ];
+    const recTasks = recTaskDefs.map((t, i) => {
+      const checked = this.state.checkedTasks.includes("r" + i);
+      return { ...t, checked, notChecked: !checked, toggle: () => toggleTask("r" + i) };
+    });
+
+    const displayTypes = ["Projection", "LED", "TV"].map((label) => ({ label, active: this.state.displayType === label, notActive: this.state.displayType !== label, go: () => this.setState({ displayType: label }) }));
+    const assignedTechs = [
+      { name: "M. Okafor", role: "Lead" },
+      { name: "A. Reyes", role: "Technician" },
+      { name: "J. Park", role: "Technician" },
+    ];
+    const eqCases = [
+      { name: "Case A · Wall", contents: "Frame · 24 panels" },
+      { name: "Case B · Compute", contents: "1 computer · network · 4G" },
+      { name: "Case C · Cans", contents: "12 spray cans · dock" },
+    ];
+    const invDone = this.state.invDone;
+    const teamUsers = [
+      { name: "P. Nair", email: "nair@graffitiplus.io", role: "Admin", status: "Active" },
+      { name: "M. Okafor", email: "okafor@graffitiplus.io", role: "Admin", status: "Active" },
+      { name: "A. Reyes", email: "reyes@graffitiplus.io", role: "Viewer", status: "Active" },
+      { name: "J. Park", email: "park@graffitiplus.io", role: "Viewer", status: "Active" },
+      { name: "S. Nguyen", email: "nguyen@graffitiplus.io", role: "Viewer", status: "Active" },
+      { name: "D. Cole", email: "cole@graffitiplus.io", role: "Viewer", status: "Invited" },
+      { name: "R. Mbeki", email: "mbeki@graffitiplus.io", role: "Admin", status: "Active" },
+    ].map((u) => ({ ...u, isAdmin: u.role === "Admin", isViewer: u.role === "Viewer", activeStatus: u.status === "Active", invited: u.status === "Invited", toggleRole: () => flash("Role changes are admin-only (demo)") }));
+    const ledNonExp = ["Laptop", "Charger for laptop", "8K HDMI cable", "Base Station x 4", "Base Station power cable x 4", "Base Station Housing tear drop x 2", "Base Station Housing central x 1", "Spray can x 4", "Spray can receiver x 5 (1 spare)", "Spray Can Receiver pouch x 1", "Spray can short charging cable x 4", "Spray can receiver long USB 3.0 cable x 4", "R angle USB-C to USB-A x 2 (10')", "Home Tracker + R angle short cable x 2", "Long USB cable for Home Tracker (10')", "Home Tracker mount (3D-printed) x 2 sets", "Mini Keyboard + receiver", "Magnetic mounts x 2", "Screw mounts x 4", "Ball mounts x 6", "USB Splitter x 2", "USB-A (F) to USB-C (M) 4\" x 2", "USB hub + power + cable x 1", "Calibration tool (white)", "Power bar ext (white)", "Mini Tool Box (hex + screwdriver)", "Wifi hotspot device x 1", "Ethernet cable (30') x 1"];
+    const trackhub = ["Trackhub (yellow case) x 1", "Trackhub power cable (5v 27w) x 1", "Short ethernet cable (1') x 1", "Ethernet adapter USB (4\") x 1"];
+    const expendables = ["Velcro", "Carpet tape", "Black Gaff tape", "Coloured paper tape x 2 colours", "Magnet pads x 8", "Business cards", "Velcro cable ties x 20"];
+    const projNonExp = ["Laptop", "Charger for laptop", "Projector body", "Projection lens", "8K HDMI cable", "Power cable + safety cable", "Mount / rigging plate", "Remote + batteries", "Spare lamp / filter", "Wifi hotspot device x 1", "Ethernet cable (30') x 1"];
+    const printerNonExp = ["Laptop", "Charger for laptop", "Printer body", "Power cable", "USB cable", "Media roll x 2", "Ink / toner set", "Cutter blade (spare)", "Cleaning kit"];
+    const typeGroups = {
+      LED: [{ title: "Inventory checklist · Non-expendables", items: ledNonExp }, { title: "Trackhub pouch (black)", items: trackhub }, { title: "Inventory checklist · Expendables", items: expendables }],
+      Projection: [{ title: "Inventory checklist · Non-expendables", items: projNonExp }, { title: "Inventory checklist · Expendables", items: expendables }],
+      Printer: [{ title: "Inventory checklist · Non-expendables", items: printerNonExp }, { title: "Inventory checklist · Expendables", items: expendables }],
+    };
+    const activeCaseType = this.state.openCaseType || "LED";
+    const caseGroups = (typeGroups[activeCaseType] || typeGroups.LED).map((g, gIdx) => {
+      const items = g.items.map((label, idx) => {
+        const key = "ck" + activeCaseType + gIdx + "_" + idx;
+        const off = this.state.checkedTasks.includes(key);
+        const checked = !off;
+        return { label, checked, notChecked: !checked, state: checked ? "Yes" : "No", color: checked ? "#0A0B0C" : "#9A9A96", stateColor: checked ? "#16744B" : "#C7402F", toggle: () => toggleTask(key) };
+      });
+      const yes = items.filter((i) => i.checked).length;
+      return { title: g.title, items, doneLabel: yes + " / " + items.length };
+    });
+
+    return {
+      nav, columns, listEvents: events, clients, technicians, systems, tasks, recTasks,
+      toast: this.state.toast, hasToast: !!this.state.toast,
+      newEvent: () => this.setState({ section: "events", open: "share" }),
+      newClient: () => flash("New client form (demo)"),
+      newTech: () => flash("New technician form (demo)"),
+      newSystem: () => flash("New system form (demo)"),
+      newCase: () => flash("New case form (demo)"),
+      newTask: () => flash("New task (demo)"),
+      filter: () => flash("Filters (demo)"),
+      search: () => flash("Search (demo)"),
+      edit: () => flash("Edit mode (demo)"),
+      openAssets: () => flash("Opens the locked asset set in Client Space"),
+      allowDrop: (e) => e.preventDefault(),
+      showEventsBoard: section === "events" && !open && layout === "board",
+      showEventsList: section === "events" && !open && layout === "list",
+      showEventsMap: section === "events" && !open && layout === "map",
+      mapPins, continents, upcomingCount, pastCount,
+      potentialEvents, potentialCount: potentialEvents.length,
+      railOpen: this.state.railOpen,
+      toggleRail: () => this.setState((s) => ({ railOpen: !s.railOpen })),
+      showMap: () => this.setState({ layout: "map" }),
+      calCells, calDows, calLabel,
+      calPrev: () => stepMonth(-1), calNext: () => stepMonth(1),
+      showCalendar: () => this.setState({ layout: "calendar" }),
+      showEventsCalendar: section === "events" && !open && layout === "calendar",
+      mapFull: this.state.mapFull, mapNotFull: !this.state.mapFull,
+      toggleMapFull: () => this.setState((s) => ({ mapFull: !s.mapFull })),
+      mapPanelStyle: this.state.mapFull
+        ? "position:fixed;inset:0;width:100vw;height:100vh;z-index:60;background:#0A0B0C;overflow:hidden"
+        : "position:relative;width:100%;aspect-ratio:2/1;background:#0A0B0C;border:1px solid #E6E3DC;border-radius:2px;overflow:hidden",
+      showPotentialRail: section === "events" && !open && this.state.railOpen,
+      showPotentialTab: section === "events" && !open && !this.state.railOpen,
+      showEventRecord: section === "events" && open === "record",
+      showClientsList: section === "clients" && !open,
+      showClientRecord: section === "clients" && open === "record",
+      showTechList: section === "technicians" && !open,
+      showTechRecord: section === "technicians" && open === "record",
+      showSystems: section === "systems",
+      showCases: section === "cases" && !open,
+      showCaseRecord: section === "cases" && open === "record",
+      showInventory: section === "inventory",
+      inventory: [
+        { item: "GRFT+ Wall v4 frame", tag: "WALL-04", caseId: "Case A", loc: "Warehouse · Rack 3", status: "Available", dot: "#16744B", checked: "Jun 2" },
+        { item: "LED panel set (24)", tag: "PNL-24A", caseId: "Case A", loc: "Warehouse · Rack 3", status: "Available", dot: "#16744B", checked: "Jun 2" },
+        { item: "Compute unit", tag: "CPU-12", caseId: "Case B", loc: "On event · Vancouver", status: "Deployed", dot: "#FEBD17", checked: "Jun 13" },
+        { item: "Spray cans ×12", tag: "CAN-12", caseId: "Case B", loc: "On event · Vancouver", status: "Deployed", dot: "#FEBD17", checked: "Jun 13" },
+        { item: "Charge dock", tag: "DOCK-03", caseId: "Case B", loc: "Warehouse · Bench 1", status: "Maintenance", dot: "#C7402F", checked: "Jun 9" },
+        { item: "Lighthouse base ×4", tag: "LH-04", caseId: "Case C", loc: "Warehouse · Rack 1", status: "Available", dot: "#16744B", checked: "Jun 1" },
+        { item: "Home tracker", tag: "HT-02", caseId: "Case C", loc: "Warehouse · Rack 1", status: "Available", dot: "#16744B", checked: "Jun 1" },
+        { item: "Transmitter kit (8)", tag: "TX-08", caseId: "Case C", loc: "In transit · YYZ→YVR", status: "In transit", dot: "#9A9A96", checked: "Jun 12" },
+        { item: "Network + 4G kit", tag: "NET-05", caseId: "Case B", loc: "On event · Vancouver", status: "Deployed", dot: "#FEBD17", checked: "Jun 13" },
+        { item: "Spare can", tag: "CAN-S2", caseId: "Case D", loc: "Warehouse · Bench 2", status: "Available", dot: "#16744B", checked: "May 28" },
+      ],
+      newGear: () => flash("Add gear to inventory (demo)"),
+      showShare: section === "events" && open === "share",
+      displayTypes, assignedTechs, eqCases, updates: this.state.updates,
+      clientGoals: this.state.clientGoals, customReqs: this.state.customReqs,
+      onGoals: (e) => this.setState({ clientGoals: e.target.value }),
+      assetsComplete: this.state.assetsComplete, assetsNotComplete: !this.state.assetsComplete,
+      toggleAssets: () => this.setState((s) => ({ assetsComplete: !s.assetsComplete })),
+      milestones: [
+        { date: "May 20", label: "Briefing", dot: "#16744B", ring: "#16744B", subColor: "#6B6B70" },
+        { date: "Jun 01", label: "Build assets (Client Space)", dot: "#FEBD17", ring: "#FEBD17", subColor: "#33333A" },
+        { date: "Jun 06", label: "Assets lock-in \u2014 final changes deadline", dot: "#C7402F", ring: "#C7402F", subColor: "#C7402F" },
+        { date: "Jun 07", label: "Approve & lock", dot: "#fff", ring: "#c2bfb6", subColor: "#6B6B70" },
+        { date: "Jun 08\u201312", label: "Production & QA", dot: "#fff", ring: "#c2bfb6", subColor: "#6B6B70" },
+        { date: "Jun 14", label: "Event day", dot: "#fff", ring: "#c2bfb6", subColor: "#6B6B70" },
+        { date: "Jun 16", label: "Recap delivery", dot: "#fff", ring: "#c2bfb6", subColor: "#6B6B70" },
+      ],
+      travelers: [
+        { name: "M. Okafor", role: "Lead technician", dates: "Jun 14 → Jun 15", flight: "AC 123 · YYZ→YVR · 9:10 AM", reservation: "SPB-4471", notes: "Sylvia Hotel, check-in 1 PM. Return AC 188, Jun 15 11:40 PM." },
+        { name: "A. Reyes", role: "Technician", dates: "Jun 14 → Jun 15", flight: "WS 210 · YYC→YVR · 8:00 AM", reservation: "SPB-4472", notes: "Shares hotel block. Needs vegetarian crew meal." },
+      ],
+      addTraveler: () => flash("Add traveler (demo)"),
+      onsiteContacts: [
+        { name: "Marco Diaz", role: "Pavilion operations", phone: "+1 (604) 555-0148" },
+        { name: "Renee Tran", role: "Client event lead", phone: "+1 (604) 555-0177" },
+      ],
+      addOnsite: () => flash("Add onsite contact (demo)"),
+      remoteSupport: { name: "S. Nguyen", role: "AV engineer", window: "on-call 4–11 PM PT", phone: "+1 (778) 555-0991" },
+      addReq: () => this.setState((s) => ({ customReqs: [...s.customReqs, "New requirement (demo) — type to edit."] })),
+      invDone, invNotDone: !invDone,
+      teamUsers, caseSections, caseTotal, caseGroups, caseName: this.state.openCase,
+      toggleInv: () => this.setState((s) => ({ invDone: !s.invDone })),
+      copyKey: () => flash("License key copied (demo)"),
+      copyLink: () => flash("Link copied (demo)"),
+      emailClient: () => flash("Client Space link emailed to the client (demo)"),
+      addUpdate: () => this.setState((s) => ({ updates: [{ author: "You", time: "just now", text: "New update added (demo) — type to edit." }, ...s.updates] })),
+      assignTech: () => flash("Assign a technician (demo)"),
+      newMember: () => flash("Add a staff account (demo)"),
+      goShare: () => this.setState({ open: "share" }),
+      goRecord: () => this.setState({ open: "record" }),
+      goCases: () => this.setState({ section: "cases", open: null }),
+      showBoard: () => this.setState({ layout: "board" }),
+      showList: () => this.setState({ layout: "list" }),
+      back,
+    };
+  }
+}
+</script>
+</body>
+</html>

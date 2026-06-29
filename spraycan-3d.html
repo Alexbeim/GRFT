@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GRFT+ · Lab — The Can</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<style>
+  @font-face {
+    font-family: "GraffitiPlus Display";
+    src: url("Fonts/GraffitiPlusDisplay-Regular.woff2?v=3") format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  :root {
+    --obsidian: #000d10;
+    --accent: #FEBD17;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--obsidian);
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    color: #fff;
+  }
+  .grft { font-family: "GraffitiPlus Display", sans-serif; font-weight: 400; line-height: 0.95; }
+
+  /* Layer stack: wall paint (0) → spray jet (1) → 3D can (2) → UI (3) */
+  #wall, #jet, #gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #wall { z-index: 0; }
+  #jet  { z-index: 1; pointer-events: none; }
+  #gl   { z-index: 2; }
+  #gl.aiming { cursor: crosshair; }
+  #gl.over-can { cursor: grab; }
+  #gl.dragging { cursor: grabbing; }
+
+  .ui { position: fixed; z-index: 3; pointer-events: none; }
+
+  .ui-top {
+    top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 26px clamp(20px, 4vw, 56px);
+  }
+  .ui-top img { height: 52px; width: auto; display: block; pointer-events: auto; }
+  .ui-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--accent);
+  }
+
+  .ui-title {
+    left: clamp(20px, 4vw, 56px);
+    bottom: clamp(28px, 6vh, 64px);
+    max-width: 480px;
+  }
+  .ui-title h1 {
+    font-weight: 800;
+    font-size: clamp(30px, 4.2vw, 54px);
+    line-height: 0.98; letter-spacing: -0.02em;
+    margin: 0 0 10px;
+  }
+  .ui-title h1 .grft { color: var(--accent); font-size: 1.12em; }
+  .ui-title p {
+    font-size: 14px; color: rgba(255,255,255,0.55);
+    letter-spacing: 0.01em; line-height: 1.55; max-width: 40ch;
+  }
+  .ui-title p b { color: #fff; font-weight: 600; }
+
+  .ui-hint {
+    right: clamp(20px, 4vw, 56px);
+    bottom: clamp(28px, 6vh, 64px);
+    text-align: right;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: rgba(255,255,255,0.35);
+    line-height: 2.1;
+  }
+  .ui-hint em { font-style: normal; color: var(--accent); }
+
+  #clearBtn {
+    position: fixed; z-index: 3;
+    top: 26px; right: clamp(20px, 4vw, 56px);
+    background: none; border: 1px solid rgba(255,255,255,0.22);
+    color: rgba(255,255,255,0.6);
+    font: 700 11px/1 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 11px 16px; cursor: pointer;
+    transition: border-color 0.25s, color 0.25s, background 0.25s;
+  }
+  #clearBtn:hover { background: var(--accent); border-color: var(--accent); color: var(--obsidian); }
+
+  @media (max-width: 700px) {
+    .ui-hint { display: none; }
+    .ui-title { max-width: 75vw; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="wall"></canvas>
+<canvas id="jet"></canvas>
+<canvas id="gl"></canvas>
+
+<div class="ui ui-top">
+  <a href="index.html"><img src="images/logo-v4.webp" alt="Graffiti+"></a>
+</div>
+<button id="clearBtn" type="button">Buff the wall</button>
+
+<div class="ui ui-title">
+  <p class="ui-eyebrow">Lab · Experiment 01</p>
+  <h1>The can.<br><span class="grft">held by you.</span></h1>
+  <p><b>Drag the can</b> to look at it. <b>Press and hold the wall</b> to spray paint. The GRFT+ logo on the wall is yours to <b>move, turn, or resize</b> — grab the colored handles around it.</p>
+</div>
+
+<div class="ui ui-hint">
+  Drag logo handles — <em>move · turn · size</em><br>
+  T R S — switch mode<br>
+  Drag can — rotate<br>
+  Hold wall — <em>spray</em><br>
+  Scroll — zoom
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
+
+const ACCENT = '#FEBD17';
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+/* ---------------- renderer / scene ---------------- */
+const glCanvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas: glCanvas, antialias: true, alpha: true });
+renderer.setPixelRatio(DPR);
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(34, innerWidth / innerHeight, 0.1, 50);
+camera.position.set(0, 0.18, 5.6);
+
+/* studio lights: key + cool rim + soft fill */
+const key = new THREE.DirectionalLight(0xfff4e0, 2.4);
+key.position.set(2.6, 3.4, 2.2);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.radius = 6;
+key.shadow.camera.near = 0.5; key.shadow.camera.far = 12;
+key.shadow.camera.left = key.shadow.camera.bottom = -3;
+key.shadow.camera.right = key.shadow.camera.top = 3;
+scene.add(key);
+
+const rim = new THREE.DirectionalLight(0x9fd8ff, 1.4);
+rim.position.set(-3.2, 1.6, -2.4);
+scene.add(rim);
+
+const fill = new THREE.AmbientLight(0x223038, 0.55);
+scene.add(fill);
+
+/* soft contact shadow floor */
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(14, 14),
+  new THREE.ShadowMaterial({ opacity: 0.42 })
+);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+/* ---------------- model ---------------- */
+const rig = new THREE.Group();      // user rotation (drag)
+const aim = new THREE.Group();      // spray aiming tilt
+rig.add(aim);
+rig.position.x = innerWidth > 900 ? 0.45 : 0;   // keep clear of the title block
+scene.add(rig);
+
+/* ---------------- placeable GRFT+ logo ----------------
+   A flat plane in the scene with the GRFT+ wordmark, positioned in front of
+   the wall canvas. The transform gizmo is attached to THIS — drag handles to
+   move it across the wall, rotate it, or scale it. All transforms anchor at
+   the logo's center. T / R / S switch gizmo modes. */
+const logoPlane = new THREE.Mesh(
+  new THREE.PlaneGeometry(1, 1),
+  new THREE.MeshBasicMaterial({ transparent: true, alphaTest: 0.04, depthWrite: false, side: THREE.DoubleSide })
+);
+logoPlane.position.set(-0.7, 1.4, 0.05);   // upper-left of the wall, clear of the title
+logoPlane.scale.setScalar(0.35);           // initial scale (texture-load callback below applies aspect)
+logoPlane.renderOrder = 5;                 // draw above the can if they overlap
+scene.add(logoPlane);
+
+new THREE.TextureLoader().load('images/logo-v4.webp', (tex) => {
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  logoPlane.material.map = tex;
+  logoPlane.material.needsUpdate = true;
+  // Match plane aspect to the logo's natural aspect — preserve scalar size
+  const aspect = tex.image.width / tex.image.height;
+  const s0 = logoPlane.scale.x;
+  logoPlane.scale.set(aspect * s0, s0, s0);
+});
+
+const transformControls = new TransformControls(camera, renderer.domElement);
+transformControls.size = 0.9;
+transformControls.attach(logoPlane);
+scene.add(transformControls);
+
+let gizmoActive = false;
+transformControls.addEventListener('dragging-changed', (e) => {
+  gizmoActive = e.value;
+  if (e.value) {
+    // Gizmo grabbed — abort any in-progress can-drag or spray
+    dragging = false;
+    if (spraying) { spraying = false; stopHiss(); }
+  }
+});
+
+window.addEventListener('keydown', (e) => {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 't') transformControls.setMode('translate');
+  else if (k === 'r') transformControls.setMode('rotate');
+  else if (k === 's') transformControls.setMode('scale');
+});
+
+let canReady = false;
+let nozzleTip = new THREE.Vector3(); // local-space nozzle position
+
+/* The GLB embeds the GRFT+ label art but never binds it to a material —
+   bind it here: Montana Black style, matte black painted body, white throwie. */
+const labelTex = new THREE.TextureLoader().load('3d/grft_can_texture.png');
+labelTex.flipY = true;                        // art was authored top-down, not glTF-flipped
+labelTex.colorSpace = THREE.SRGBColorSpace;
+labelTex.anisotropy = 8;
+
+new GLTFLoader().load('3d/montana_grft.glb', (gltf) => {
+  const model = gltf.scene;
+
+  model.traverse(o => {
+    if (o.isMesh) {
+      o.castShadow = true;
+      if (o.material) {
+        o.material.envMapIntensity = 1.25;
+        // crisp the chrome rim, keep micro-rough metal body
+        if (o.material.metalness > 0.95) o.material.roughness = Math.min(o.material.roughness, 0.18);
+        // body (Material.005): painted satin black with the label wrap
+        if (o.material.name === 'Material.005') {
+          o.material.map = labelTex;
+          o.material.color.set(0xffffff);
+          o.material.metalness = 0.3;
+          o.material.roughness = 0.42;
+          o.material.needsUpdate = true;
+        }
+        // cap + nozzle plastics: brand yellow
+        if (o.material.name === 'Material.002' || o.material.name === 'Material.007') {
+          o.material.color.set(0xFEBD17);
+          o.material.roughness = 0.3;
+        }
+      }
+    }
+  });
+
+  // normalize: center at origin, stand on floor, ~2 units tall
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const s = 2.0 / size.y;
+  model.scale.setScalar(s);
+  model.position.sub(center.multiplyScalar(s));
+  model.position.y += (size.y * s) / 2 - 0.02;
+  floor.position.y = 0;
+
+  // nozzle = top of the can, slightly forward
+  nozzleTip.set(0, size.y * s - 0.06, 0.07);
+
+  aim.add(model);
+  canReady = true;
+});
+
+/* ---------------- interaction state ---------------- */
+const raycaster = new THREE.Raycaster();
+const pointerNDC = new THREE.Vector2();
+let dragging = false, spraying = false;
+let lastX = 0, lastY = 0;
+let velYaw = 0, velPitch = 0;
+let yaw = -1.15, pitch = 0;   // calibrated: GRFT+ label faces camera on load
+let targetZoom = 5.6;
+let sprayX = 0, sprayY = 0;
+let wetness = 0;             // builds while hovering one spot → drips
+
+function overCan(x, y) {
+  if (!canReady) return false;
+  pointerNDC.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
+  raycaster.setFromCamera(pointerNDC, camera);
+  return raycaster.intersectObject(aim, true).length > 0;
+}
+
+glCanvas.addEventListener('pointerdown', (e) => {
+  // If the pointer is over a gizmo handle or the gizmo is already grabbing,
+  // let TransformControls own this gesture — don't start drag-rotate or spray.
+  if (transformControls.axis || gizmoActive) return;
+  try { glCanvas.setPointerCapture(e.pointerId); } catch (_) {}
+  lastX = e.clientX; lastY = e.clientY;
+  if (overCan(e.clientX, e.clientY)) {
+    dragging = true;
+    glCanvas.className = 'dragging';
+  } else {
+    spraying = true;
+    sprayX = e.clientX; sprayY = e.clientY;
+    wetness = 0;
+    startHiss();
+    glCanvas.className = 'aiming';
+  }
+});
+glCanvas.addEventListener('pointermove', (e) => {
+  if (dragging) {
+    velYaw = (e.clientX - lastX) * 0.008;
+    velPitch = (e.clientY - lastY) * 0.005;
+    yaw += velYaw; pitch += velPitch;
+    pitch = Math.max(-0.5, Math.min(0.5, pitch));
+  } else if (spraying) {
+    const moved = Math.hypot(e.clientX - sprayX, e.clientY - sprayY);
+    wetness = moved > 4 ? Math.max(0, wetness - moved * 0.4) : wetness;
+    sprayX = e.clientX; sprayY = e.clientY;
+  } else {
+    glCanvas.className = overCan(e.clientX, e.clientY) ? 'over-can' : 'aiming';
+  }
+  lastX = e.clientX; lastY = e.clientY;
+});
+function endPointer() {
+  dragging = false;
+  if (spraying) { spraying = false; stopHiss(); }
+  glCanvas.className = 'aiming';
+}
+glCanvas.addEventListener('pointerup', endPointer);
+glCanvas.addEventListener('pointercancel', endPointer);
+
+glCanvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  targetZoom = Math.max(3.0, Math.min(6.5, targetZoom + e.deltaY * 0.0025));
+}, { passive: false });
+
+/* ---------------- wall paint canvas ---------------- */
+const wall = document.getElementById('wall');
+const wctx = wall.getContext('2d');
+const jet = document.getElementById('jet');
+const jctx = jet.getContext('2d');
+
+function sizeCanvases() {
+  for (const c of [wall, jet]) {
+    c.width = innerWidth * DPR; c.height = innerHeight * DPR;
+    c.getContext('2d').setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  paintWallBase();
+}
+function paintWallBase() {
+  // obsidian wall with a faint center falloff + concrete grain
+  const g = wctx.createRadialGradient(innerWidth/2, innerHeight*0.42, 80, innerWidth/2, innerHeight*0.42, Math.max(innerWidth, innerHeight)*0.75);
+  g.addColorStop(0, '#06181d');
+  g.addColorStop(1, '#000d10');
+  wctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  wctx.globalCompositeOperation = 'source-over';
+  wctx.globalAlpha = 1;
+  wctx.fillStyle = g;
+  wctx.fillRect(0, 0, innerWidth, innerHeight);
+  wctx.globalAlpha = 0.05;
+  for (let i = 0; i < 1400; i++) {
+    wctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
+    wctx.fillRect(Math.random()*innerWidth, Math.random()*innerHeight, 1, 1);
+  }
+  wctx.globalAlpha = 1;
+}
+
+document.getElementById('clearBtn').addEventListener('click', paintWallBase);
+
+/* spray deposition: gaussian core + overspray halo + drips */
+function gauss() { return (Math.random()+Math.random()+Math.random())/1.5 - 1; }
+
+const drips = [];
+function depositPaint(x, y, dt) {
+  const core = 16, haloR = 46;
+  wctx.globalCompositeOperation = 'source-over';
+
+  // dense core
+  wctx.fillStyle = ACCENT;
+  for (let i = 0; i < 90 * dt * 60; i++) {
+    const r = Math.abs(gauss()) * core;
+    const a = Math.random() * Math.PI * 2;
+    wctx.globalAlpha = 0.10 + Math.random() * 0.10;
+    const d = 0.7 + Math.random() * 1.6;
+    wctx.beginPath();
+    wctx.arc(x + Math.cos(a)*r, y + Math.sin(a)*r, d, 0, 7);
+    wctx.fill();
+  }
+  // overspray dust
+  for (let i = 0; i < 36 * dt * 60; i++) {
+    const r = core + Math.random() * haloR;
+    const a = Math.random() * Math.PI * 2;
+    wctx.globalAlpha = 0.015 + Math.random() * 0.03;
+    wctx.beginPath();
+    wctx.arc(x + Math.cos(a)*r, y + Math.sin(a)*r, 0.6 + Math.random()*1.2, 0, 7);
+    wctx.fill();
+  }
+  wctx.globalAlpha = 1;
+
+  // over-saturation → drip
+  wetness += dt;
+  if (wetness > 0.55 && Math.random() < 0.25) {
+    drips.push({ x: x + gauss()*8, y: y + 6, w: 2.2 + Math.random()*1.8, life: 30 + Math.random()*70, v: 0 });
+    wetness *= 0.45;
+  }
+}
+function stepDrips(dt) {
+  wctx.fillStyle = ACCENT;
+  for (let i = drips.length - 1; i >= 0; i--) {
+    const d = drips[i];
+    d.v = Math.min(d.v + 60 * dt, 26 + d.w * 10);
+    const step = d.v * dt;
+    wctx.globalAlpha = 0.5;
+    wctx.beginPath();
+    wctx.arc(d.x + Math.sin(d.y * 0.05) * 0.6, d.y, d.w * (0.55 + 0.45 * (d.life / 100)), 0, 7);
+    wctx.fill();
+    d.y += step;
+    d.life -= step;
+    d.w *= 0.998;
+    if (d.life <= 0 || d.y > innerHeight) {
+      // terminal bead
+      wctx.globalAlpha = 0.55;
+      wctx.beginPath(); wctx.arc(d.x, d.y, d.w * 0.8, 0, 7); wctx.fill();
+      drips.splice(i, 1);
+    }
+  }
+  wctx.globalAlpha = 1;
+}
+
+/* ---------------- spray jet particles (screen space) ---------------- */
+const jets = [];
+function nozzleScreenPos() {
+  const v = nozzleTip.clone();
+  aim.localToWorld(v);
+  v.project(camera);
+  return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight };
+}
+function emitJet(nx, ny, tx, ty, dt) {
+  const ang = Math.atan2(ty - ny, tx - nx);
+  const dist = Math.hypot(tx - nx, ty - ny);
+  for (let i = 0; i < 100 * dt * 60; i++) {
+    const spread = (Math.random() - 0.5) * 0.22;
+    const sp = dist * (3.2 + Math.random() * 1.4);
+    jets.push({
+      x: nx, y: ny,
+      vx: Math.cos(ang + spread) * sp,
+      vy: Math.sin(ang + spread) * sp,
+      life: 0.16 + Math.random() * 0.12,
+      r: 0.6 + Math.random() * 1.6
+    });
+  }
+}
+function stepJets(dt) {
+  jctx.clearRect(0, 0, innerWidth, innerHeight);
+  jctx.fillStyle = ACCENT;
+  for (let i = jets.length - 1; i >= 0; i--) {
+    const p = jets[i];
+    p.life -= dt;
+    if (p.life <= 0) { jets.splice(i, 1); continue; }
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    p.vx *= 0.92; p.vy *= 0.92;
+    jctx.globalAlpha = Math.min(0.5, p.life * 3) * 0.55;
+    jctx.beginPath();
+    jctx.arc(p.x, p.y, p.r, 0, 7);
+    jctx.fill();
+  }
+  jctx.globalAlpha = 1;
+}
+
+/* ---------------- aerosol hiss (synthesized) ---------------- */
+let actx = null, hissGain = null, hissSrc = null;
+function startHiss() {
+  if (!actx) {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    const len = actx.sampleRate * 2;
+    const buf = actx.createBuffer(1, len, actx.sampleRate);
+    const data = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < len; i++) {           // pink-ish noise
+      const w = Math.random() * 2 - 1;
+      last = (last + 0.04 * w) / 1.04;
+      data[i] = last * 4.2;
+    }
+    hissSrc = actx.createBufferSource();
+    hissSrc.buffer = buf; hissSrc.loop = true;
+    const bp = actx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 5200; bp.Q.value = 0.5;
+    hissGain = actx.createGain(); hissGain.gain.value = 0;
+    hissSrc.connect(bp).connect(hissGain).connect(actx.destination);
+    hissSrc.start();
+  }
+  actx.resume();
+  hissGain.gain.cancelScheduledValues(actx.currentTime);
+  hissGain.gain.setTargetAtTime(0.16, actx.currentTime, 0.02);
+}
+function stopHiss() {
+  if (hissGain) hissGain.gain.setTargetAtTime(0, actx.currentTime, 0.05);
+}
+
+/* ---------------- main loop ---------------- */
+let prev = performance.now();
+function tick(now) {
+  const dt = Math.min((now - prev) / 1000, 0.05);
+  prev = now;
+
+  // inertia + idle drift
+  if (!dragging) {
+    yaw += velYaw; pitch += velPitch;
+    velYaw *= 0.94; velPitch *= 0.94;
+    if (!spraying) yaw += dt * 0.12;            // slow idle turn
+    pitch = Math.max(-0.5, Math.min(0.5, pitch));
+  }
+  rig.rotation.y = yaw;
+  rig.rotation.x = pitch * 0.6;
+
+  // camera zoom ease
+  camera.position.z += (targetZoom - camera.position.z) * 0.08;
+  camera.lookAt(0, 0.95, 0);
+
+  // spray aiming: tilt can toward pointer + recoil shiver
+  if (spraying && canReady) {
+    const n = nozzleScreenPos();
+    const dx = (sprayX - innerWidth / 2) / innerWidth;
+    aim.rotation.z += ((-dx * 0.55) - aim.rotation.z) * 0.18;
+    aim.rotation.x += ((sprayY - innerHeight * 0.4) / innerHeight * 0.35 - aim.rotation.x) * 0.18;
+    aim.position.x = (Math.random() - 0.5) * 0.008;   // pressure shiver
+    aim.position.y = (Math.random() - 0.5) * 0.008;
+    depositPaint(sprayX, sprayY, dt);
+    emitJet(n.x, n.y, sprayX, sprayY, dt);
+  } else {
+    aim.rotation.z *= 0.9; aim.rotation.x *= 0.9;
+    aim.position.set(0, 0, 0);
+  }
+
+  stepDrips(dt);
+  stepJets(dt);
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  sizeCanvases();
+});
+
+sizeCanvases();
+requestAnimationFrame(tick);
+window.__scene = scene;   // debugging hook
+window.__setYaw = (v) => { yaw = v; velYaw = 0; };
+</script>
+</body>
+</html>
