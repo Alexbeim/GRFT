@@ -209,6 +209,11 @@
     baselineFrac: 0.62,      // where the baseline sits in the stage vertically
     minBrush: 12,            // floor on stroke thickness (px). Small embeds drop
                              // this so the stroke scales down with tiny text.
+    chiselAngle: -Math.PI / 6,  // chisel/calligraphy tip angle from horizontal
+                                // (configurable via setChiselAngle for calli caps)
+    chiselBlur: 0,              // 0 = crisp marker edge; >0 (fraction of size)
+                                // softens the chisel into a blurrier calligraphy spray
+    opacity: 1,                 // global paint transparency multiplier (0–1)
   };
   const cap = { current: 'spray' };
   const stampCache = new Map();
@@ -229,16 +234,22 @@
   };
   function hexA(hex, a) {
     const n = parseInt(hex.slice(1), 16);
-    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a * cfg.opacity})`;
   }
 
   // ── Stamp building + caching ──────────────────────────────────────────────
   function buildStamp(capName, col, size) {
     const c = document.createElement('canvas');
-    c.width = c.height = size;
+    // Chisel can be blurred into a soft calligraphy/ultrawide spray; the blur
+    // halo extends well past the rectangle, so pad the canvas to fit it —
+    // otherwise drawImage clips the halo at the edge and it reads as a hard
+    // cut (i.e. "still sharp"). Pad is generous (3× blur) for the gaussian tail.
+    const pad = (capName === 'chisel' && cfg.chiselBlur > 0)
+      ? Math.ceil(cfg.chiselBlur * size * 3) : 0;
+    c.width = c.height = size + pad * 2;
     const x = c.getContext('2d');
     const r = size / 2;
-    x.translate(r, r);
+    x.translate(r + pad, r + pad);
     if (capName === 'spray') {
       // SPRAY: soft radial halo + dense pixel grain (real aerosol noise)
       const cx = (Math.random()-0.5) * r * 0.16;
@@ -268,10 +279,14 @@
       // strokes parallel to it are THIN. That's exactly how a real
       // chisel-tip marker behaves. Slight feather on the long edges only
       // (not the short ends) so it reads as ink, not vector.
-      x.rotate(-Math.PI / 6);  // -30° from horizontal
-      const w = size * 1.0;
+      x.rotate(cfg.chiselAngle);  // configurable tip angle (default -30°)
+      // Optional blur turns the crisp marker tip into a softer calligraphy
+      // spray. Inset the long axis a touch so the blurred tips don't clip.
+      const blurPx = (cfg.chiselBlur || 0) * size;
+      if (blurPx > 0) x.filter = 'blur(' + blurPx.toFixed(1) + 'px)';
+      const w = size * (blurPx > 0 ? 0.86 : 1.0);
       const h = size * 0.30;
-      x.fillStyle = hexA(col, 1);
+      x.fillStyle = hexA(col, blurPx > 0 ? 0.92 : 1);
       x.fillRect(-w/2, -h/2, w, h);
       // Soft feathered edge on top + bottom (the long edges) to soften the
       // hard rectangle without losing the chisel character.
@@ -283,6 +298,7 @@
       grad.addColorStop(1,    hexA(col, 0));
       x.fillStyle = grad;
       x.fillRect(-w/2, -h/2 - 1, w, h + 2);
+      x.filter = 'none';
     } else {
       // MOP (and any future opaque-cap default): bold solid ink with a
       // 15%-edge feather so it doesn't look like a pasted circle.
@@ -299,7 +315,7 @@
     const bucket = sizeBucket(size);
     const resolved = resolveCap(capName);
     // Color in the cache key so per-init color overrides don't poison the cache.
-    const k = `${resolved}|${cfg.color}|${bucket}`;
+    const k = `${resolved}|${cfg.color}|${bucket}|${cfg.opacity}|${resolved === 'chisel' ? cfg.chiselAngle.toFixed(3) + ':' + cfg.chiselBlur : 0}`;
     let s = stampCache.get(k);
     if (!s) { s = buildStamp(resolved, cfg.color, bucket); stampCache.set(k, s); }
     return s;
@@ -337,7 +353,9 @@
 
   function stampAt(x, y, size) {
     const s = getStamp(cap.current, size);
-    pctx.drawImage(s, x - size/2, y - size/2, size, size);
+    // Draw at the stamp's natural dimensions (may be padded for blur) centered
+    // on (x,y), so the soft halo isn't clipped to the logical size box.
+    pctx.drawImage(s, x - s.width/2, y - s.height/2, s.width, s.height);
 
     // Pen-speed measurement for speed-dependent drip caps. First stamp of
     // a session has no reference → use 1. Refresh only when at least
@@ -482,7 +500,12 @@
       // Render trail from (d.x, d.y) → (newX, newY). For straight-fall drips
       // dx ≈ 0, so this collapses to a vertical line; for wandering drips
       // each step lands slightly off-axis, drawing the curve.
-      const stamp = getStamp(d.capName, sizeBucket(d.thickness));
+      const bucket = sizeBucket(d.thickness);
+      const stamp = getStamp(d.capName, bucket);
+      // Stamp may be padded (blurred chisel); keep the logical thickness by
+      // scaling the padded canvas by thickness/bucket and centering it.
+      const drawScale = d.thickness / bucket;
+      const drawW = stamp.width * drawScale, drawH = stamp.height * drawScale;
       const dx = newX - d.x;
       const dy = newY - d.y;
       const dist = Math.hypot(dx, dy);
@@ -492,7 +515,7 @@
         const t = s / steps;
         const px = d.x + dx * t;
         const py = d.y + dy * t;
-        pctx.drawImage(stamp, px - d.thickness/2, py - d.thickness/2, d.thickness, d.thickness);
+        pctx.drawImage(stamp, px - drawW/2, py - drawH/2, drawW, drawH);
       }
 
       d.x = newX;
@@ -645,6 +668,19 @@
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
   }
+
+  // Runtime color — stamps are cached per color (key includes cfg.color), so
+  // simply updating cfg.color makes subsequent paint use the new color. Accepts
+  // any CSS hex the rest of the engine understands.
+  function setColor(hex) { if (hex) cfg.color = hex; }
+  function getColor() { return cfg.color; }
+
+  // Runtime chisel/calligraphy tip angle (radians from horizontal). Used to
+  // present a calligraphy cap at a fixed 45°. Angle is part of the chisel cache
+  // key, so changing it builds fresh stamps automatically.
+  function setChiselAngle(rad) { if (typeof rad === 'number') cfg.chiselAngle = rad; }
+  function setChiselBlur(frac) { if (typeof frac === 'number') cfg.chiselBlur = frac; }
+  function setOpacity(v) { if (typeof v === 'number') cfg.opacity = Math.max(0, Math.min(1, v)); }
 
   function setCap(name) {
     cap.current = name;
@@ -1171,12 +1207,6 @@
   function setWriterScale(s) { if (typeof s === 'number' && s > 0) cfg.writerScale = s; }
   function getWriterScale()  { return cfg.writerScale || 1; }
 
-  // Live paint colour. Stamps cache by colour (see getStamp's key) so the next
-  // paintAt/paintSegment after this builds fresh stamps in the new colour —
-  // no re-init needed. Used by palette UIs (the Paint Booth).
-  function setColor(c) { if (c) cfg.color = c; }
-  function getColor()  { return cfg.color; }
-
   // Live drip tuning. setDripConfig('spray', { spawnRate: 0.01, ... }) merges
   // partial overrides into the named cap's drip physics so a tuning UI (the
   // Tag Designer's drip panel) can adjust drips between plays without re-init.
@@ -1195,9 +1225,10 @@
   window.GraffitiPaint = {
     init, loadAssets, setAssets, play, playLayout, computeAutoLayout,
     setCap, clear, stop,
+    setColor, getColor, setChiselAngle, setChiselBlur, setOpacity,
     beginFreePaint, paintAt, paintSegment,
     setEntryConfig, setExitConfig, getEntryConfig, getExitConfig,
-    setWriterScale, getWriterScale, setColor, getColor,
+    setWriterScale, getWriterScale,
     setDripConfig, getDripConfig,
     DEFAULT_ENTRY_CONFIG, DEFAULT_EXIT_CONFIG,
     // Exposed for tooling/debugging — host pages should not poke these.

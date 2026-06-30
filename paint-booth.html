@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GRFT+ · Lab — Paint Booth</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<!-- Internal installation test rig — keep out of search + social. -->
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<style>
+  @font-face {
+    font-family: "GraffitiPlus Display";
+    src: url("Fonts/GraffitiPlusDisplay-Regular.woff2?v=3") format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  :root {
+    --obsidian: #000d10;
+    --panel: rgba(8, 18, 22, 0.82);
+    --panel-solid: #0a151a;
+    --line: rgba(255,255,255,0.12);
+    --accent: #FEBD17;
+    --text: #f4f6f7;
+    --muted: rgba(255,255,255,0.5);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; overscroll-behavior: none; touch-action: none; }
+  body {
+    background: var(--obsidian);
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    color: var(--text);
+    user-select: none;
+  }
+  .grft { font-family: "GraffitiPlus Display", sans-serif; font-weight: 400; line-height: 0.95; }
+
+  /* Layer stack: background (0) → wall paint (1) → spray jet (2) → 3D can (3)
+     → object decals/handles (4) → UI chrome (5) */
+  #bg, #wall, #jet, #gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #bg   { z-index: 0; }
+  #wall { z-index: 1; }
+  #jet  { z-index: 2; pointer-events: none; }
+  #gl   { z-index: 3; cursor: none; }   /* the 3D can is the cursor over the wall */
+
+  /* ---- object (stencil / sticker) layer ---- */
+  #stage { position: fixed; inset: 0; z-index: 4; pointer-events: none; }
+  .obj { position: absolute; top: 0; left: 0; transform-origin: center center; will-change: transform; }
+  .obj.sticker { pointer-events: auto; cursor: grab; }
+  .obj.sticker.dragging { cursor: grabbing; }
+  .obj .shape, .obj .shape svg, .obj img {
+    width: 100%; height: 100%; display: block; pointer-events: none;
+    -webkit-user-drag: none;
+  }
+  /* stencil look: the cut shape glows; the rest is a frosted plate so testers
+     see the mask they're spraying through */
+  .obj.stencil .shape svg path {
+    fill: rgba(254,189,23,0.10);
+    stroke: var(--accent);
+    stroke-width: 1.4;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 0 6px rgba(254,189,23,0.55));
+  }
+  .obj img { filter: drop-shadow(0 6px 16px rgba(0,0,0,0.45)); }
+
+  /* handle cluster — pinned just above each object's box, always interactive */
+  .handles {
+    position: absolute; left: 0; top: -42px;
+    display: flex; gap: 6px; pointer-events: auto;
+    padding: 4px; border-radius: 10px;
+    background: rgba(6,14,18,0.9); border: 1px solid var(--line);
+    backdrop-filter: blur(8px);
+  }
+  .handles button {
+    width: 30px; height: 30px; border: none; border-radius: 7px;
+    background: rgba(255,255,255,0.06); color: var(--text);
+    font-size: 15px; line-height: 1; cursor: pointer; touch-action: none;
+    display: grid; place-items: center;
+    transition: background .15s, color .15s;
+  }
+  .handles button:hover { background: rgba(255,255,255,0.14); }
+  .handles button.h-move { cursor: grab; }
+  .handles button.h-remove:hover { background: #ff3b30; color: #fff; }
+  .handles button.h-scale, .handles button.h-rotate { cursor: ns-resize; }
+  .handles button.h-rotate { cursor: ew-resize; }
+
+  /* ---------------- UI chrome ---------------- */
+  .ui { position: fixed; z-index: 5; }
+
+  .topbar {
+    top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px clamp(16px, 3vw, 34px);
+    pointer-events: none;
+  }
+  .topbar a, .topbar .badge { pointer-events: auto; }
+  .topbar img { height: 38px; width: auto; display: block; }
+  .badge {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent); border: 1px solid rgba(254,189,23,0.4);
+    padding: 6px 11px; border-radius: 99px; background: rgba(254,189,23,0.06);
+  }
+
+  /* left rail: stencils / stickers / walls */
+  .rail {
+    left: clamp(12px, 2vw, 24px); top: 50%; transform: translateY(-50%);
+    width: 210px; max-height: 78vh; overflow-y: auto;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+    padding: 14px; backdrop-filter: blur(14px);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  }
+  .rail::-webkit-scrollbar { width: 0; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 12px; background: rgba(0,0,0,0.3); padding: 3px; border-radius: 10px; }
+  .tabs button {
+    flex: 1; border: none; background: none; color: var(--muted);
+    font: 700 9px/1 'Inter', sans-serif; letter-spacing: 0.03em; text-transform: uppercase;
+    padding: 8px 2px; border-radius: 7px; cursor: pointer; transition: .15s; white-space: nowrap;
+  }
+  .tabs button.active { background: var(--accent); color: var(--obsidian); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tile {
+    aspect-ratio: 1; border: 1px solid var(--line); border-radius: 11px;
+    background: rgba(255,255,255,0.04); cursor: pointer; overflow: hidden;
+    display: grid; place-items: center; padding: 9px; transition: .15s;
+  }
+  .tile:hover { border-color: var(--accent); background: rgba(254,189,23,0.08); transform: translateY(-2px); }
+  .tile svg, .tile img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+  .tile.wall { padding: 0; position: relative; }
+  .tile.wall span {
+    position: absolute; bottom: 5px; left: 0; right: 0; text-align: center;
+    font: 700 9px/1 'Inter', sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
+    color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
+  .tile.wall.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+
+  /* bottom HUD: colors + sliders + actions */
+  .hud {
+    bottom: clamp(12px, 2.5vh, 26px); left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: center;
+    max-width: min(94vw, 960px);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+    padding: 12px 18px; backdrop-filter: blur(14px);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  }
+  .swatches { display: flex; gap: 7px; }
+  .swatch {
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.18); transition: transform .12s, border-color .12s;
+  }
+  .swatch:hover { transform: scale(1.12); }
+  .swatch.active { border-color: #fff; transform: scale(1.16); box-shadow: 0 0 0 2px var(--obsidian), 0 0 0 4px var(--accent); }
+  .hud-divider { width: 1px; height: 30px; background: var(--line); }
+  .slider-group { display: flex; flex-direction: column; gap: 3px; }
+  .slider-group label { font: 700 9px/1 'Inter', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none; width: 92px; height: 4px;
+    background: rgba(255,255,255,0.18); border-radius: 4px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--obsidian); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid var(--obsidian); cursor: pointer; }
+  .btn {
+    border: 1px solid var(--line); background: rgba(255,255,255,0.05); color: var(--text);
+    font: 700 11px/1 'Inter', sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 11px 15px; border-radius: 10px; cursor: pointer; transition: .15s; white-space: nowrap;
+  }
+  .btn:hover { background: rgba(255,255,255,0.12); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--obsidian); }
+  .btn.primary:hover { filter: brightness(1.08); }
+
+  /* first-run hint */
+  .hint {
+    right: clamp(14px, 2vw, 30px); bottom: clamp(96px, 16vh, 150px);
+    text-align: right; max-width: 230px;
+    font-size: 12px; line-height: 1.7; color: var(--muted);
+    pointer-events: none; transition: opacity .4s;
+  }
+  .hint b { color: var(--accent); font-weight: 700; }
+
+  @media (max-width: 820px) {
+    .rail { width: 168px; }
+    .hint { display: none; }
+    .hud { gap: 10px; padding: 10px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<canvas id="wall"></canvas>
+<canvas id="jet"></canvas>
+<canvas id="gl"></canvas>
+<div id="stage"></div>
+<img id="engineWriter" alt="" style="display:none">  <!-- engine writer slot; the 3D can is the visible tool, so this stays hidden -->
+
+<!-- top bar -->
+<div class="ui topbar">
+  <a href="lab.html"><img src="images/logo-v4.webp" alt="Graffiti+"></a>
+  <span class="badge">Installation test · Paint Booth</span>
+</div>
+
+<!-- left rail -->
+<div class="ui rail">
+  <div class="tabs">
+    <button class="active" data-tab="stencils">Stencils</button>
+    <button data-tab="stickers">Stickers</button>
+    <button data-tab="walls">Walls</button>
+  </div>
+  <div class="tab-panel active" id="panel-stencils"><div class="grid" id="grid-stencils"></div></div>
+  <div class="tab-panel" id="panel-stickers"><div class="grid" id="grid-stickers"></div></div>
+  <div class="tab-panel" id="panel-walls"><div class="grid" id="grid-walls"></div></div>
+</div>
+
+<!-- bottom HUD -->
+<div class="ui hud">
+  <div class="swatches" id="swatches"></div>
+  <div class="hud-divider"></div>
+  <div class="slider-group">
+    <label>Spread</label>
+    <input type="range" id="sizeSlider" min="20" max="120" value="56">
+  </div>
+  <div class="slider-group">
+    <label>Drip</label>
+    <input type="range" id="dripSlider" min="0" max="100" value="35">
+  </div>
+  <div class="hud-divider"></div>
+  <button class="btn" id="clearBtn">Buff wall</button>
+  <button class="btn primary" id="saveBtn">Snapshot</button>
+</div>
+
+<div class="ui hint" id="hint">
+  <b>Move</b> — the can follows your hand.<br>
+  <b>Press the wall</b> to spray.<br>
+  Drop a <b>stencil</b> and spray through it.
+</div>
+
+<script src="opentype.min.js"></script>
+<script src="paint-engine.js?v=booth-1"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+/* ════════════════════════════════════════════════════════════════════════
+   PALETTE  ·  current paint state shared by spray + drips
+   ════════════════════════════════════════════════════════════════════════ */
+const COLORS = [
+  '#FEBD17', '#ffffff', '#000000', '#ff3b30', '#ff2d78', '#ff8a00',
+  '#ffe14d', '#33d17a', '#00c2ff', '#2d6cff', '#9b5cff', '#a05a2c'
+];
+let currentColor = COLORS[0];
+let brushSpread  = 56;     // px, from Spread slider (matches the Painter lab default)
+let dripAmount   = 0.35;   // 0..1, from Drip slider
+
+/* ════════════════════════════════════════════════════════════════════════
+   THREE.JS  ·  studio-lit GRFT+ can (follows the pointer — the can is the cursor)
+   ════════════════════════════════════════════════════════════════════════ */
+const glCanvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas: glCanvas, antialias: true, alpha: true });
+renderer.setPixelRatio(DPR);
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+const CAN_Z = 1.0;              // depth the can floats at — sets its on-screen size
+const camera = new THREE.PerspectiveCamera(34, innerWidth / innerHeight, 0.1, 50);
+camera.position.set(0, 0, 6.2);
+camera.lookAt(0, 0, 0);
+camera.updateMatrixWorld();
+
+const key = new THREE.DirectionalLight(0xfff4e0, 2.4);
+key.position.set(2.6, 3.4, 2.2);
+scene.add(key);
+const rim = new THREE.DirectionalLight(0x9fd8ff, 1.4);
+rim.position.set(-3.2, 1.6, -2.4);
+scene.add(rim);
+scene.add(new THREE.AmbientLight(0x223038, 0.6));
+
+const rig = new THREE.Group();   // follows the pointer — the can IS the cursor
+const aim = new THREE.Group();   // pressure shiver while spraying
+rig.add(aim);
+rig.position.set(0, 0, CAN_Z);
+rig.rotation.y = -0.3;        // slight 3/4 view so the can reads as 3D, not flat
+scene.add(rig);
+
+let canReady = false;
+let canModel = null;
+
+const labelTex = new THREE.TextureLoader().load('3d/grft_can_texture.png');
+labelTex.flipY = true;
+labelTex.colorSpace = THREE.SRGBColorSpace;
+labelTex.anisotropy = 8;
+
+new GLTFLoader().load('3d/montana_grft.glb', (gltf) => {
+  const model = gltf.scene;
+  model.traverse(o => {
+    if (!o.isMesh) return;
+    o.castShadow = true;
+    const m = o.material;
+    if (!m) return;
+    m.envMapIntensity = 1.25;
+    if (m.metalness > 0.95) m.roughness = Math.min(m.roughness, 0.18);
+    if (m.name === 'Material.005') {
+      m.map = labelTex; m.color.set(0xffffff); m.metalness = 0.3; m.roughness = 0.42; m.needsUpdate = true;
+    }
+    if (m.name === 'Material.002' || m.name === 'Material.007') { m.color.set(0xFEBD17); m.roughness = 0.3; }
+  });
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const s = 1.5 / size.y;                         // on-screen size of the held can
+  model.scale.setScalar(s);
+  model.position.sub(center.multiplyScalar(s));   // centre at origin
+  model.position.y -= (size.y * s) / 2;           // drop so the NOZZLE (top) sits at the origin
+  // the can now hangs from its nozzle; rig.position pins that nozzle to the pointer
+  aim.add(model);
+  canModel = model;
+  canReady = true;
+});
+
+/* ════════════════════════════════════════════════════════════════════════
+   CAN-AS-CURSOR  ·  the 3D can follows the pointer; press to paint
+   ─────────────────────────────────────────────────────────────────────────
+   Modelled on the "Paint on the Page" lab: the can tracks the hand with a
+   trailing lean, the nozzle stays on the paint point, and pressing lays paint
+   from that nozzle as you move. No fixed/pivot can.
+   ════════════════════════════════════════════════════════════════════════ */
+let painting = false, sprayPulse = null;
+let pointerX = innerWidth / 2, pointerY = innerHeight / 2;
+let canVelX = 0;                                  // smoothed horizontal speed → trailing lean
+let pmLastX = pointerX, pmLastT = performance.now();
+let canHidden = false;
+
+const overUI = (t) => !!(t && t.closest && t.closest('.ui'));
+function sprayDab() { withClip(() => PAINT.paintAt(pointerX, pointerY, brushSpread)); }
+
+// Map a screen point to the world position on the can's depth plane, so the
+// nozzle (rig origin) can be parked exactly under the pointer.
+const _u = new THREE.Vector3();
+function screenToCanWorld(px, py) {
+  _u.set((px / innerWidth) * 2 - 1, -(py / innerHeight) * 2 + 1, 0.5).unproject(camera);
+  _u.sub(camera.position).normalize();
+  const t = (CAN_Z - camera.position.z) / _u.z;
+  return { x: camera.position.x + _u.x * t, y: camera.position.y + _u.y * t };
+}
+
+// Nudge the can toward the pointer and render now. Called from pointermove so
+// the can tracks the hand even if the rAF tick is throttled (e.g. a backgrounded
+// tab); the tick keeps doing the smooth idle settle when it is running.
+function followCan() {
+  if (!canReady) return;
+  rig.visible = !canHidden;
+  const w = screenToCanWorld(pointerX, pointerY);
+  rig.position.x += (w.x - rig.position.x) * 0.5;
+  rig.position.y += (w.y - rig.position.y) * 0.5;
+  const targetLean = Math.max(-0.34, Math.min(0.34, -canVelX * 0.03));
+  rig.rotation.z += (targetLean - rig.rotation.z) * 0.3;
+  renderer.render(scene, camera);
+}
+
+// Move the can everywhere the pointer goes (even off the wall canvas), and
+// deposit paint while pressed. Listening on window keeps fast drags painting
+// even if they briefly leave the canvas.
+window.addEventListener('pointermove', (e) => {
+  pointerX = e.clientX; pointerY = e.clientY;
+  const now = performance.now(), dt = Math.max(1, now - pmLastT);
+  canVelX = canVelX * 0.6 + ((e.clientX - pmLastX) / dt * 16) * 0.4;
+  pmLastX = e.clientX; pmLastT = now;
+  canHidden = overUI(e.target);                   // tuck the can away over the panels
+  if (painting) {
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    for (const ev of evs) {
+      withClip(() => PAINT.paintSegment(lastSprayX, lastSprayY, ev.clientX, ev.clientY, brushSpread));
+      lastSprayX = ev.clientX; lastSprayY = ev.clientY;
+    }
+  }
+  followCan();
+}, { passive: true });
+
+// Press on the wall (the gl canvas) starts a stroke. UI panels and object
+// handles sit above #gl / stop propagation, so they never start a stroke.
+glCanvas.addEventListener('pointerdown', (e) => {
+  painting = true;
+  pointerX = lastSprayX = e.clientX; pointerY = lastSprayY = e.clientY;
+  sprayDab();
+  clearInterval(sprayPulse);
+  sprayPulse = setInterval(() => { if (painting) sprayDab(); }, 33);   // pool + drip while held still
+  startHiss(); dismissHint();
+});
+function endStroke() {
+  if (!painting) return;
+  painting = false;
+  clearInterval(sprayPulse); sprayPulse = null;
+  stopHiss();
+}
+window.addEventListener('pointerup', endStroke);
+window.addEventListener('pointercancel', endStroke);
+
+/* ════════════════════════════════════════════════════════════════════════
+   CANVASES  ·  background + wall paint + spray jet
+   ════════════════════════════════════════════════════════════════════════ */
+const bg = document.getElementById('bg'),   bctx = bg.getContext('2d');
+const wall = document.getElementById('wall'), wctx = wall.getContext('2d');
+const jet = document.getElementById('jet'),   jctx = jet.getContext('2d');
+
+/* The wall paint is driven by the GRFT+ paint engine — the same system as the
+   Painter lab: procedural aerosol stamps + wetness-driven drips. The engine
+   owns the #wall canvas (sizing + its own drip rAF); we just wrap its paint
+   calls in a stencil clip and feed it the 3D can's spray point. */
+const PAINT = window.GraffitiPaint;
+PAINT.init({
+  canvas: wall,
+  writer: document.getElementById('engineWriter'),   // unused — the 3D can is the visible tool
+  color: currentColor,
+  writerConfig: { spray: { brushSize: brushSpread, imgHeight: 1 } },
+  // Free paint deposits far fewer stamps/sec than trace playback, so spray
+  // loses its wetness gate (low threshold) and gets a bumped spawn rate so a
+  // single held stroke still drips — same tuning the Painter lab uses.
+  dripConfig: {
+    spray:  { spawnRate: dripAmount * 0.14, spawnThreshold: 0.2 },
+    chisel: { enabled: false },
+    mop:    { spawnRate: 0.04 },
+  },
+});
+PAINT.setCap('spray');
+PAINT.beginFreePaint();
+
+function sizeCanvases() {
+  for (const c of [bg, jet]) {            // #wall is sized by the paint engine
+    c.width = innerWidth * DPR; c.height = innerHeight * DPR;
+    c.getContext('2d').setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  paintBackground();
+}
+
+/* ---- swappable walls ---- */
+let currentWall = 'concrete';
+function paintBackground() {
+  bctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  bctx.globalCompositeOperation = 'source-over';
+  bctx.globalAlpha = 1;
+  const W = innerWidth, H = innerHeight;
+  if (currentWall === 'obsidian') {
+    const g = bctx.createRadialGradient(W/2, H*0.42, 80, W/2, H*0.42, Math.max(W,H)*0.75);
+    g.addColorStop(0, '#06181d'); g.addColorStop(1, '#000d10');
+    bctx.fillStyle = g; bctx.fillRect(0, 0, W, H);
+    grain(0.05, 1400);
+  } else if (currentWall === 'concrete') {
+    const g = bctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#3b3f42'); g.addColorStop(1, '#26282b');
+    bctx.fillStyle = g; bctx.fillRect(0, 0, W, H);
+    // blotches
+    for (let i = 0; i < 60; i++) {
+      bctx.globalAlpha = 0.04 + Math.random() * 0.05;
+      bctx.fillStyle = Math.random() > 0.5 ? '#000' : '#fff';
+      const r = 30 + Math.random() * 140;
+      bctx.beginPath(); bctx.arc(Math.random()*W, Math.random()*H, r, 0, 7); bctx.fill();
+    }
+    bctx.globalAlpha = 1;
+    grain(0.06, 2600);
+  } else if (currentWall === 'brick') {
+    bctx.fillStyle = '#2a1410'; bctx.fillRect(0, 0, W, H);
+    const bw = 86, bh = 34, gap = 6;
+    for (let y = 0, row = 0; y < H + bh; y += bh + gap, row++) {
+      const off = (row % 2) ? -(bw + gap) / 2 : 0;
+      for (let x = off; x < W + bw; x += bw + gap) {
+        const v = 0.10 * (Math.random() - 0.5);
+        bctx.fillStyle = `rgb(${Math.round(150*(1+v))},${Math.round(64*(1+v))},${Math.round(48*(1+v))})`;
+        bctx.fillRect(x, y, bw, bh);
+      }
+    }
+    grain(0.05, 1800);
+  } else { // white / paper
+    bctx.fillStyle = '#eceae4'; bctx.fillRect(0, 0, W, H);
+    bctx.globalAlpha = 0.5;
+    const g = bctx.createRadialGradient(W/2, H*0.4, 60, W/2, H*0.4, Math.max(W,H)*0.7);
+    g.addColorStop(0, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(180,178,170,0.25)');
+    bctx.fillStyle = g; bctx.fillRect(0, 0, W, H);
+    bctx.globalAlpha = 1;
+    grain(0.04, 2000, true);
+  }
+}
+function grain(alpha, n, dark) {
+  bctx.globalAlpha = alpha;
+  for (let i = 0; i < n; i++) {
+    bctx.fillStyle = (dark ? Math.random() > 0.7 : Math.random() > 0.5) ? '#000' : '#fff';
+    bctx.fillRect(Math.random()*innerWidth, Math.random()*innerHeight, 1, 1);
+  }
+  bctx.globalAlpha = 1;
+}
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  PAINT.clear();
+  PAINT.beginFreePaint();
+});
+
+/* ════════════════════════════════════════════════════════════════════════
+   STENCIL MASK  ·  union clip of all placed stencils (CSS-px Path2D)
+   ════════════════════════════════════════════════════════════════════════ */
+function buildStencilClip() {
+  const stencils = objects.filter(o => o.kind === 'stencil' && o.unitPath);
+  if (!stencils.length) return null;
+  const path = new Path2D();
+  for (const o of stencils) {
+    const W = o.base * o.scale, s = W / o.vb.w;
+    const m = new DOMMatrix()
+      .translateSelf(o.cx, o.cy)
+      .rotateSelf(o.rot)
+      .scaleSelf(s)
+      .translateSelf(-(o.vb.x + o.vb.w / 2), -(o.vb.y + o.vb.h / 2));
+    path.addPath(o.unitPath, m);
+  }
+  return path;
+}
+function withClip(fn) {
+  const clip = buildStencilClip();
+  if (clip) { wctx.save(); wctx.clip(clip); fn(); wctx.restore(); }
+  else fn();
+}
+
+/* ---- spray painting (engine-driven) ----
+   While the wall is held, the tick loop streams the spray point into the engine
+   as a stroke segment, clipped to any active stencil. The engine handles the
+   aerosol deposition, wetness tracking and drips on its own. */
+let lastSprayX = 0, lastSprayY = 0;
+
+/* ---- spray mist (screen space) — a soft puff around the nozzle while spraying ---- */
+const jets = [];
+function emitMist(x, y, dt) {
+  for (let i = 0; i < 26 * dt * 60; i++) {
+    const a = Math.random() * Math.PI * 2, sp = 18 + Math.random() * 120;
+    jets.push({ x: x + (Math.random() - 0.5) * 6, y: y + (Math.random() - 0.5) * 6,
+                vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 18,
+                life: 0.10 + Math.random() * 0.12, r: 0.5 + Math.random() * 1.4, color: currentColor });
+  }
+}
+function stepJets(dt) {
+  jctx.clearRect(0, 0, innerWidth, innerHeight);
+  for (let i = jets.length - 1; i >= 0; i--) {
+    const p = jets[i];
+    p.life -= dt;
+    if (p.life <= 0) { jets.splice(i, 1); continue; }
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.92; p.vy *= 0.92;
+    jctx.fillStyle = p.color;
+    jctx.globalAlpha = Math.min(0.5, p.life * 3) * 0.55;
+    jctx.beginPath(); jctx.arc(p.x, p.y, p.r, 0, 7); jctx.fill();
+  }
+  jctx.globalAlpha = 1;
+}
+
+/* ---- aerosol hiss ---- */
+let actx = null, hissGain = null, hissSrc = null;
+function startHiss() {
+  if (!actx) {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    const len = actx.sampleRate * 2, buf = actx.createBuffer(1, len, actx.sampleRate), data = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < len; i++) { const w = Math.random()*2-1; last = (last + 0.04*w)/1.04; data[i] = last*4.2; }
+    hissSrc = actx.createBufferSource(); hissSrc.buffer = buf; hissSrc.loop = true;
+    const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 5200; bp.Q.value = 0.5;
+    hissGain = actx.createGain(); hissGain.gain.value = 0;
+    hissSrc.connect(bp).connect(hissGain).connect(actx.destination); hissSrc.start();
+  }
+  actx.resume();
+  hissGain.gain.cancelScheduledValues(actx.currentTime);
+  hissGain.gain.setTargetAtTime(0.16, actx.currentTime, 0.02);
+}
+function stopHiss() { if (hissGain) hissGain.gain.setTargetAtTime(0, actx.currentTime, 0.05); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   MAIN LOOP
+   ════════════════════════════════════════════════════════════════════════ */
+let prev = performance.now();
+function tick(now) {
+  const dt = Math.min((now - prev) / 1000, 0.05); prev = now;
+
+  if (canReady) {
+    rig.visible = !canHidden;                       // tuck the can away over the panels
+    canVelX *= 0.9;                                 // lean eases back to neutral when the hand stops
+    // follow the pointer with a slight lag (gives the trailing-hand feel)
+    const w = screenToCanWorld(pointerX, pointerY);
+    rig.position.x += (w.x - rig.position.x) * 0.35;
+    rig.position.y += (w.y - rig.position.y) * 0.35;
+    rig.position.z = CAN_Z;
+    // sideways lean trails the horizontal motion; the can dips into the wall while painting
+    const targetLean = Math.max(-0.34, Math.min(0.34, -canVelX * 0.03));
+    rig.rotation.z += (targetLean - rig.rotation.z) * 0.18;
+    rig.rotation.x += ((painting ? 0.22 : 0.08) - rig.rotation.x) * 0.12;
+    // pressure shiver while spraying
+    if (painting) { aim.position.x = (Math.random()-0.5)*0.012; aim.position.y = (Math.random()-0.5)*0.012; }
+    else { aim.position.x *= 0.8; aim.position.y *= 0.8; }
+    if (painting) emitMist(pointerX, pointerY, dt);
+  }
+
+  stepJets(dt);
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  sizeCanvases();
+});
+
+/* ════════════════════════════════════════════════════════════════════════
+   OBJECTS  ·  stencils (spray masks) + stickers (decals)
+   ════════════════════════════════════════════════════════════════════════ */
+const stage = document.getElementById('stage');
+const objects = [];
+let objSeq = 0;
+
+/* geometric stencils — SVG path strings in a 0..100 box */
+const STENCILS = {
+  star:      'M50 5 L61 38 L96 38 L68 59 L79 92 L50 72 L21 92 L32 59 L4 38 L39 38 Z',
+  crown:     'M8 82 L18 34 L34 56 L50 22 L66 56 L82 34 L92 82 Z',
+  arrow:     'M8 38 L58 38 L58 20 L94 50 L58 80 L58 62 L8 62 Z',
+  heart:     'M50 86 C18 60 6 44 6 29 C6 15 18 7 31 11 C40 14 47 21 50 30 C53 21 60 14 69 11 C82 7 94 15 94 29 C94 44 82 60 50 86 Z',
+  lightning: 'M58 4 L22 56 L44 56 L40 96 L78 38 L54 38 Z',
+  // 'grft' filled in once the font loads
+};
+const STENCIL_ORDER = ['star', 'crown', 'arrow', 'heart', 'lightning', 'grft'];
+const STENCIL_VB = {};   // per-key { x, y, w, h }; geometric default 0,0,100,100
+STENCIL_ORDER.forEach(k => { if (k !== 'grft') STENCIL_VB[k] = { x: 0, y: 0, w: 100, h: 100 }; });
+
+/* stickers — inline SVG data URIs + the brand logo */
+const SVG = (inner, w = 100, h = 100) =>
+  'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">${inner}</svg>`);
+const STICKERS = [
+  { id: 'logo',  src: 'images/logo-v4.webp', label: 'Logo' },
+  { id: 'splat', src: SVG(`<g fill="%23FEBD17"><path d="M50 14c8 0 11 12 18 12s9-8 14-4-2 12 2 18 12 6 10 14-12 5-13 13 5 12-1 17-13-4-19 0-7 13-15 12-8-12-15-13-13 6-18 1 2-13-2-18-12-6-10-14 12-5 12-13-4-12 1-17 13 3 19-1 6-12 12-12z"/><circle cx="20" cy="22" r="4"/><circle cx="84" cy="30" r="3"/><circle cx="86" cy="78" r="4"/><circle cx="16" cy="74" r="3"/><circle cx="50" cy="92" r="3"/></g>`), label: 'Splat' },
+  { id: 'drips', src: SVG(`<g fill="%23FEBD17"><rect x="20" y="6" width="9" height="60" rx="4"/><circle cx="24.5" cy="70" r="7"/><rect x="46" y="6" width="9" height="80" rx="4"/><circle cx="50.5" cy="90" r="7"/><rect x="72" y="6" width="9" height="46" rx="4"/><circle cx="76.5" cy="56" r="7"/></g>`), label: 'Drips' },
+  { id: 'spark', src: SVG(`<g fill="%23FEBD17"><path d="M50 4 L58 42 L96 50 L58 58 L50 96 L42 58 L4 50 L42 42 Z"/><path d="M50 26 L54 46 L74 50 L54 54 L50 74 L46 54 L26 50 L46 46 Z" fill="%23fff" opacity="0.6"/></g>`), label: 'Spark' },
+  { id: 'tag',   src: SVG(`<text x="50" y="68" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="58" fill="%23FEBD17" stroke="%23000" stroke-width="2">G+</text>`), label: 'G+' },
+];
+
+/* ---- build a transformable object ---- */
+function addStencil(key) {
+  if (key === 'grft' && !STENCILS.grft) return;
+  const vb = STENCIL_VB[key] || { x: 0, y: 0, w: 100, h: 100 };
+  const o = baseObject('stencil', vb, 200);
+  o.unitPath = new Path2D(STENCILS[key]);
+  const ar = vb.h / vb.w;
+  o.el.querySelector('.shape').innerHTML =
+    `<svg viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}" preserveAspectRatio="xMidYMid meet"><path d="${STENCILS[key]}"/></svg>`;
+  o.el.style.height = (o.base * o.scale * ar) + 'px';
+  layout(o);
+}
+function addSticker(def) {
+  const o = baseObject('sticker', { x: 0, y: 0, w: 100, h: 100 }, 170);
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    o.vb = { x: 0, y: 0, w: img.naturalWidth || 100, h: img.naturalHeight || 100 };
+    layout(o);
+  };
+  img.src = def.src;
+  o.img = img;
+  o.el.querySelector('.shape').appendChild(img);
+  layout(o);
+}
+
+function baseObject(kind, vb, base) {
+  // spawn on open wall (upper-left of the can) with a small cascade so
+  // multiple placements don't stack exactly on top of each other
+  const casc = (objSeq % 5) * 26;
+  const o = {
+    id: ++objSeq, kind, vb: { ...vb }, base,
+    cx: innerWidth * 0.40 + casc, cy: innerHeight * 0.34 + casc, scale: 1, rot: 0,
+    unitPath: null, img: null, el: null,
+  };
+  const el = document.createElement('div');
+  el.className = 'obj ' + kind;
+  el.innerHTML =
+    `<div class="shape"></div>
+     <div class="handles">
+       <button class="h-move"   title="Move">✛</button>
+       <button class="h-rotate" title="Drag ↔ to rotate">⟳</button>
+       <button class="h-scale"  title="Drag ↕ to resize">⤢</button>
+       <button class="h-remove" title="Remove">✕</button>
+     </div>`;
+  o.el = el;
+  stage.appendChild(el);
+  wireHandles(o);
+  if (kind === 'sticker') wireBodyDrag(o);
+  objects.push(o);
+  dismissHint();
+  return o;
+}
+
+function layout(o) {
+  const W = o.base * o.scale, H = W * (o.vb.h / o.vb.w);
+  o.el.style.width = W + 'px';
+  o.el.style.height = H + 'px';
+  o.el.style.transform = `translate(${o.cx - W/2}px, ${o.cy - H/2}px) rotate(${o.rot}deg)`;
+}
+
+function removeObject(o) {
+  o.el.remove();
+  const i = objects.indexOf(o);
+  if (i >= 0) objects.splice(i, 1);
+}
+
+/* pointer-drag helper: returns dx,dy per move + total */
+function drag(el, onStart, onMove) {
+  el.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    el.setPointerCapture(e.pointerId);
+    const sx = e.clientX, sy = e.clientY;
+    onStart && onStart();
+    const move = (ev) => onMove(ev.clientX - sx, ev.clientY - sy, ev.clientX, ev.clientY);
+    const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+  });
+}
+
+function wireHandles(o) {
+  const h = o.el.querySelector('.handles');
+  const mv = h.querySelector('.h-move'), rot = h.querySelector('.h-rotate'),
+        sc = h.querySelector('.h-scale'), rm = h.querySelector('.h-remove');
+  let s0;
+  drag(mv, () => { s0 = { cx: o.cx, cy: o.cy }; }, (dx, dy) => { o.cx = s0.cx + dx; o.cy = s0.cy + dy; layout(o); });
+  drag(rot, () => { s0 = o.rot; }, (dx) => { o.rot = s0 + dx * 0.6; layout(o); });
+  drag(sc, () => { s0 = o.scale; }, (dx, dy) => { o.scale = Math.max(0.25, Math.min(4, s0 - dy * 0.006)); layout(o); });
+  rm.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); removeObject(o); });
+}
+function wireBodyDrag(o) {
+  let s0;
+  drag(o.el, () => { s0 = { cx: o.cx, cy: o.cy }; o.el.classList.add('dragging'); },
+       (dx, dy) => { o.cx = s0.cx + dx; o.cy = s0.cy + dy; layout(o); });
+  o.el.addEventListener('pointerup', () => o.el.classList.remove('dragging'));
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   HUD WIRING
+   ════════════════════════════════════════════════════════════════════════ */
+// swatches
+const swatchWrap = document.getElementById('swatches');
+COLORS.forEach((c, i) => {
+  const b = document.createElement('button');
+  b.className = 'swatch' + (i === 0 ? ' active' : '');
+  b.style.background = c;
+  b.addEventListener('click', () => {
+    currentColor = c;
+    PAINT.setColor(c);
+    swatchWrap.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+    b.classList.add('active');
+  });
+  swatchWrap.appendChild(b);
+});
+
+document.getElementById('sizeSlider').addEventListener('input', (e) => { brushSpread = +e.target.value; });
+document.getElementById('dripSlider').addEventListener('input', (e) => {
+  dripAmount = +e.target.value / 100;
+  PAINT.setDripConfig('spray', { spawnRate: dripAmount * 0.14, spawnThreshold: 0.2 });
+});
+
+// tabs
+document.querySelectorAll('.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// stencil tiles
+const gStencils = document.getElementById('grid-stencils');
+function buildStencilTile(key) {
+  const vb = STENCIL_VB[key] || { x: 0, y: 0, w: 100, h: 100 };
+  const t = document.createElement('div');
+  t.className = 'tile'; t.dataset.key = key;
+  t.innerHTML = `<svg viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}"><path d="${STENCILS[key]}" fill="none" stroke="%23FEBD17" stroke-width="3"/></svg>`
+    .replace('%23', '#');
+  t.addEventListener('click', () => addStencil(key));
+  return t;
+}
+STENCIL_ORDER.forEach(k => { if (STENCILS[k]) gStencils.appendChild(buildStencilTile(k)); });
+
+// sticker tiles
+const gStickers = document.getElementById('grid-stickers');
+STICKERS.forEach(def => {
+  const t = document.createElement('div');
+  t.className = 'tile';
+  t.innerHTML = `<img src="${def.src}" alt="${def.label}">`;
+  t.addEventListener('click', () => addSticker(def));
+  gStickers.appendChild(t);
+});
+
+// wall tiles
+const WALLS = [
+  { id: 'concrete', label: 'Concrete', css: 'linear-gradient(#3b3f42,#26282b)' },
+  { id: 'brick',    label: 'Brick',    css: 'repeating-linear-gradient(0deg,#963f30 0 16px,#2a1410 16px 19px),repeating-linear-gradient(90deg,#a8523a 0 42px,#2a1410 42px 45px)' },
+  { id: 'obsidian', label: 'Obsidian', css: 'radial-gradient(circle at 50% 40%,#06181d,#000d10)' },
+  { id: 'white',    label: 'Paper',    css: 'radial-gradient(circle at 50% 40%,#fff,#d8d6d0)' },
+];
+const gWalls = document.getElementById('grid-walls');
+WALLS.forEach(w => {
+  const t = document.createElement('div');
+  t.className = 'tile wall' + (w.id === currentWall ? ' active' : '');
+  t.style.background = w.css;
+  t.innerHTML = `<span>${w.label}</span>`;
+  t.addEventListener('click', () => {
+    currentWall = w.id; paintBackground();
+    gWalls.querySelectorAll('.tile').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+  });
+  gWalls.appendChild(t);
+});
+
+/* ---- snapshot: composite bg + wall + drawable stickers ---- */
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const out = document.createElement('canvas');
+  out.width = innerWidth * DPR; out.height = innerHeight * DPR;
+  const o = out.getContext('2d');
+  o.drawImage(bg, 0, 0);
+  o.drawImage(wall, 0, 0);
+  o.setTransform(DPR, 0, 0, DPR, 0, 0);
+  for (const ob of objects) {
+    if (ob.kind !== 'sticker' || !ob.img || !ob.img.complete || !ob.img.naturalWidth) continue;
+    const W = ob.base * ob.scale, H = W * (ob.vb.h / ob.vb.w);
+    o.save(); o.translate(ob.cx, ob.cy); o.rotate(ob.rot * Math.PI / 180);
+    try { o.drawImage(ob.img, -W/2, -H/2, W, H); } catch (_) {}
+    o.restore();
+  }
+  out.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'grft-paint-booth.png'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }, 'image/png');
+});
+
+/* ---- first-run hint ---- */
+let hintGone = false;
+function dismissHint() {
+  if (hintGone) return; hintGone = true;
+  const h = document.getElementById('hint');
+  h.style.opacity = '0'; setTimeout(() => h.remove(), 500);
+}
+
+/* ---- GRFT+ text stencil from the brand font (opentype) ---- */
+if (window.opentype) {
+  opentype.load('Fonts/GraffitiPlusDisplay-Regular.ttf', (err, font) => {
+    if (err || !font) return;
+    const p = font.getPath('GRFT+', 0, 0, 100);
+    const bb = p.getBoundingBox();
+    const pad = 6;
+    STENCIL_VB.grft = { x: bb.x1 - pad, y: bb.y1 - pad, w: (bb.x2 - bb.x1) + pad*2, h: (bb.y2 - bb.y1) + pad*2 };
+    STENCILS.grft = p.toPathData(2);
+    // inject the tile now that the path exists
+    const t = buildStencilTile('grft');
+    gStencils.appendChild(t);
+  });
+}
+
+/* boot */
+sizeCanvases();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
