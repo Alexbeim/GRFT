@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>GRFT+ · Drip System Test Rig</title>
+<style>
+  :root {
+    --accent: #ffc800;
+    --bg: #101012;
+    --panel: #18181b;
+    --line: #2a2a2e;
+    --text: #e8e8e6;
+    --dim: #8a8a88;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 13px/1.45 "SF Mono", ui-monospace, Menlo, monospace;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Top bar ── */
+  header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 13px; letter-spacing: 0.08em; color: var(--accent); font-weight: 600; }
+  header h1 span { color: var(--dim); font-weight: 400; }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .seg button {
+    background: none; border: none; color: var(--dim);
+    padding: 6px 14px; font: inherit; cursor: pointer;
+  }
+  .seg button.on { background: var(--accent); color: #111; font-weight: 600; }
+  .bar-group { display: flex; align-items: center; gap: 8px; }
+  .bar-group label { color: var(--dim); font-size: 11px; }
+  button.act {
+    background: none; border: 1px solid var(--line); border-radius: 6px;
+    color: var(--text); padding: 6px 12px; font: inherit; cursor: pointer;
+  }
+  button.act:hover { border-color: var(--accent); color: var(--accent); }
+  button.act:disabled { opacity: 0.35; cursor: default; }
+  button.act.primary { border-color: var(--accent); color: var(--accent); }
+  input[type=color] {
+    width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 6px;
+    background: none; padding: 2px; cursor: pointer;
+  }
+
+  /* ── Main split ── */
+  main { flex: 1; display: flex; min-height: 0; }
+
+  /* Sidebar */
+  aside {
+    width: 320px; flex: none; overflow-y: auto;
+    border-right: 1px solid var(--line); background: var(--panel);
+    padding: 12px 16px 40px;
+  }
+  aside h2 {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); margin: 18px 0 8px;
+    border-bottom: 1px solid var(--line); padding-bottom: 4px;
+  }
+  aside h2:first-child { margin-top: 4px; }
+  .param { margin-bottom: 10px; }
+  .param .row1 {
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .param label { color: var(--text); cursor: help; }
+  .param .val { color: var(--accent); font-size: 12px; min-width: 52px; text-align: right; }
+  .param input[type=range] { width: 100%; accent-color: var(--accent); margin-top: 2px; }
+  .param .hint { color: var(--dim); font-size: 10px; margin-top: 1px; }
+  .check { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .check input { accent-color: var(--accent); }
+  .check label { cursor: pointer; }
+  .check .hint { color: var(--dim); font-size: 10px; }
+
+  /* Quick-tune macro sliders */
+  .macro { margin-bottom: 14px; }
+  .macro .row1 { display: flex; justify-content: space-between; align-items: baseline; }
+  .macro label { font-weight: 600; letter-spacing: 0.06em; color: var(--text); }
+  .macro .val { color: var(--accent); font-size: 12px; }
+  .macro input[type=range] { width: 100%; accent-color: var(--accent); height: 24px; margin-top: 2px; }
+  .macro .hint { color: var(--dim); font-size: 10px; margin-top: 1px; }
+
+  /* Presets */
+  .preset-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  .preset-row select, .preset-row input[type=text] {
+    flex: 1; min-width: 0; background: #0e0e10; border: 1px solid var(--line);
+    border-radius: 6px; color: var(--text); padding: 6px 8px; font: inherit;
+  }
+  .preset-row button { flex: none; }
+  .preset-note { color: var(--dim); font-size: 10px; margin-bottom: 4px; }
+
+  /* Collapsible detailed section */
+  details.detwrap summary {
+    cursor: pointer; list-style: none;
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--dim); padding: 8px 0 6px; margin-top: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  details.detwrap summary::before { content: '▸ '; }
+  details.detwrap[open] summary::before { content: '▾ '; }
+  details.detwrap[open] summary { color: var(--accent); }
+  details.detwrap summary:hover { color: var(--accent); }
+
+  /* Stage */
+  #stageWrap { flex: 1; position: relative; min-width: 0; background:
+    linear-gradient(180deg, #232326 0%, #1c1c1f 100%); }
+  #paint, #overlay { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #paint { cursor: crosshair; }
+  #overlay { pointer-events: none; }
+  #hud {
+    position: absolute; top: 10px; right: 12px;
+    background: rgba(12,12,14,0.82); border: 1px solid var(--line);
+    border-radius: 6px; padding: 8px 12px; font-size: 11px;
+    color: var(--dim); pointer-events: none; text-align: right;
+  }
+  #hud b { color: var(--accent); font-weight: 600; }
+  #patternLabel {
+    position: absolute; bottom: 10px; left: 12px;
+    color: var(--dim); font-size: 11px; pointer-events: none;
+  }
+  #patternLabel b { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>DRIP TEST RIG <span>· paint-engine.js</span></h1>
+
+  <div class="seg" id="capSeg">
+    <button data-cap="spray" class="on">SPRAY</button>
+    <button data-cap="mop">MOP</button>
+  </div>
+
+  <div class="bar-group">
+    <label>color</label>
+    <input type="color" id="color" value="#ffc800">
+  </div>
+
+  <div class="bar-group">
+    <label>brush</label>
+    <input type="range" id="brush" min="10" max="120" step="2" value="60" style="width:90px; accent-color: var(--accent);">
+    <span id="brushVal" style="color:var(--accent); font-size:11px;">60</span>
+  </div>
+
+  <div class="bar-group" style="margin-left:auto;">
+    <button class="act" data-pattern="n">N-test</button>
+    <button class="act" data-pattern="vari">Vari line</button>
+    <button class="act" data-pattern="slow">Slow line</button>
+    <button class="act" data-pattern="fast">Fast line</button>
+    <button class="act" data-pattern="pool">Pool</button>
+    <button class="act" data-pattern="scribble">Scribble</button>
+  </div>
+
+  <div class="bar-group">
+    <button class="act" id="clearBtn">Clear</button>
+    <button class="act primary" id="exportBtn">Copy config</button>
+  </div>
+</header>
+
+<main>
+  <aside id="sidebar"><!-- built by JS --></aside>
+
+  <div id="stageWrap">
+    <canvas id="paint"></canvas>
+    <canvas id="overlay"></canvas>
+    <div id="hud">
+      active drips <b id="hudDrips">0</b><br>
+      spawned <b id="hudSpawned">0</b><br>
+      hot cells <b id="hudHot">0</b>
+    </div>
+    <div id="patternLabel"></div>
+  </div>
+</main>
+
+<script src="paint-engine.js"></script>
+<script>
+(function () {
+  'use strict';
+  const GP = window.GraffitiPaint;
+  const paintCanvas = document.getElementById('paint');
+  const overlay = document.getElementById('overlay');
+  const octx = overlay.getContext('2d');
+  const WET_CELL = 12; // must match paint-engine.js
+  const STORAGE_KEY = 'grft-drip-rig-v1';
+
+  let currentCap = 'spray';
+  let brushSize = 60;
+
+  GP.init({ canvas: paintCanvas, color: '#ffc800' });
+  GP.setCap('spray');
+  GP.beginFreePaint();
+
+  // Shipped engine defaults, snapshotted before anything touches them.
+  // Quick-tune macros always derive from these so macro = 1.0 means
+  // "exactly what the site ships with".
+  const DEFAULTS = {
+    spray: GP.getDripConfig('spray'),
+    mop: GP.getDripConfig('mop'),
+  };
+
+  // ── Overlay sizing (engine handles the paint canvas itself) ──────────────
+  function resizeOverlay() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const r = overlay.getBoundingClientRect();
+    overlay.width = Math.round(r.width * dpr);
+    overlay.height = Math.round(r.height * dpr);
+    octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // The engine's wetness grid is dimensioned from the canvas rect at
+    // beginFreePaint time and never re-dimensioned — a resize (or a 0×0
+    // initial viewport) leaves stamps out of bounds and silently kills all
+    // spray drips. Re-arm the grid whenever the stage size changes.
+    // (Known engine limitation — flagged for the Unity port.)
+    GP.beginFreePaint();
+  }
+  resizeOverlay();
+  window.addEventListener('resize', resizeOverlay);
+
+  // ── Parameter definitions ─────────────────────────────────────────────────
+  // caps: which caps show this slider. Every value is written live via
+  // GP.setDripConfig so the next stamp/drip uses it immediately.
+  const PARAMS = [
+    { g: 'Spawning' },
+    { k: 'spawnRate', min: 0, max: 0.20, step: 0.001, caps: ['spray','mop'],
+      hint: 'base probability of a drip per stamp' },
+    { k: 'wetnessPerStamp', min: 0, max: 0.20, step: 0.005, caps: ['spray'],
+      hint: 'wetness added to a 12px grid cell per stamp' },
+    { k: 'spawnThreshold', min: 0, max: 3, step: 0.05, caps: ['spray'],
+      hint: 'cell wetness needed before drips can spawn' },
+    { k: 'maxRateMultiplier', min: 1, max: 12, step: 0.5, caps: ['spray'],
+      hint: 'cap on how much hot (saturated) cells boost spawn rate' },
+
+    { g: 'Speed response' },
+    { k: 'speedRefPxPerMs', min: 0.05, max: 3, step: 0.05, caps: ['spray','mop'],
+      hint: 'pen speed (px/ms) that counts as normal — the pivot of the boost curve' },
+    { k: 'speedBoostMax', min: 1, max: 8, step: 0.1, caps: ['spray','mop'],
+      hint: 'probability multiplier cap when painting very slowly' },
+    { k: 'speedBoostMin', min: 0.02, max: 1, step: 0.01, caps: ['spray','mop'],
+      hint: 'probability multiplier floor when painting fast' },
+
+    { g: 'Physics' },
+    { k: 'initialVelocity', min: 0, max: 60, step: 1, caps: ['spray','mop'],
+      hint: 'downward px/sec at spawn' },
+    { k: 'gravity', min: 0, max: 800, step: 10, caps: ['spray','mop'],
+      hint: 'px/sec² acceleration' },
+    { k: 'drag', min: 0.90, max: 1.0, step: 0.001, caps: ['spray','mop'],
+      hint: 'velocity multiplier per frame @60fps (1 = none)' },
+    { k: 'wetnessDrain', min: 0.001, max: 0.10, step: 0.001, caps: ['spray','mop'],
+      hint: 'paint used per frame — controls how far a drip travels' },
+    { k: 'endSlowdown', min: 0, max: 1.5, step: 0.05, caps: ['spray','mop'],
+      hint: 'wetness level where a dying drip eases to a stop (0 = old hard stop)' },
+
+    { g: 'Drip body' },
+    { k: 'initialWetness', min: 0.2, max: 4, step: 0.05, caps: ['spray','mop'],
+      hint: 'starting paint budget (± 30% random)' },
+    { k: 'initialThicknessFrac', min: 0.05, max: 1.5, step: 0.01, caps: ['spray','mop'],
+      hint: 'drip width at spawn, as fraction of brush size' },
+    { k: 'minThicknessFrac', min: 0.02, max: 1, step: 0.01, caps: ['spray','mop'],
+      hint: 'floor on drip width as it thins' },
+    { k: 'thicknessDrain', min: 0, max: 0.05, step: 0.001, caps: ['spray','mop'],
+      hint: 'how fast the drip thins as it falls' },
+    { k: 'stampSpacingFrac', min: 0.05, max: 1, step: 0.01, caps: ['spray','mop'],
+      hint: 'stamp overlap along the trail (low = solid stream)' },
+    { k: 'spreadX', min: 0, max: 30, step: 1, caps: ['spray','mop'],
+      hint: 'horizontal jitter of the spawn point, px' },
+
+    { g: 'Wander' },
+    { k: 'wanderChance', min: 0, max: 1, step: 0.05, caps: ['spray','mop'],
+      hint: 'fraction of drips that get any horizontal motion' },
+    { k: 'vxMax', min: 0, max: 30, step: 1, caps: ['spray','mop'],
+      hint: 'max constant sideways drift, px/sec' },
+    { k: 'swayAmpMax', min: 0, max: 30, step: 1, caps: ['spray','mop'],
+      hint: 'max sinusoidal sway around the fall line, px' },
+    { k: 'swayFreqMin', min: 0.05, max: 2, step: 0.05, caps: ['spray','mop'],
+      hint: 'slowest sway, Hz' },
+    { k: 'swayFreqMax', min: 0.05, max: 2, step: 0.05, caps: ['spray','mop'],
+      hint: 'fastest sway, Hz' },
+  ];
+  const PARAM_BY_KEY = {};
+  for (const p of PARAMS) if (p.k) PARAM_BY_KEY[p.k] = p;
+  function clampParam(k, v) {
+    const p = PARAM_BY_KEY[k];
+    if (!p) return v;
+    return Math.min(p.max, Math.max(p.min, v));
+  }
+
+  // ── Quick-tune macros ─────────────────────────────────────────────────────
+  // Each macro is one big knob that fans out to several detailed params,
+  // always derived from the shipped DEFAULTS (so 1.0 = default feel, 3.0 =
+  // triple-ish). Moving a macro overwrites its detailed params; the detailed
+  // sliders update live so you can see what it actually changed. Detailed
+  // tweaks on top are kept until you move that macro again.
+  const MACROS = [
+    { k: 'amount', label: 'AMOUNT',
+      hint: 'how many drips spawn overall · 1.0 = shipped default' },
+    { k: 'speedFeel', label: 'SLOW-DRIP BOOST',
+      hint: 'painting slower raises drip PROBABILITY (not overall amount) · 0 = off · mop ships at 1.0, spray at 0',
+      fmt: (m) => m <= 0.001 ? 'off' : `${Math.pow(2, m).toFixed(1)}× max` },
+    { k: 'length', label: 'RUN LENGTH',
+      hint: 'how far drips travel before drying up · 1.0 = shipped default' },
+    { k: 'thickness', label: 'THICKNESS',
+      hint: 'how fat the drips are · 1.0 = shipped default' },
+    { k: 'wildness', label: 'WILDNESS',
+      hint: 'sideways wander + sway · 1.0 = shipped default' },
+  ];
+  // Macro slider positions each cap starts at — chosen so the derived params
+  // land exactly on the shipped engine defaults (mop ships with 2.0× speed
+  // boost enabled; spray ships with speed response off).
+  const MACRO_DEFAULTS = {
+    spray: { amount: 1, speedFeel: 0, length: 1, thickness: 1, wildness: 1 },
+    mop:   { amount: 1, speedFeel: 1, length: 1, thickness: 1, wildness: 1 },
+  };
+  // macro value m (0–3, 1 = shipped default) → partial drip config.
+  function macroPartial(capName, key, m) {
+    const base = DEFAULTS[capName];
+    const out = {};
+    if (key === 'amount') {
+      // Steeper-than-linear so the top half of the slider really pours.
+      out.spawnRate = base.spawnRate * Math.pow(m, 1.6);
+      if (capName === 'spray') {
+        out.wetnessPerStamp = base.wetnessPerStamp * (0.6 + 0.4 * m);
+        // More amount → drips start earlier (lower threshold).
+        out.spawnThreshold = base.spawnThreshold / (0.4 + 0.6 * Math.max(0.1, m));
+        out.maxRateMultiplier = base.maxRateMultiplier * Math.max(0.5, m);
+      }
+    } else if (key === 'length') {
+      out.initialWetness = base.initialWetness * Math.max(0.05, m);
+      out.wetnessDrain = base.wetnessDrain / Math.max(0.2, m);
+    } else if (key === 'thickness') {
+      out.initialThicknessFrac = base.initialThicknessFrac * Math.max(0.1, m);
+      out.minThicknessFrac = base.minThicknessFrac * Math.max(0.1, m);
+    } else if (key === 'speedFeel') {
+      // Controls the speed→probability curve, NOT the base rate: painting
+      // slower than speedRefPxPerMs multiplies spawn probability, up to
+      // 2^m× at a crawl; fast strokes drop toward the floor. m=0 disables,
+      // m=1 = the shipped mop curve (2.0× / 0.1).
+      out.speedDependentDrips = m > 0.001;
+      out.speedBoostMax = Math.pow(2, m);
+      out.speedBoostMin = Math.max(0.05, Math.pow(0.1, m));
+    } else if (key === 'wildness') {
+      out.wanderChance = base.wanderChance * m;
+      out.vxMax = base.vxMax * m;
+      out.swayAmpMax = base.swayAmpMax * m;
+    }
+    for (const k of Object.keys(out)) out[k] = clampParam(k, out[k]);
+    return out;
+  }
+
+  // Live macro values per cap.
+  const macros = {
+    spray: Object.assign({}, MACRO_DEFAULTS.spray),
+    mop:   Object.assign({}, MACRO_DEFAULTS.mop),
+  };
+
+  function applyMacro(capName, key) {
+    const partial = macroPartial(capName, key, macros[capName][key]);
+    GP.setDripConfig(capName, partial);
+    syncDetailSliders(partial);
+  }
+
+  // ── Persistence (auto-restore + named presets) ────────────────────────────
+  function readStore() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function writeStore(data) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
+  }
+  function snapshotState() {
+    return {
+      spray: { cfg: GP.getDripConfig('spray'), macros: Object.assign({}, macros.spray) },
+      mop:   { cfg: GP.getDripConfig('mop'),   macros: Object.assign({}, macros.mop) },
+      brush: brushSize,
+      color: GP.getColor(),
+    };
+  }
+  function applyState(s) {
+    if (!s) return;
+    for (const c of ['spray', 'mop']) {
+      if (s[c] && s[c].cfg) GP.setDripConfig(c, s[c].cfg);
+      if (s[c] && s[c].macros) Object.assign(macros[c], s[c].macros);
+    }
+    if (s.brush) {
+      brushSize = s.brush;
+      brushSlider.value = brushSize;
+      document.getElementById('brushVal').textContent = brushSize;
+    }
+    if (s.color) {
+      GP.setColor(s.color);
+      document.getElementById('color').value = s.color;
+    }
+  }
+  let saveTimer = null;
+  function saveAuto() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      const data = readStore();
+      data.autosave = snapshotState();
+      writeStore(data);
+    }, 300);
+  }
+
+  // ── Sidebar ───────────────────────────────────────────────────────────────
+  const sidebar = document.getElementById('sidebar');
+  const debug = { wet: true, drips: true };
+  let detailsOpen = false;
+  const paramEls = {}; // k → { slider, val } for live sync from macros
+
+  function fmt(v) {
+    if (v >= 100) return String(Math.round(v));
+    if (v >= 10) return v.toFixed(1).replace(/\.0$/, '');
+    return String(+v.toFixed(3));
+  }
+
+  function syncDetailSliders(partial) {
+    for (const k of Object.keys(partial)) {
+      const el = paramEls[k];
+      if (!el) continue;
+      el.slider.value = partial[k];
+      el.val.textContent = fmt(partial[k]);
+    }
+    if ('speedDependentDrips' in partial) {
+      const cb = document.getElementById('dbgSpeedDep');
+      if (cb) cb.checked = !!partial.speedDependentDrips;
+    }
+  }
+
+  function buildSidebar() {
+    sidebar.innerHTML = '';
+    for (const k of Object.keys(paramEls)) delete paramEls[k];
+    const dcfg = GP.getDripConfig(currentCap);
+
+    // ── Quick tune ──
+    const qt = document.createElement('div');
+    qt.innerHTML = '<h2>Quick tune</h2>';
+    sidebar.appendChild(qt);
+    for (const m of MACROS) {
+      const cur = macros[currentCap][m.k];
+      const disp = (v) => m.fmt ? m.fmt(v) : v.toFixed(2) + '×';
+      const div = document.createElement('div');
+      div.className = 'macro';
+      div.innerHTML = `
+        <div class="row1"><label>${m.label}</label><span class="val">${disp(cur)}</span></div>
+        <input type="range" min="0" max="3" step="0.05" value="${cur}">
+        <div class="hint">${m.hint}</div>`;
+      const slider = div.querySelector('input');
+      const val = div.querySelector('.val');
+      slider.addEventListener('input', () => {
+        macros[currentCap][m.k] = parseFloat(slider.value);
+        val.textContent = disp(parseFloat(slider.value));
+        applyMacro(currentCap, m.k);
+        saveAuto();
+      });
+      sidebar.appendChild(div);
+    }
+
+    // ── Presets ──
+    const pr = document.createElement('div');
+    pr.innerHTML = `
+      <h2>Presets</h2>
+      <div class="preset-note">Everything auto-saves and restores on reload. Presets snapshot both caps.</div>
+      <div class="preset-row">
+        <select id="presetSel"><option value="">— load a preset —</option></select>
+        <button class="act" id="delPreset" title="Delete selected preset">Del</button>
+      </div>
+      <div class="preset-row">
+        <input type="text" id="presetName" placeholder="preset name" maxlength="40">
+        <button class="act primary" id="savePreset">Save</button>
+      </div>`;
+    sidebar.appendChild(pr);
+    const sel = pr.querySelector('#presetSel');
+    const nameInput = pr.querySelector('#presetName');
+    function refreshPresetList(selected) {
+      const data = readStore();
+      const names = Object.keys(data.presets || {}).sort();
+      sel.innerHTML = '<option value="">— load a preset —</option>' +
+        names.map(n => `<option${n === selected ? ' selected' : ''}>${n}</option>`).join('');
+    }
+    refreshPresetList();
+    sel.addEventListener('change', () => {
+      const data = readStore();
+      const s = data.presets && data.presets[sel.value];
+      if (!s) return;
+      applyState(s);
+      nameInput.value = sel.value;
+      buildSidebar();
+      saveAuto();
+    });
+    pr.querySelector('#savePreset').addEventListener('click', () => {
+      const name = (nameInput.value || sel.value || '').trim();
+      if (!name) { nameInput.placeholder = 'name it first!'; nameInput.focus(); return; }
+      const data = readStore();
+      data.presets = data.presets || {};
+      data.presets[name] = snapshotState();
+      writeStore(data);
+      refreshPresetList(name);
+      const b = pr.querySelector('#savePreset');
+      b.textContent = 'Saved ✓';
+      setTimeout(() => b.textContent = 'Save', 1200);
+    });
+    pr.querySelector('#delPreset').addEventListener('click', () => {
+      if (!sel.value) return;
+      const data = readStore();
+      if (data.presets) delete data.presets[sel.value];
+      writeStore(data);
+      refreshPresetList();
+    });
+
+    // ── Debug + cap toggles ──
+    const dbg = document.createElement('div');
+    dbg.innerHTML = `
+      <h2>Debug overlay</h2>
+      <div class="check"><input type="checkbox" id="dbgWet" ${debug.wet ? 'checked' : ''}>
+        <label for="dbgWet">Wetness heatmap <span class="hint">(spray grid)</span></label></div>
+      <div class="check"><input type="checkbox" id="dbgDrips" ${debug.drips ? 'checked' : ''}>
+        <label for="dbgDrips">Drip heads + spawn rings</label></div>
+      <div class="check"><input type="checkbox" id="dbgEnabled" ${dcfg.enabled ? 'checked' : ''}>
+        <label for="dbgEnabled">Drips enabled <span class="hint">(this cap)</span></label></div>
+      <div class="check"><input type="checkbox" id="dbgSpeedDep" ${dcfg.speedDependentDrips ? 'checked' : ''}>
+        <label for="dbgSpeedDep">Speed-dependent drips <span class="hint">(slow = more likely)</span></label></div>`;
+    sidebar.appendChild(dbg);
+    dbg.querySelector('#dbgWet').addEventListener('change', e => debug.wet = e.target.checked);
+    dbg.querySelector('#dbgDrips').addEventListener('change', e => debug.drips = e.target.checked);
+    dbg.querySelector('#dbgEnabled').addEventListener('change', e => {
+      GP.setDripConfig(currentCap, { enabled: e.target.checked });
+      saveAuto();
+    });
+    dbg.querySelector('#dbgSpeedDep').addEventListener('change', e => {
+      GP.setDripConfig(currentCap, { speedDependentDrips: e.target.checked });
+      saveAuto();
+    });
+
+    // ── Detailed params (collapsed by default — quick tune drives these) ──
+    const det = document.createElement('details');
+    det.className = 'detwrap';
+    det.open = detailsOpen;
+    det.innerHTML = '<summary>Detailed parameters</summary>';
+    det.addEventListener('toggle', () => detailsOpen = det.open);
+    sidebar.appendChild(det);
+
+    for (const p of PARAMS) {
+      if (p.g) {
+        // Skip a group header if none of its params apply to this cap.
+        const idx = PARAMS.indexOf(p);
+        let any = false;
+        for (let i = idx + 1; i < PARAMS.length && !PARAMS[i].g; i++) {
+          if (PARAMS[i].caps.includes(currentCap)) { any = true; break; }
+        }
+        if (!any) continue;
+        const h = document.createElement('h2');
+        h.textContent = p.g;
+        det.appendChild(h);
+        continue;
+      }
+      if (!p.caps.includes(currentCap)) continue;
+
+      const cur = dcfg[p.k] != null ? dcfg[p.k] : 0;
+      const div = document.createElement('div');
+      div.className = 'param';
+      div.innerHTML = `
+        <div class="row1"><label title="${p.hint}">${p.k}</label>
+        <span class="val">${fmt(cur)}</span></div>
+        <input type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${cur}">
+        <div class="hint">${p.hint}</div>`;
+      const slider = div.querySelector('input');
+      const val = div.querySelector('.val');
+      paramEls[p.k] = { slider, val };
+      slider.addEventListener('input', () => {
+        const v = parseFloat(slider.value);
+        val.textContent = fmt(v);
+        GP.setDripConfig(currentCap, { [p.k]: v });
+        saveAuto();
+      });
+      det.appendChild(div);
+    }
+
+    const foot = document.createElement('div');
+    foot.style.marginTop = '18px';
+    foot.innerHTML = `<button class="act" id="resetBtn" style="width:100%;">Reset ${currentCap} to shipped defaults</button>`;
+    sidebar.appendChild(foot);
+    foot.querySelector('#resetBtn').addEventListener('click', () => {
+      GP.setDripConfig(currentCap, DEFAULTS[currentCap]);
+      macros[currentCap] = Object.assign({}, MACRO_DEFAULTS[currentCap]);
+      buildSidebar();
+      saveAuto();
+    });
+  }
+
+  // ── Color + brush (defined before restore so applyState can reach them) ──
+  document.getElementById('color').addEventListener('input', (e) => {
+    GP.setColor(e.target.value);
+    saveAuto();
+  });
+  const brushSlider = document.getElementById('brush');
+  brushSlider.addEventListener('input', () => {
+    brushSize = parseInt(brushSlider.value, 10);
+    document.getElementById('brushVal').textContent = brushSize;
+    saveAuto();
+  });
+
+  // Restore last session's tuning, then build the sidebar from live state.
+  applyState(readStore().autosave);
+  buildSidebar();
+
+  // ── Cap switching ─────────────────────────────────────────────────────────
+  document.getElementById('capSeg').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-cap]');
+    if (!b) return;
+    currentCap = b.dataset.cap;
+    GP.setCap(currentCap);
+    document.querySelectorAll('#capSeg button').forEach(x =>
+      x.classList.toggle('on', x === b));
+    buildSidebar();
+  });
+
+  // ── Free painting ─────────────────────────────────────────────────────────
+  // Movement paints via pointermove segments; a HELD, stationary pointer
+  // keeps emitting too (holdLoop below) — a real can pours paint while you
+  // press the nozzle, so paint must pool and drip without any motion.
+  // (Unity note: emission is time-based, not event-based — ~1 stamp/frame
+  // at the cursor whenever the tool is engaged, however it's moving.)
+  let painting = false, lastX = 0, lastY = 0;
+  let holdRAF = null, holdPrevX = 0, holdPrevY = 0;
+  function ptr(e) {
+    const r = paintCanvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  function holdLoop() {
+    if (!painting) { holdRAF = null; return; }
+    // Only emit here when the pointer is effectively stationary — while
+    // moving, pointermove's paintSegment already lays down the paint.
+    const moved = Math.hypot(lastX - holdPrevX, lastY - holdPrevY);
+    if (moved < 2) GP.paintAt(lastX, lastY, brushSize);
+    holdPrevX = lastX; holdPrevY = lastY;
+    holdRAF = requestAnimationFrame(holdLoop);
+  }
+  paintCanvas.addEventListener('pointerdown', (e) => {
+    paintCanvas.setPointerCapture(e.pointerId);
+    painting = true;
+    const p = ptr(e);
+    GP.paintAt(p.x, p.y, brushSize);
+    lastX = p.x; lastY = p.y;
+    holdPrevX = p.x; holdPrevY = p.y;
+    if (!holdRAF) holdRAF = requestAnimationFrame(holdLoop);
+  });
+  paintCanvas.addEventListener('pointermove', (e) => {
+    if (!painting) return;
+    const p = ptr(e);
+    GP.paintSegment(lastX, lastY, p.x, p.y, brushSize);
+    lastX = p.x; lastY = p.y;
+  });
+  window.addEventListener('pointerup', () => painting = false);
+
+  // ── Automated test patterns ───────────────────────────────────────────────
+  // Each pattern is a list of strokes (polyline in stage fractions) played at
+  // a real px/sec pen speed so the engine's speed-dependent behaviour is
+  // exercised the same way a human hand would.
+  const PATTERNS = {
+    n: {
+      label: 'N-test — ONE continuous stroke, hand slows into/out of corners; drips should favor the corners',
+      speed: 520,
+      strokes: [
+        // Up the left leg, diagonal down, up the right leg — a one-liner N.
+        [[0.38, 0.72], [0.38, 0.30], [0.58, 0.72], [0.58, 0.30]],
+      ],
+      // Real hands decelerate at direction changes: speed drops to `floor`×
+      // at each vertex, recovering over `radiusFrac` of stage height.
+      cornerSlowdown: { radiusFrac: 0.09, floor: 0.2 },
+    },
+    vari: {
+      label: 'Vari line — fast → crawl → fast; with SLOW-DRIP BOOST the middle should drip, the ends stay clean',
+      speed: 1800,
+      speedAt: (t) => 80 + 1720 * Math.pow(Math.abs(t - 0.5) * 2, 1.6),
+      strokes: [[[0.25, 0.5], [0.75, 0.5]]],
+    },
+    slow: {
+      label: 'Slow line — 70 px/sec; mop with speed-dependence should drip heavily',
+      speed: 70,
+      strokes: [[[0.30, 0.45], [0.70, 0.45]]],
+    },
+    fast: {
+      label: 'Fast line — 2200 px/sec; should barely drip',
+      speed: 2200,
+      strokes: [[[0.30, 0.60], [0.70, 0.60]]],
+    },
+    pool: {
+      label: 'Pool — pen circles one spot; saturates the wetness cell',
+      speed: 140,
+      strokes: [(() => {
+        const pts = [];
+        for (let i = 0; i <= 60; i++) {
+          const a = i / 60 * Math.PI * 8; // 4 loops
+          pts.push([0.5 + Math.cos(a) * 0.012, 0.42 + Math.sin(a) * 0.02]);
+        }
+        return pts;
+      })()],
+    },
+    scribble: {
+      label: 'Scribble — zigzag with self-crossings at mixed speed',
+      speed: 600,
+      strokes: [(() => {
+        const pts = [];
+        for (let i = 0; i <= 14; i++) {
+          pts.push([0.28 + i * 0.032, i % 2 ? 0.36 : 0.62]);
+        }
+        return pts;
+      })()],
+    },
+  };
+
+  let patternRunning = false;
+  const patternLabel = document.getElementById('patternLabel');
+  const patternButtons = document.querySelectorAll('button[data-pattern]');
+
+  function runPattern(name) {
+    if (patternRunning) return;
+    const pat = PATTERNS[name];
+    const r = paintCanvas.getBoundingClientRect();
+    const strokes = pat.strokes.map(s => s.map(([fx, fy]) => [fx * r.width, fy * r.height]));
+    patternRunning = true;
+    patternButtons.forEach(b => b.disabled = true);
+    patternLabel.innerHTML = `<b>${name}</b> · ${pat.label}`;
+
+    // Total path length (for speedAt's 0–1 progress) + vertex list (for
+    // corner slow-down).
+    let totalLen = 0;
+    const vertices = [];
+    for (const s of strokes) {
+      for (let i = 0; i < s.length; i++) {
+        vertices.push(s[i]);
+        if (i > 0) totalLen += Math.hypot(s[i][0] - s[i-1][0], s[i][1] - s[i-1][1]);
+      }
+    }
+    const cornerR = pat.cornerSlowdown ? pat.cornerSlowdown.radiusFrac * r.height : 0;
+    let traveled = 0;
+
+    // Pen speed at the current point: base (or speedAt profile), then
+    // eased down near vertices if the pattern wants corner slow-down.
+    function penSpeed(x, y) {
+      let v = pat.speedAt ? pat.speedAt(Math.min(1, traveled / totalLen)) : pat.speed;
+      if (cornerR > 0) {
+        let dmin = Infinity;
+        for (const [vx, vy] of vertices) {
+          const d = Math.hypot(x - vx, y - vy);
+          if (d < dmin) dmin = d;
+        }
+        const f = Math.min(1, dmin / cornerR);
+        v *= pat.cornerSlowdown.floor + (1 - pat.cornerSlowdown.floor) * f;
+      }
+      return v;
+    }
+
+    let si = 0, segI = 0, segT = 0; // stroke index, segment index, px progressed in segment
+    let px = strokes[0][0][0], py = strokes[0][0][1];
+    GP.paintAt(px, py, brushSize);
+    let lastT = performance.now();
+    const LIFT_MS = 350;
+    let lifting = 0;
+
+    function step(now) {
+      const dt = Math.min(50, now - lastT);
+      lastT = now;
+
+      if (lifting > 0) {
+        lifting -= dt;
+        if (lifting <= 0) {
+          px = strokes[si][0][0]; py = strokes[si][0][1];
+          GP.paintAt(px, py, brushSize);
+        }
+        requestAnimationFrame(step);
+        return;
+      }
+
+      let travel = penSpeed(px, py) * dt / 1000;
+      const stroke = strokes[si];
+      while (travel > 0) {
+        const [ax, ay] = stroke[segI];
+        const [bx, by] = stroke[segI + 1];
+        const segLen = Math.hypot(bx - ax, by - ay) || 0.0001;
+        const remain = segLen - segT;
+        const stepLen = Math.min(travel, remain);
+        segT += stepLen;
+        travel -= stepLen;
+        traveled += stepLen;
+        const t = segT / segLen;
+        const nx = ax + (bx - ax) * t;
+        const ny = ay + (by - ay) * t;
+        GP.paintSegment(px, py, nx, ny, brushSize);
+        px = nx; py = ny;
+        if (segT >= segLen - 0.001) {
+          segI++; segT = 0;
+          if (segI >= stroke.length - 1) {
+            si++; segI = 0;
+            if (si >= strokes.length) {
+              patternRunning = false;
+              patternButtons.forEach(b => b.disabled = false);
+              return;
+            }
+            lifting = LIFT_MS;
+            break;
+          }
+        }
+      }
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  patternButtons.forEach(b =>
+    b.addEventListener('click', () => runPattern(b.dataset.pattern)));
+
+  // ── Clear ─────────────────────────────────────────────────────────────────
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    GP.clear();
+    GP.beginFreePaint();
+    seenDrips = new WeakSet();
+    spawnRings.length = 0;
+    totalSpawned = 0;
+  });
+
+  // ── Export config (Unity handoff) ─────────────────────────────────────────
+  document.getElementById('exportBtn').addEventListener('click', async () => {
+    const out = {
+      _about: 'GRFT+ drip system config — tuned in test-drip-system.html. ' +
+        'Model: every brush stamp may spawn a drip. Spray uses a low-res wetness ' +
+        'grid (cell = wetCellPx) and only spawns where accumulated wetness passes ' +
+        'spawnThreshold, with probability spawnRate scaled up to maxRateMultiplier ' +
+        'by saturation. Mop spawns at flat spawnRate per stamp. Either cap may set ' +
+        'speedDependentDrips: spawn probability is then multiplied by ' +
+        'clamp(speedRefPxPerMs / penPxPerMs, speedBoostMin, speedBoostMax) — slower ' +
+        'pen = higher probability, faster pen = lower, base rate unchanged at the ' +
+        'reference speed. ' +
+        'Each drip per frame: vy += gravity*dt; vy *= drag^(dt*60); x = baseX + ' +
+        'vx*age + swayAmp*sin(2π*swayFreq*age + phase); wetness -= wetnessDrain*dt*60; ' +
+        'thickness *= (1 - thicknessDrain*dt*60) floored at minThickness. Once ' +
+        'wetness < endSlowdown, displacement is scaled by smoothstep(wetness / ' +
+        'endSlowdown) so the drip eases to a stop instead of dying mid-fall. The drip ' +
+        'renders as overlapping stamps (spacing = thickness*stampSpacingFrac) and ' +
+        'dies when wetness ≤ 0 or it leaves the stage.',
+      wetCellPx: WET_CELL,
+      spray: GP.getDripConfig('spray'),
+      mop: GP.getDripConfig('mop'),
+      quickTune: { _about: 'macro slider positions (1.0 = shipped default); the cap configs above already include their effect', spray: macros.spray, mop: macros.mop },
+      exportedAt: new Date().toISOString(),
+    };
+    const json = JSON.stringify(out, null, 2);
+    try {
+      await navigator.clipboard.writeText(json);
+      exportFlash('Copied to clipboard');
+    } catch {
+      // Clipboard can be blocked (permissions/insecure context) — download instead.
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      a.download = 'grft-drip-config.json';
+      a.click();
+      exportFlash('Downloaded JSON');
+    }
+  });
+  function exportFlash(msg) {
+    const b = document.getElementById('exportBtn');
+    const orig = b.textContent;
+    b.textContent = msg;
+    setTimeout(() => b.textContent = orig, 1400);
+  }
+
+  // ── Debug overlay loop ────────────────────────────────────────────────────
+  let seenDrips = new WeakSet();
+  const spawnRings = []; // {x, y, t0}
+  let totalSpawned = 0;
+  const hudDrips = document.getElementById('hudDrips');
+  const hudSpawned = document.getElementById('hudSpawned');
+  const hudHot = document.getElementById('hudHot');
+
+  function overlayTick(now) {
+    const r = overlay.getBoundingClientRect();
+    octx.clearRect(0, 0, r.width, r.height);
+
+    const drips = GP._internal.getActiveDrips();
+    const grid = GP._internal.getWetGrid();
+    const threshold = GP.getDripConfig('spray').spawnThreshold || 1;
+
+    // Track new spawns.
+    for (const d of drips) {
+      if (!seenDrips.has(d)) {
+        seenDrips.add(d);
+        totalSpawned++;
+        spawnRings.push({ x: d.x, y: d.y, t0: now });
+      }
+    }
+
+    let hot = 0;
+    if (grid) {
+      const cols = Math.max(1, Math.ceil(r.width / WET_CELL));
+      for (let i = 0; i < grid.length; i++) {
+        const w = grid[i];
+        if (w <= 0.01) continue;
+        if (w >= threshold) hot++;
+        if (debug.wet) {
+          const col = i % cols, row = (i / cols) | 0;
+          // Blue below threshold → red at/above.
+          const sat = Math.min(1, w / threshold);
+          octx.fillStyle = sat >= 1
+            ? `rgba(255,60,60,${Math.min(0.55, 0.25 + (w - threshold) * 0.15)})`
+            : `rgba(70,140,255,${0.08 + sat * 0.22})`;
+          octx.fillRect(col * WET_CELL, row * WET_CELL, WET_CELL, WET_CELL);
+        }
+      }
+    }
+
+    if (debug.drips) {
+      // Spawn rings — expand + fade over 900ms.
+      for (let i = spawnRings.length - 1; i >= 0; i--) {
+        const s = spawnRings[i];
+        const age = (now - s.t0) / 900;
+        if (age >= 1) { spawnRings.splice(i, 1); continue; }
+        octx.strokeStyle = `rgba(0,255,200,${0.9 * (1 - age)})`;
+        octx.lineWidth = 1.5;
+        octx.beginPath();
+        octx.arc(s.x, s.y, 6 + age * 22, 0, Math.PI * 2);
+        octx.stroke();
+      }
+      // Live drip heads.
+      octx.fillStyle = 'rgba(0,255,200,0.85)';
+      for (const d of drips) {
+        octx.beginPath();
+        octx.arc(d.x, d.y, 2.5, 0, Math.PI * 2);
+        octx.fill();
+      }
+    }
+
+    hudDrips.textContent = drips.length;
+    hudSpawned.textContent = totalSpawned;
+    hudHot.textContent = hot;
+    requestAnimationFrame(overlayTick);
+  }
+  requestAnimationFrame(overlayTick);
+})();
+</script>
+</body>
+</html>

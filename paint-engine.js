@@ -110,6 +110,14 @@
       spawnThreshold: 0.85,       // a hair earlier than before
       spawnRate: 0.020,           // ~+65% vs first tuning
       maxRateMultiplier: 5,       // hot cells can spawn even more
+      // Speed response — OFF for spray by default (the wetness grid already
+      // makes slow passes drip more, since more stamps land per cell).
+      // Enable to make pen speed scale spawn probability directly:
+      //   mult = clamp(speedRefPxPerMs / pxPerMs, speedBoostMin, speedBoostMax)
+      speedDependentDrips: false,
+      speedRefPxPerMs: 0.5,       // pen speed (px/ms) that counts as 1.0× "normal"
+      speedBoostMax: 2.0,         // probability multiplier cap when barely moving
+      speedBoostMin: 0.1,         // probability multiplier floor when zipping fast
       // Physics
       initialVelocity: 6,         // px/sec downward at spawn
       gravity: 260,               // px/sec²
@@ -117,6 +125,8 @@
       wetnessDrain: 0.016,        // slightly longer-lived → drips travel further
       thicknessDrain: 0.005,
       initialWetness: 1.6,
+      endSlowdown: 0.5,           // wetness level below which the drip eases to
+                                  // a stop (smoothstep) instead of dying mid-fall
       initialThicknessFrac: 0.45, // multiplier on stamp size at spawn
       minThicknessFrac: 0.18,
       stampSpacingFrac: 0.18,     // tight overlap so drip reads as a stream, not dots
@@ -136,12 +146,16 @@
       spawnRate: 0.007,
       maxRateMultiplier: 1,
       speedDependentDrips: true,   // slow strokes drip more, fast strokes less
+      speedRefPxPerMs: 0.5,        // same curve shape as the old hardcoded one
+      speedBoostMax: 2.0,
+      speedBoostMin: 0.1,
       initialVelocity: 4,
       gravity: 240,
       drag: 0.985,
       wetnessDrain: 0.020,
       thicknessDrain: 0.011,
       initialWetness: 1.25,
+      endSlowdown: 0.5,
       initialThicknessFrac: 0.45,
       minThicknessFrac: 0.18,
       stampSpacingFrac: 0.22,
@@ -324,15 +338,16 @@
     wetGrid = new Float32Array(wetCols * wetRows);
     activeDrips.length = 0;
     lastStampT = -1;
+    lastPxPerMs = null;
   }
 
-  // Cached speedScale used during synchronous stamp bursts (e.g. one
+  // Cached pen-speed (px/ms) used during synchronous stamp bursts (e.g. one
   // pointermove triggering N stamps inside paintSegment, OR one rAF tick
   // playing back several recorded points). We only refresh the pen-speed
   // measurement when enough real time has passed since the last refresh
-  // — otherwise burst stamps would all see dt≈0 and collapse the scale
-  // to its "extremely fast" floor.
-  let lastSpeedScale = 1;
+  // — otherwise burst stamps would all see dt≈0 and collapse the measure
+  // to its "extremely fast" extreme. null = no measurement yet (neutral).
+  let lastPxPerMs = null;
   const SPEED_REFRESH_MS = 4;
 
   function stampAt(x, y, size) {
@@ -346,19 +361,16 @@
     if (lastStampT > 0 && now - lastStampT >= SPEED_REFRESH_MS) {
       const dt = now - lastStampT;
       const dist = Math.hypot(x - lastStampX, y - lastStampY);
-      const pxPerMs = dist / dt;
-      // Slow (≤0.05 px/ms) → 2.0× drip rate; normal (~0.5) → 1.0×;
-      // fast (≥5) → 0.1× (clamped both ends).
-      lastSpeedScale = Math.max(0.1, Math.min(2.0, 0.5 / Math.max(0.05, pxPerMs)));
+      lastPxPerMs = dist / dt;
       lastStampT = now; lastStampX = x; lastStampY = y;
     } else if (lastStampT < 0) {
       // Very first stamp of a session — establish reference for next time.
       lastStampT = now; lastStampX = x; lastStampY = y;
-      lastSpeedScale = 1;
+      lastPxPerMs = null;
     }
-    // Synchronous burst stamps (dt < SPEED_REFRESH_MS) reuse lastSpeedScale.
+    // Synchronous burst stamps (dt < SPEED_REFRESH_MS) reuse lastPxPerMs.
 
-    maybeSpawnDrip(x, y, size, lastSpeedScale);
+    maybeSpawnDrip(x, y, size, lastPxPerMs);
   }
   function strokeSegment(x0, y0, x1, y1, size) {
     const dx = x1 - x0, dy = y1 - y0;
@@ -371,18 +383,26 @@
     }
   }
 
-  // Per-stamp: bump wetness in the cell, maybe spawn a drip. speedScale is
-  // ~2.0 when the pen is barely moving, ~0.1 when zipping fast; caps that
-  // opt in via `speedDependentDrips: true` use it to scale spawn probability.
-  function maybeSpawnDrip(x, y, size, speedScale) {
+  // Per-stamp: bump wetness in the cell, maybe spawn a drip. pxPerMs is the
+  // measured pen speed (null = unknown → neutral). Caps that opt in via
+  // `speedDependentDrips: true` map it through a per-cap response curve:
+  //   mult = clamp(speedRefPxPerMs / pxPerMs, speedBoostMin, speedBoostMax)
+  // so painting slower than the reference speed raises spawn probability
+  // and zipping past barely drips.
+  function maybeSpawnDrip(x, y, size, pxPerMs) {
     const dcfg = cfg.dripConfig && cfg.dripConfig[resolveCap(cap.current)];
     if (!dcfg || !dcfg.enabled) return;
     // Only wetness-driven caps actually NEED the grid; for flat-rate caps
     // (mop, future fire ext) it's fine to spawn without it. Lazy-init here
     // so free-paint pages that never called beginFreePaint still get drips.
     if (dcfg.useWetness && !wetGrid) resetDripState();
-    if (speedScale == null) speedScale = 1;
-    const speedMult = dcfg.speedDependentDrips ? speedScale : 1;
+    let speedMult = 1;
+    if (dcfg.speedDependentDrips && pxPerMs != null) {
+      const ref = dcfg.speedRefPxPerMs != null ? dcfg.speedRefPxPerMs : 0.5;
+      const mx  = dcfg.speedBoostMax  != null ? dcfg.speedBoostMax  : 2.0;
+      const mn  = dcfg.speedBoostMin  != null ? dcfg.speedBoostMin  : 0.1;
+      speedMult = Math.max(mn, Math.min(mx, ref / Math.max(0.05, pxPerMs)));
+    }
 
     let localWet = 0;
     if (dcfg.useWetness) {
@@ -444,6 +464,7 @@
       thickness: size * dcfg.initialThicknessFrac * (0.8 + Math.random() * 0.4),
       minThickness: size * dcfg.minThicknessFrac,
       wetness: dcfg.initialWetness * (0.7 + Math.random() * 0.6),
+      endSlowdown: dcfg.endSlowdown != null ? dcfg.endSlowdown : 0.5,
       gravity: dcfg.gravity,
       drag: dcfg.drag,
       wetnessDrain: dcfg.wetnessDrain,
@@ -470,14 +491,24 @@
       // Velocity update — gravity adds, drag multiplies (frame-normalized).
       d.vy += d.gravity * dtSec;
       d.vy *= Math.pow(d.drag, dtSec * 60);
+      // End-of-life ease: once wetness drops below endSlowdown the drip
+      // decelerates smoothly (smoothstep on remaining wetness) instead of
+      // stopping dead mid-fall — the paint runs out and friction wins.
+      // lifeF 1 = full speed, → 0 = crawling to a stop. Applied to the
+      // DISPLACEMENT (not vy) so gravity/drag bookkeeping stays untouched.
+      let lifeF = 1;
+      if (d.endSlowdown > 0 && d.wetness < d.endSlowdown) {
+        const f = Math.max(0, d.wetness / d.endSlowdown);
+        lifeF = f * f * (3 - 2 * f);
+      }
       // Horizontal: linear drift on baseX + sinusoidal sway around it.
       d.age += dtSec;
-      d.baseX += d.vx * dtSec;
+      d.baseX += d.vx * dtSec * lifeF;
       const swayNow = d.swayAmp
-        ? d.swayAmp * Math.sin(2 * Math.PI * d.swayFreq * d.age + d.swayPhase)
+        ? d.swayAmp * lifeF * Math.sin(2 * Math.PI * d.swayFreq * d.age + d.swayPhase)
         : 0;
       const newX = d.baseX + swayNow;
-      const newY = d.y + d.vy * dtSec;
+      const newY = d.y + d.vy * dtSec * lifeF;
 
       // Render trail from (d.x, d.y) → (newX, newY). For straight-fall drips
       // dx ≈ 0, so this collapses to a vertical line; for wandering drips
@@ -1126,6 +1157,7 @@
     activeDrips.length = 0;
     resetDripState();
     lastStampT = -1;
+    lastPxPerMs = null;
   }
 
   // Compute a default brush size for the current cap, scaled by writerScale.
@@ -1207,6 +1239,11 @@
       getCap:    () => cap.current,
       getActiveDrips: () => activeDrips,
       getWetGrid:     () => wetGrid,
+      // Deterministic sim stepping for tooling (drip test rig, Unity-port
+      // comparison): advances the drip physics by dtMs without waiting for
+      // a real animation frame. Don't call while the rAF drip loop is
+      // actively ticking or frames double up.
+      stepDrips: (dtMs) => { tickDrips(lastDripTime + Math.max(1, dtMs || 16)); },
       getDripConfig:  () => cfg.dripConfig,
       getDripLoopActive: () => dripLoopActive,
     },
