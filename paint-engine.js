@@ -106,17 +106,22 @@
       enabled: true,
       // Wetness grid — drips only spawn where paint accumulates.
       useWetness: true,
-      // 2026-07-03, THIRD re-tune same day — this is the tuning Alex signed
-      // off ("finally good") and the baseline the Unity spec
-      // (UNITY-DRIP-SPEC.md) freezes. Values are the resolved output of his
-      // rig macros: AMOUNT 0.15× · ACCUMULATION 1.45× · RUN LENGTH 0.75× ·
-      // THICKNESS 0.55× · WILDNESS 0.55× · SLOW-DRIP BOOST 3.00 (8.0× max).
-      // spawnRate has the old saturation-ramp constant (0.9375) folded in:
-      // 0.0000291 × 0.9375 — the ramp mechanic itself was removed as inert
-      // at this tuning (see maybeSpawnDrip).
-      wetnessPerStamp: 0.3242,    // accumulation 1.45×
-      spawnThreshold: 0.1908,     // accumulation 1.45×
-      spawnRate: 0.0000273,       // amount 0.15× — drips extremely rare once wet enough
+      // 2026-07-03, CORRECTED same day — Alex's confirmed dial positions
+      // (AMOUNT 0.15× · ACCUMULATION 1.45× · RUN LENGTH 0.75× · THICKNESS
+      // 0.55× · WILDNESS 0.55× · SLOW-DRIP BOOST 3.00/8.0× max) were being
+      // re-baked TWICE against an already-reduced baseline each time
+      // ("1.0× = current shipped default" — so re-baking the same dial
+      // position multiplies the reduction again instead of holding it
+      // steady). Result: live testing after deploy showed almost zero
+      // drips even holding the can still. These values are the TRUE
+      // single application of his dial positions against the ORIGINAL
+      // pre-tuning engine defaults (spawnRate 0.020, wetnessPerStamp 0.05,
+      // spawnThreshold 0.85, etc.) — spawnRate also has the old
+      // saturation-ramp constant folded in (see maybeSpawnDrip), computed
+      // the same way, just from the correct un-compounded starting point.
+      wetnessPerStamp: 0.0810,    // accumulation 1.45× (single application)
+      spawnThreshold: 0.5862,     // accumulation 1.45× (single application)
+      spawnRate: 0.0024028,       // amount 0.15× (single application, ramp folded in)
       // A cell's wetness used to ONLY ever go up — once a spot crossed
       // spawnThreshold it stayed primed for the rest of the session (even
       // painted over minutes later), and NOTHING reduced it after a drip
@@ -145,19 +150,19 @@
       gravity: 170,               // px/sec² — slowed ~35% from the original
                                   // 260 (Alex: fall read as too fast)
       drag: 0.985,                // multiplier per frame at 60fps; normalized via dt
-      wetnessDrain: 0.0475,       // run length 0.75×
+      wetnessDrain: 0.0213,       // run length 0.75× (single application)
       thicknessDrain: 0.005,
-      initialWetness: 0.54,       // run length 0.75×
+      initialWetness: 1.2,        // run length 0.75× (single application)
       endSlowdown: 0.5,           // wetness level below which the drip eases to
                                   // a stop (smoothstep) instead of dying mid-fall
-      initialThicknessFrac: 0.0613, // thickness 0.55×
-      minThicknessFrac: 0.0245,     // thickness 0.55×
+      initialThicknessFrac: 0.2475, // thickness 0.55× (single application)
+      minThicknessFrac: 0.0990,     // thickness 0.55× (single application)
       stampSpacingFrac: 0.18,     // tight overlap so drip reads as a stream, not dots
       spreadX: 6,                 // px horizontal jitter at spawn
       // Lateral drift — only some drips wander. The rest fall straight down.
-      wanderChance: 0.0832,       // wildness 0.55×
-      vxMax: 0.7563,              // wildness 0.55×
-      swayAmpMax: 1.0588,         // wildness 0.55×
+      wanderChance: 0.3025,       // wildness 0.55× (single application)
+      vxMax: 2.75,                // wildness 0.55× (single application)
+      swayAmpMax: 3.85,           // wildness 0.55× (single application)
       swayFreqMin: 0.25,          // Hz
       swayFreqMax: 0.65,
     },
