@@ -1,3 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AssetManagerStep5AssetBuilder — live demo</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  html, body { margin: 0; background: #f0eee8; }
+  #root { padding: 40px 20px; display: flex; justify-content: center; }
+  .frame { background: #fff; border: 1px solid #E6E3DC; border-radius: 3px; padding: 32px; max-width: 1000px; width: 100%; }
+  .note { font-family: -apple-system, sans-serif; font-size: 13px; color: #6B6B70; max-width: 1000px; margin: 0 auto 16px; }
+</style>
+</head>
+<body>
+<div class="note">Standalone demo of <code>AssetManagerStep5AssetBuilder.jsx</code> — no backend needed. Try "Upload &amp; convert" with any image: the stencil/sticker conversion runs live in your browser, and <code>onChange</code> logs the emitted <code>{ selection, items }</code> payload to the console.</div>
+<div id="root">Loading…</div>
+
+<script type="text/plain" id="src-step5">
 import React, { useState, useRef, useCallback, useEffect } from "react";
 
 /**
@@ -723,3 +744,46 @@ export function AssetManagerStep5AssetBuilder({
 }
 
 export default AssetManagerStep5AssetBuilder;
+
+</script>
+
+<script>
+(function () {
+  try {
+  const e = React.createElement;
+
+  function compile(scriptId, exportName) {
+    const raw = document.getElementById(scriptId).textContent;
+    const cleaned = raw
+      .replace(/^import[^\n]*\n/m, "")
+      .replace(new RegExp("^export function " + exportName, "m"), "function " + exportName)
+      .replace(new RegExp("^export default " + exportName + ";?\\s*$", "m"), "");
+    const compiled = Babel.transform(cleaned, { presets: [["react", { runtime: "classic" }]] }).code;
+    const wrapped = new Function(
+      "React", "useState", "useRef", "useCallback", "useEffect", "useMemo",
+      compiled + "\nreturn " + exportName + ";"
+    );
+    return wrapped(React, React.useState, React.useRef, React.useCallback, React.useEffect, React.useMemo);
+  }
+
+  const AssetManagerStep5AssetBuilder = compile("src-step5", "AssetManagerStep5AssetBuilder");
+
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  root.render(
+    e("div", { className: "frame" },
+      e(AssetManagerStep5AssetBuilder, {
+        onChange: (data) => console.log("onChange", data),
+        onBack: () => console.log("back"),
+        onNext: () => console.log("next"),
+        onToggleComplete: () => console.log("toggle complete"),
+      })
+    )
+  );
+  } catch (err) {
+    document.getElementById("root").textContent = "Loader failed: " + (err && err.message);
+    console.error("LOADER ERROR", err);
+  }
+})();
+</script>
+</body>
+</html>
