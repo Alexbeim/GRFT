@@ -83,7 +83,7 @@
   //     example). The engine tracks a low-resolution "wetness grid"; every
   //     stamp adds wetness to its cell. When a stamp hits a cell whose
   //     wetness is already above the spray spawn threshold, a drip can spawn
-  //     — probability scales with how saturated the cell is.
+  //     at a flat per-stamp probability (× the pen-speed boost below).
   //
   //   - CHISEL MARKER (future cap): no drips. Flat tip + thick ink that
   //     dries instantly — `enabled: false`.
@@ -106,35 +106,58 @@
       enabled: true,
       // Wetness grid — drips only spawn where paint accumulates.
       useWetness: true,
-      wetnessPerStamp: 0.05,
-      spawnThreshold: 0.85,       // a hair earlier than before
-      spawnRate: 0.020,           // ~+65% vs first tuning
-      maxRateMultiplier: 5,       // hot cells can spawn even more
-      // Speed response — OFF for spray by default (the wetness grid already
-      // makes slow passes drip more, since more stamps land per cell).
-      // Enable to make pen speed scale spawn probability directly:
+      // 2026-07-03, THIRD re-tune same day — this is the tuning Alex signed
+      // off ("finally good") and the baseline the Unity spec
+      // (UNITY-DRIP-SPEC.md) freezes. Values are the resolved output of his
+      // rig macros: AMOUNT 0.15× · ACCUMULATION 1.45× · RUN LENGTH 0.75× ·
+      // THICKNESS 0.55× · WILDNESS 0.55× · SLOW-DRIP BOOST 3.00 (8.0× max).
+      // spawnRate has the old saturation-ramp constant (0.9375) folded in:
+      // 0.0000291 × 0.9375 — the ramp mechanic itself was removed as inert
+      // at this tuning (see maybeSpawnDrip).
+      wetnessPerStamp: 0.3242,    // accumulation 1.45×
+      spawnThreshold: 0.1908,     // accumulation 1.45×
+      spawnRate: 0.0000273,       // amount 0.15× — drips extremely rare once wet enough
+      // A cell's wetness used to ONLY ever go up — once a spot crossed
+      // spawnThreshold it stayed primed for the rest of the session (even
+      // painted over minutes later), and NOTHING reduced it after a drip
+      // actually spawned there, so a single slow/overlapping pass could
+      // chain-fire a whole row of drips out of one small area (Alex: "too
+      // many drips... adding paint on each other"). These two fix that:
+      wetnessReleaseFactor: 0.3,  // a spawning cell's wetness is capped at
+                                  // spawnThreshold then multiplied by this —
+                                  // "the drip carries the puddle away" —
+                                  // so the SAME spot needs real re-wetting
+                                  // (~10 more stamps) before it can drip again
+      wetnessGridRetainPerSec: 0.25, // fraction of wetness surviving each
+                                  // second with no new paint — paint "dries"
+                                  // fast so accumulation reads as short-term,
+                                  // not a puddle that remembers the whole session
+      // Speed response — ON for spray (has been since the second re-tune).
+      // Painting slower now directly raises drip probability on top of the
+      // wetness-grid effect, up to speedBoostMax:
       //   mult = clamp(speedRefPxPerMs / pxPerMs, speedBoostMin, speedBoostMax)
-      speedDependentDrips: false,
+      speedDependentDrips: true,
       speedRefPxPerMs: 0.5,       // pen speed (px/ms) that counts as 1.0× "normal"
-      speedBoostMax: 2.0,         // probability multiplier cap when barely moving
-      speedBoostMin: 0.1,         // probability multiplier floor when zipping fast
+      speedBoostMax: 8,           // slow-drip boost 3.00 → probability multiplier cap when barely moving
+      speedBoostMin: 0.05,        // probability multiplier floor when zipping fast
       // Physics
-      initialVelocity: 6,         // px/sec downward at spawn
-      gravity: 260,               // px/sec²
+      initialVelocity: 4,         // px/sec downward at spawn
+      gravity: 170,               // px/sec² — slowed ~35% from the original
+                                  // 260 (Alex: fall read as too fast)
       drag: 0.985,                // multiplier per frame at 60fps; normalized via dt
-      wetnessDrain: 0.016,        // slightly longer-lived → drips travel further
+      wetnessDrain: 0.0475,       // run length 0.75×
       thicknessDrain: 0.005,
-      initialWetness: 1.6,
+      initialWetness: 0.54,       // run length 0.75×
       endSlowdown: 0.5,           // wetness level below which the drip eases to
                                   // a stop (smoothstep) instead of dying mid-fall
-      initialThicknessFrac: 0.45, // multiplier on stamp size at spawn
-      minThicknessFrac: 0.18,
+      initialThicknessFrac: 0.0613, // thickness 0.55×
+      minThicknessFrac: 0.0245,     // thickness 0.55×
       stampSpacingFrac: 0.18,     // tight overlap so drip reads as a stream, not dots
       spreadX: 6,                 // px horizontal jitter at spawn
       // Lateral drift — only some drips wander. The rest fall straight down.
-      wanderChance: 0.55,         // % of drips that get any horizontal motion
-      vxMax: 5,                   // ±px/sec constant lateral drift (random sign)
-      swayAmpMax: 7,              // ±px sinusoidal sway around the base path
+      wanderChance: 0.0832,       // wildness 0.55×
+      vxMax: 0.7563,              // wildness 0.55×
+      swayAmpMax: 1.0588,         // wildness 0.55×
       swayFreqMin: 0.25,          // Hz
       swayFreqMax: 0.65,
     },
@@ -144,13 +167,12 @@
       wetnessPerStamp: 0,
       spawnThreshold: 0,
       spawnRate: 0.007,
-      maxRateMultiplier: 1,
       speedDependentDrips: true,   // slow strokes drip more, fast strokes less
       speedRefPxPerMs: 0.5,        // same curve shape as the old hardcoded one
       speedBoostMax: 2.0,
       speedBoostMin: 0.1,
-      initialVelocity: 4,
-      gravity: 240,
+      initialVelocity: 3,
+      gravity: 160,               // slowed ~33% from the original 240
       drag: 0.985,
       wetnessDrain: 0.020,
       thicknessDrain: 0.011,
@@ -213,6 +235,14 @@
     writerConfig: DEFAULT_WRITER_CONFIG,
     writerScale: 1.4,        // multiplier on writer image height (all phases) — Alex-tuned default
     dripConfig: DEFAULT_DRIP_CONFIG,
+    // Edge softness of the main PAINT strokes (not drips — those are always
+    // hard-edged, see drawDripDab). 1 = fully soft (spray's original
+    // halo+grain look); 0 = sharpest a cap is allowed to render, which
+    // still keeps a real feather — see buildStamp's SOFT/SHARP anchors.
+    // Never fully hard-edged. Spray shipped at 0.88 as of 2026-07-03 (Alex's
+    // rig session) — very slightly cleaner than the original fully-fuzzy
+    // default; mop is untouched.
+    paintSoftness: { spray: 0.88, mop: 1 },
     entryConfig: Object.assign({}, DEFAULT_ENTRY_CONFIG),
     exitConfig:  Object.assign({}, DEFAULT_EXIT_CONFIG),
     fontSizeRef: 720,
@@ -247,31 +277,49 @@
   }
 
   // ── Stamp building + caching ──────────────────────────────────────────────
-  function buildStamp(capName, col, size) {
+  // softness 1 = shipped default look (soft halo + full grain for spray;
+  // shipped 15%-feather for mop). softness 0 = the SHARPEST this cap is
+  // allowed to render — deliberately NOT a hard vector edge: the "sharp"
+  // anchor below still keeps a real (if narrow) antialiased feather and a
+  // trace of grain, so "sharper paint" never means "flat cutout." Chisel is
+  // unaffected — its calligraphic edge isn't part of this control.
+  function buildStamp(capName, col, size, softness) {
+    const t = softness == null ? 1 : Math.max(0, Math.min(1, softness));
     const c = document.createElement('canvas');
     c.width = c.height = size;
     const x = c.getContext('2d');
     const r = size / 2;
     x.translate(r, r);
     if (capName === 'spray') {
-      // SPRAY: soft radial halo + dense pixel grain (real aerosol noise)
+      // SPRAY: soft radial halo + dense pixel grain (real aerosol noise).
+      // Lerp between the shipped soft anchor (t=1) and a tighter, cleaner
+      // anchor (t=0) — solid core reaches much further out, and the fade
+      // to transparent happens over a short but still-feathered final
+      // stretch instead of the wide, hazy shipped falloff.
+      const lerp = (a, b) => a + (b - a) * (1 - t); // t=1→a (soft), t=0→b (sharp)
+      const stops = [
+        [0,    lerp(0.55, 0.95)],
+        [lerp(0.35, 0.80), lerp(0.18, 0.85)],
+        [lerp(0.75, 0.92), lerp(0.04, 0.35)],
+        [1,    0],
+      ];
       const cx = (Math.random()-0.5) * r * 0.16;
       const cy = (Math.random()-0.5) * r * 0.16;
       const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
-      g.addColorStop(0,    hexA(col, 0.55));
-      g.addColorStop(0.35, hexA(col, 0.18));
-      g.addColorStop(0.75, hexA(col, 0.04));
-      g.addColorStop(1,    hexA(col, 0));
+      for (const [p, a] of stops) g.addColorStop(p, hexA(col, a));
       x.fillStyle = g;
       x.beginPath(); x.arc(0, 0, r, 0, Math.PI*2); x.fill();
-      const grain = Math.min(700, Math.round(r * r * 0.55));
+      // Grain thins out as it sharpens (cleaner fill) but never vanishes —
+      // floor keeps a little aerosol texture even at the sharp end.
+      const grainF = 0.3 + 0.7 * t;
+      const grain = Math.min(700, Math.round(r * r * 0.55 * grainF));
       for (let i = 0; i < grain; i++) {
         const a = Math.random() * Math.PI * 2;
         const rr = Math.pow(Math.random(), 1.5) * r;
         const dx = Math.cos(a) * rr, dy = Math.sin(a) * rr;
         const edge = rr / r;
         const sz = (0.35 + Math.random()*0.9) * (1 - edge*0.5);
-        const alpha = (0.05 + Math.random()*0.18) * (1 - edge*0.7);
+        const alpha = (0.05 + Math.random()*0.18) * (1 - edge*0.7) * grainF;
         x.fillStyle = hexA(col, alpha);
         x.beginPath(); x.arc(dx, dy, sz, 0, Math.PI*2); x.fill();
       }
@@ -298,11 +346,14 @@
       x.fillStyle = grad;
       x.fillRect(-w/2, -h/2 - 1, w, h + 2);
     } else {
-      // MOP (and any future opaque-cap default): bold solid ink with a
-      // 15%-edge feather so it doesn't look like a pasted circle.
-      const g = x.createRadialGradient(0, 0, r*0.85, 0, 0, r);
+      // MOP (and any future opaque-cap default): bold solid ink with an
+      // edge feather so it doesn't look like a pasted circle. Shipped
+      // (t=1) feathers the outer 15% of the radius; sharper settings
+      // narrow that feather toward the outer 6% — still always feathered.
+      const innerStop = t * 0.85 + (1 - t) * 0.94;
+      const g = x.createRadialGradient(0, 0, r*innerStop, 0, 0, r);
       g.addColorStop(0,    hexA(col, 1));
-      g.addColorStop(0.85, hexA(col, 1));
+      g.addColorStop(innerStop, hexA(col, 1));
       g.addColorStop(1,    hexA(col, 0));
       x.fillStyle = g;
       x.beginPath(); x.arc(0, 0, r, 0, Math.PI*2); x.fill();
@@ -312,11 +363,29 @@
   function getStamp(capName, size) {
     const bucket = sizeBucket(size);
     const resolved = resolveCap(capName);
-    // Color in the cache key so per-init color overrides don't poison the cache.
-    const k = `${resolved}|${cfg.color}|${bucket}`;
+    const softRaw = cfg.paintSoftness && cfg.paintSoftness[resolved] != null
+      ? cfg.paintSoftness[resolved] : 1;
+    const soft = Math.round(Math.max(0, Math.min(1, softRaw)) * 20) / 20; // coarse cache key
+    // Color + softness in the cache key so overrides don't poison the cache.
+    const k = `${resolved}|${cfg.color}|${bucket}|${soft}`;
     let s = stampCache.get(k);
-    if (!s) { s = buildStamp(resolved, cfg.color, bucket); stampCache.set(k, s); }
+    if (!s) { s = buildStamp(resolved, cfg.color, bucket, soft); stampCache.set(k, s); }
     return s;
+  }
+  // Drips render as solid, hard-edged dabs — a falling bead is a coherent
+  // blob of wet paint, not an aerosol mist, so it should NEVER get the
+  // spray cap's soft radial halo/grain. Drawn as a live vector arc at the
+  // drip's exact (continuous) thickness every frame rather than pulled from
+  // the size-bucketed stamp cache, so shrinking is perfectly smooth instead
+  // of visibly snapping between cached bitmap sizes as thickness crosses a
+  // bucket boundary. Canvas's own ~1px edge antialiasing is the only
+  // softness — that's what reads as "well defined" rather than fuzzy.
+  function drawDripDab(cx, cy, r) {
+    if (r <= 0) return;
+    pctx.fillStyle = cfg.color;
+    pctx.beginPath();
+    pctx.arc(cx, cy, r, 0, Math.PI * 2);
+    pctx.fill();
   }
   // ── Wetness grid + active drips ──────────────────────────────────────────
   // Reset at the start of each playLayout via resetDripState().
@@ -330,6 +399,10 @@
   // extinguisher) — slow strokes drip more, fast strokes drip less, matching
   // how a wet marker actually behaves on a wall.
   let lastStampT = -1, lastStampX = 0, lastStampY = 0;
+  // Wall-clock bookkeeping for wetGrid's time decay (see decayWetGrid).
+  // 0 = "no baseline yet" so the very first stamp of a session just seeds
+  // the clock instead of decaying against some huge/stale elapsed time.
+  let lastWetGridDecayT = 0;
 
   function resetDripState() {
     const r = canvas.getBoundingClientRect();
@@ -339,6 +412,23 @@
     activeDrips.length = 0;
     lastStampT = -1;
     lastPxPerMs = null;
+    lastWetGridDecayT = 0;
+  }
+  // Paint "drying out": fades the whole wetness grid toward zero based on
+  // real elapsed time, independent of how many stamps land. Without this a
+  // spot painted once stays primed for drips FOREVER, even if you come back
+  // and paint over it minutes later — wetnessGridRetainPerSec keeps
+  // accumulation reading as a short-term, "currently wet" effect.
+  function decayWetGrid(dcfg) {
+    const now = performance.now();
+    if (!lastWetGridDecayT) { lastWetGridDecayT = now; return; }
+    const dt = (now - lastWetGridDecayT) / 1000;
+    lastWetGridDecayT = now;
+    if (dt <= 0) return;
+    const retain = dcfg.wetnessGridRetainPerSec != null ? dcfg.wetnessGridRetainPerSec : 1;
+    if (retain >= 0.999) return; // effectively disabled — skip the sweep
+    const factor = Math.pow(Math.max(0, Math.min(1, retain)), dt);
+    for (let i = 0; i < wetGrid.length; i++) wetGrid[i] *= factor;
   }
 
   // Cached pen-speed (px/ms) used during synchronous stamp bursts (e.g. one
@@ -396,6 +486,7 @@
     // (mop, future fire ext) it's fine to spawn without it. Lazy-init here
     // so free-paint pages that never called beginFreePaint still get drips.
     if (dcfg.useWetness && !wetGrid) resetDripState();
+    if (dcfg.useWetness && wetGrid) decayWetGrid(dcfg);
     let speedMult = 1;
     if (dcfg.speedDependentDrips && pxPerMs != null) {
       const ref = dcfg.speedRefPxPerMs != null ? dcfg.speedRefPxPerMs : 0.5;
@@ -405,32 +496,40 @@
     }
 
     let localWet = 0;
+    let wetIdx = -1; // hoisted so a successful spawn below can release it
     if (dcfg.useWetness) {
       const col = Math.floor(x / WET_CELL);
       const row = Math.floor(y / WET_CELL);
       if (col >= 0 && col < wetCols && row >= 0 && row < wetRows) {
-        const idx = row * wetCols + col;
-        wetGrid[idx] += dcfg.wetnessPerStamp;
-        localWet = wetGrid[idx];
+        wetIdx = row * wetCols + col;
+        wetGrid[wetIdx] += dcfg.wetnessPerStamp;
+        localWet = wetGrid[wetIdx];
       }
     }
 
-    let prob;
-    if (dcfg.useWetness) {
-      // Spray: only spawn above threshold, scaled by saturation.
-      if (localWet < dcfg.spawnThreshold) return;
-      const mult = Math.min(dcfg.maxRateMultiplier,
-                            1 + (localWet - dcfg.spawnThreshold));
-      prob = dcfg.spawnRate * mult;
-    } else {
-      // Mop/marker etc: flat probability per stamp.
-      prob = dcfg.spawnRate;
-    }
+    // Spawn probability is FLAT (spawnRate) once a wetness-gated cap's cell
+    // passes spawnThreshold; non-wetness caps (mop) just use spawnRate
+    // directly. There used to be a saturation ramp here (hotter cells →
+    // up to maxRateMultiplier× more likely), but at the tuning Alex locked
+    // in on 2026-07-03 it resolved to a constant multiplier — so it was
+    // folded into spawnRate and removed for the Unity-spec simplification.
+    if (dcfg.useWetness && localWet < dcfg.spawnThreshold) return;
+    let prob = dcfg.spawnRate;
     // Slow strokes pool more ink → more drips; fast strokes barely touch the
     // surface → fewer. Opt-in per cap via speedDependentDrips.
     prob *= speedMult;
 
     if (Math.random() >= prob) return;
+
+    // This cell just released a drip — cap its wetness at spawnThreshold and
+    // knock it down by wetnessReleaseFactor so the drip visibly "carries the
+    // puddle away." Without this the SAME spot could keep re-rolling (and
+    // winning) on every subsequent stamp, chain-firing a whole row of drips
+    // out of one small dwell/overlap instead of just the one.
+    if (dcfg.useWetness && wetIdx >= 0) {
+      const releaseF = dcfg.wetnessReleaseFactor != null ? dcfg.wetnessReleaseFactor : 0.3;
+      wetGrid[wetIdx] = Math.min(wetGrid[wetIdx], dcfg.spawnThreshold) * releaseF;
+    }
 
     // Roll for lateral wander. Most drips fall straight; a fraction get a
     // small constant horizontal velocity + sinusoidal sway. Either or both
@@ -455,24 +554,40 @@
       baseX: startX,
       x: startX,           // last-rendered x (updated each frame)
       y: y,
-      vx: vx,
+      vx: vx,               // one-time roll — genuine initial condition
       vy: dcfg.initialVelocity * (0.7 + Math.random() * 0.6),
-      swayAmp: swayAmp,
-      swayFreq: swayFreq,
-      swayPhase: swayPhase,
+      swayAmp: swayAmp,     // one-time rolls too — re-sampling live would
+      swayFreq: swayFreq,   // pop/glitch mid-flight instead of reading as
+      swayPhase: swayPhase, // a smooth response to the slider
       age: 0,
       thickness: size * dcfg.initialThicknessFrac * (0.8 + Math.random() * 0.4),
-      minThickness: size * dcfg.minThicknessFrac,
       wetness: dcfg.initialWetness * (0.7 + Math.random() * 0.6),
-      endSlowdown: dcfg.endSlowdown != null ? dcfg.endSlowdown : 0.5,
-      gravity: dcfg.gravity,
-      drag: dcfg.drag,
-      wetnessDrain: dcfg.wetnessDrain,
-      thicknessDrain: dcfg.thicknessDrain,
-      stampSpacingFrac: dcfg.stampSpacingFrac,
+      spawnSize: size,      // needed to live-recompute minThickness below
       capName: cap.current,
+      // gravity/drag/wetnessDrain/thicknessDrain/stampSpacingFrac/
+      // endSlowdown/minThickness are NOT stored here — they're rate/
+      // coefficient knobs, not initial conditions, so tickDrips reads them
+      // fresh from cfg.dripConfig every frame (see resolveDripPhysics).
+      // A slider move now visibly changes drips already in flight, not
+      // just the next one spawned.
     });
     ensureDripLoop();
+  }
+  // Per-frame physics lookup for a drip, always reflecting the LIVE config
+  // (falls back to the last resolved value if the cap's config vanished,
+  // e.g. a custom cap removed mid-session — should not normally happen).
+  function resolveDripPhysics(d) {
+    const dcfg = cfg.dripConfig && cfg.dripConfig[resolveCap(d.capName)];
+    if (dcfg) {
+      d._gravity = dcfg.gravity;
+      d._drag = dcfg.drag;
+      d._wetnessDrain = dcfg.wetnessDrain;
+      d._thicknessDrain = dcfg.thicknessDrain;
+      d._stampSpacingFrac = dcfg.stampSpacingFrac;
+      d._endSlowdown = dcfg.endSlowdown != null ? dcfg.endSlowdown : 0.5;
+      d._minThickness = d.spawnSize * (dcfg.minThicknessFrac != null ? dcfg.minThicknessFrac : 0.18);
+    }
+    return d;
   }
 
   function tickDrips(now) {
@@ -488,17 +603,18 @@
 
     for (let i = activeDrips.length - 1; i >= 0; i--) {
       const d = activeDrips[i];
+      resolveDripPhysics(d); // re-read gravity/drag/etc. from LIVE config every frame
       // Velocity update — gravity adds, drag multiplies (frame-normalized).
-      d.vy += d.gravity * dtSec;
-      d.vy *= Math.pow(d.drag, dtSec * 60);
+      d.vy += d._gravity * dtSec;
+      d.vy *= Math.pow(d._drag, dtSec * 60);
       // End-of-life ease: once wetness drops below endSlowdown the drip
       // decelerates smoothly (smoothstep on remaining wetness) instead of
       // stopping dead mid-fall — the paint runs out and friction wins.
       // lifeF 1 = full speed, → 0 = crawling to a stop. Applied to the
       // DISPLACEMENT (not vy) so gravity/drag bookkeeping stays untouched.
       let lifeF = 1;
-      if (d.endSlowdown > 0 && d.wetness < d.endSlowdown) {
-        const f = Math.max(0, d.wetness / d.endSlowdown);
+      if (d._endSlowdown > 0 && d.wetness < d._endSlowdown) {
+        const f = Math.max(0, d.wetness / d._endSlowdown);
         lifeF = f * f * (3 - 2 * f);
       }
       // Horizontal: linear drift on baseX + sinusoidal sway around it.
@@ -512,25 +628,26 @@
 
       // Render trail from (d.x, d.y) → (newX, newY). For straight-fall drips
       // dx ≈ 0, so this collapses to a vertical line; for wandering drips
-      // each step lands slightly off-axis, drawing the curve.
-      const stamp = getStamp(d.capName, sizeBucket(d.thickness));
+      // each step lands slightly off-axis, drawing the curve. Dense overlap
+      // (stampSpacingFrac) plus the crisp solid dab keeps the trail's edges
+      // straight and well-defined instead of a scalloped string of circles.
       const dx = newX - d.x;
       const dy = newY - d.y;
       const dist = Math.hypot(dx, dy);
-      const stampStep = Math.max(0.5, d.thickness * d.stampSpacingFrac);
+      const stampStep = Math.max(0.5, d.thickness * d._stampSpacingFrac);
       const steps = Math.max(1, Math.ceil(dist / stampStep));
       for (let s = 1; s <= steps; s++) {
         const t = s / steps;
         const px = d.x + dx * t;
         const py = d.y + dy * t;
-        pctx.drawImage(stamp, px - d.thickness/2, py - d.thickness/2, d.thickness, d.thickness);
+        drawDripDab(px, py, d.thickness / 2);
       }
 
       d.x = newX;
       d.y = newY;
-      d.wetness -= d.wetnessDrain * dtSec * 60;
-      d.thickness *= Math.max(0, 1 - d.thicknessDrain * dtSec * 60);
-      if (d.thickness < d.minThickness) d.thickness = d.minThickness;
+      d.wetness -= d._wetnessDrain * dtSec * 60;
+      d.thickness *= Math.max(0, 1 - d._thicknessDrain * dtSec * 60);
+      if (d.thickness < d._minThickness) d.thickness = d._minThickness;
 
       // Kill conditions: paint exhausted OR dropped off the canvas.
       if (d.wetness <= 0 || d.y > stageH + 40) {
@@ -630,6 +747,7 @@
     if (opts.entryConfig) Object.assign(cfg.entryConfig, opts.entryConfig);
     if (opts.exitConfig)  Object.assign(cfg.exitConfig,  opts.exitConfig);
     if (opts.writerScale != null) cfg.writerScale = opts.writerScale;
+    if (opts.paintSoftness) Object.assign(cfg.paintSoftness, opts.paintSoftness);
     if (opts.fontSizeRef != null)      cfg.fontSizeRef = opts.fontSizeRef;
     if (opts.heightCap != null)        cfg.heightCap = opts.heightCap;
     if (opts.maxHeightPx != null)      cfg.maxHeightPx = opts.maxHeightPx;
@@ -1224,13 +1342,28 @@
     return Object.assign({}, (cfg.dripConfig && cfg.dripConfig[key]) || {});
   }
 
+  // Live edge-softness tuning for the main PAINT strokes (drips are always
+  // hard-edged — not affected by this). 1 = shipped soft/fuzzy look for
+  // that cap, 0 = sharpest allowed (still feathered, see buildStamp).
+  // Stamps re-cache automatically (softness is part of getStamp's key).
+  function setPaintSoftness(capName, value) {
+    if (!cfg.paintSoftness) cfg.paintSoftness = { spray: 1, mop: 1 };
+    const key = resolveCap(capName);
+    cfg.paintSoftness[key] = Math.max(0, Math.min(1, value));
+    return cfg.paintSoftness[key];
+  }
+  function getPaintSoftness(capName) {
+    const key = resolveCap(capName);
+    return (cfg.paintSoftness && cfg.paintSoftness[key] != null) ? cfg.paintSoftness[key] : 1;
+  }
+
   window.GraffitiPaint = {
     init, loadAssets, setAssets, play, playLayout, computeAutoLayout,
     setCap, clear, stop,
     beginFreePaint, paintAt, paintSegment,
     setEntryConfig, setExitConfig, getEntryConfig, getExitConfig,
     setWriterScale, getWriterScale, setColor, getColor,
-    setDripConfig, getDripConfig,
+    setDripConfig, getDripConfig, setPaintSoftness, getPaintSoftness,
     DEFAULT_ENTRY_CONFIG, DEFAULT_EXIT_CONFIG,
     // Exposed for tooling/debugging — host pages should not poke these.
     _internal: {

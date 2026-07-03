@@ -135,11 +135,13 @@
 <body>
 
 <header>
-  <h1>DRIP TEST RIG <span>· paint-engine.js</span></h1>
+  <h1><a href="lab.html" style="color:inherit;text-decoration:none;opacity:0.55;font-weight:400;" title="Back to Lab">←&nbsp;Lab&nbsp;·&nbsp;</a>DRIP TEST RIG <span>· paint-engine.js</span></h1>
 
+  <!-- Spray only — Alex dropped the mop from this rig (2026-07-03, Unity
+       handoff is spray-only). The engine still supports the mop cap for
+       other pages (404.html etc.); this tool just no longer exposes it. -->
   <div class="seg" id="capSeg">
     <button data-cap="spray" class="on">SPRAY</button>
-    <button data-cap="mop">MOP</button>
   </div>
 
   <div class="bar-group">
@@ -154,10 +156,7 @@
   </div>
 
   <div class="bar-group" style="margin-left:auto;">
-    <button class="act" data-pattern="n">N-test</button>
     <button class="act" data-pattern="vari">Vari line</button>
-    <button class="act" data-pattern="slow">Slow line</button>
-    <button class="act" data-pattern="fast">Fast line</button>
     <button class="act" data-pattern="pool">Pool</button>
     <button class="act" data-pattern="scribble">Scribble</button>
   </div>
@@ -208,6 +207,10 @@
     spray: GP.getDripConfig('spray'),
     mop: GP.getDripConfig('mop'),
   };
+  const DEFAULT_PAINT_SOFTNESS = {
+    spray: GP.getPaintSoftness('spray'),
+    mop: GP.getPaintSoftness('mop'),
+  };
 
   // ── Overlay sizing (engine handles the paint canvas itself) ──────────────
   function resizeOverlay() {
@@ -231,19 +234,21 @@
   // GP.setDripConfig so the next stamp/drip uses it immediately.
   const PARAMS = [
     { g: 'Spawning' },
-    { k: 'spawnRate', min: 0, max: 0.20, step: 0.001, caps: ['spray','mop'],
+    { k: 'spawnRate', min: 0, max: 1.0, step: 0.001, caps: ['spray','mop'],
       hint: 'base probability of a drip per stamp' },
-    { k: 'wetnessPerStamp', min: 0, max: 0.20, step: 0.005, caps: ['spray'],
+    { k: 'wetnessPerStamp', min: 0, max: 1.0, step: 0.005, caps: ['spray'],
       hint: 'wetness added to a 12px grid cell per stamp' },
     { k: 'spawnThreshold', min: 0, max: 3, step: 0.05, caps: ['spray'],
       hint: 'cell wetness needed before drips can spawn' },
-    { k: 'maxRateMultiplier', min: 1, max: 12, step: 0.5, caps: ['spray'],
-      hint: 'cap on how much hot (saturated) cells boost spawn rate' },
+    { k: 'wetnessReleaseFactor', min: 0, max: 1, step: 0.05, caps: ['spray'],
+      hint: 'wetness kept at a spot right after it drips — lower = that exact spot needs longer to drip again (prevents one dwell chain-firing many drips)' },
+    { k: 'wetnessGridRetainPerSec', min: 0, max: 1, step: 0.02, caps: ['spray'],
+      hint: 'wetness surviving each second with no new paint — lower = paint dries faster, accumulation reads as short-term not a session-long puddle' },
 
     { g: 'Speed response' },
     { k: 'speedRefPxPerMs', min: 0.05, max: 3, step: 0.05, caps: ['spray','mop'],
       hint: 'pen speed (px/ms) that counts as normal — the pivot of the boost curve' },
-    { k: 'speedBoostMax', min: 1, max: 8, step: 0.1, caps: ['spray','mop'],
+    { k: 'speedBoostMax', min: 1, max: 20, step: 0.1, caps: ['spray','mop'],
       hint: 'probability multiplier cap when painting very slowly' },
     { k: 'speedBoostMin', min: 0.02, max: 1, step: 0.01, caps: ['spray','mop'],
       hint: 'probability multiplier floor when painting fast' },
@@ -288,6 +293,13 @@
   ];
   const PARAM_BY_KEY = {};
   for (const p of PARAMS) if (p.k) PARAM_BY_KEY[p.k] = p;
+  // CAUTION: this silently clamps macroPartial's output to the detail
+  // slider's min/max — found the hard way (2026-07-03) when a re-bake's
+  // AMOUNT/ACCUMULATION math pushed maxRateMultiplier/wetnessPerStamp past
+  // the old bounds and got corrupted with zero warning (clamped values
+  // looked numerically "fine," just wrong). PARAMS ranges above now carry
+  // real headroom, but every time the shipped baseline is re-baked bigger,
+  // re-check whether these bounds still have room, or this happens again.
   function clampParam(k, v) {
     const p = PARAM_BY_KEY[k];
     if (!p) return v;
@@ -301,38 +313,52 @@
   // sliders update live so you can see what it actually changed. Detailed
   // tweaks on top are kept until you move that macro again.
   const MACROS = [
-    { k: 'amount', label: 'AMOUNT',
-      hint: 'how many drips spawn overall · 1.0 = shipped default' },
-    { k: 'speedFeel', label: 'SLOW-DRIP BOOST',
+    { k: 'amount', label: 'AMOUNT', caps: ['spray','mop'],
+      hint: 'probability a drip spawns, once a spot is wet enough · 1.0 = shipped default' },
+    { k: 'accumulation', label: 'ACCUMULATION', caps: ['spray'],
+      hint: 'how fast paint puddles build up while painting/holding — gets you to the drip threshold sooner, WITHOUT raising drip probability · 1.0 = shipped default' },
+    { k: 'speedFeel', label: 'SLOW-DRIP BOOST', caps: ['spray','mop'],
       hint: 'painting slower raises drip PROBABILITY (not overall amount) · 0 = off · mop ships at 1.0, spray at 0',
       fmt: (m) => m <= 0.001 ? 'off' : `${Math.pow(2, m).toFixed(1)}× max` },
-    { k: 'length', label: 'RUN LENGTH',
+    { k: 'length', label: 'RUN LENGTH', caps: ['spray','mop'],
       hint: 'how far drips travel before drying up · 1.0 = shipped default' },
-    { k: 'thickness', label: 'THICKNESS',
+    { k: 'thickness', label: 'THICKNESS', caps: ['spray','mop'],
       hint: 'how fat the drips are · 1.0 = shipped default' },
-    { k: 'wildness', label: 'WILDNESS',
+    { k: 'wildness', label: 'WILDNESS', caps: ['spray','mop'],
       hint: 'sideways wander + sway · 1.0 = shipped default' },
   ];
   // Macro slider positions each cap starts at — chosen so the derived params
-  // land exactly on the shipped engine defaults (mop ships with 2.0× speed
-  // boost enabled; spray ships with speed response off).
+  // land exactly on the shipped engine defaults. speedFeel's resting value
+  // is NOT always 0/1 — it has to match whatever speedBoostMax/Min the
+  // engine actually ships with for that cap (mop ships at speedFeel 1 =
+  // 2.0× boost; spray ships at speedFeel 3.00 = 8.0× boost, on as of the
+  // third 2026-07-03 re-tune). If the engine's shipped speedBoostMax ever
+  // changes again, this must be updated to log2(newSpeedBoostMax) or
+  // "Reset to shipped defaults" will show a misleading dial position (cfg
+  // itself stays correct either way — this only affects the READOUT).
   const MACRO_DEFAULTS = {
-    spray: { amount: 1, speedFeel: 0, length: 1, thickness: 1, wildness: 1 },
-    mop:   { amount: 1, speedFeel: 1, length: 1, thickness: 1, wildness: 1 },
+    spray: { amount: 1, accumulation: 1, speedFeel: 3.00, length: 1, thickness: 1, wildness: 1 },
+    mop:   { amount: 1, accumulation: 1, speedFeel: 1, length: 1, thickness: 1, wildness: 1 },
   };
   // macro value m (0–3, 1 = shipped default) → partial drip config.
   function macroPartial(capName, key, m) {
     const base = DEFAULTS[capName];
     const out = {};
     if (key === 'amount') {
-      // Steeper-than-linear so the top half of the slider really pours.
+      // Pure spawn PROBABILITY — steeper-than-linear so the top half of the
+      // slider really pours. Deliberately does NOT touch wetnessPerStamp or
+      // spawnThreshold — that's ACCUMULATION's job, kept separate so you can
+      // get more drips per hot spot without changing how fast spots get hot.
+      // (Used to also scale maxRateMultiplier; that mechanic was removed
+      // from the engine as inert at the locked tuning.)
       out.spawnRate = base.spawnRate * Math.pow(m, 1.6);
-      if (capName === 'spray') {
-        out.wetnessPerStamp = base.wetnessPerStamp * (0.6 + 0.4 * m);
-        // More amount → drips start earlier (lower threshold).
-        out.spawnThreshold = base.spawnThreshold / (0.4 + 0.6 * Math.max(0.1, m));
-        out.maxRateMultiplier = base.maxRateMultiplier * Math.max(0.5, m);
-      }
+    } else if (key === 'accumulation') {
+      // How fast a spot's wetness climbs toward spawnThreshold — i.e. how
+      // soon painting/holding in one place starts counting as "wet enough
+      // to drip". Independent of spawnRate (AMOUNT): a puddle can now form
+      // in a third of the time while probability-once-hot is untouched.
+      out.wetnessPerStamp = base.wetnessPerStamp * Math.max(0.15, Math.pow(m, 1.3));
+      out.spawnThreshold = base.spawnThreshold / Math.max(0.15, m);
     } else if (key === 'length') {
       out.initialWetness = base.initialWetness * Math.max(0.05, m);
       out.wetnessDrain = base.wetnessDrain / Math.max(0.2, m);
@@ -378,8 +404,8 @@
   }
   function snapshotState() {
     return {
-      spray: { cfg: GP.getDripConfig('spray'), macros: Object.assign({}, macros.spray) },
-      mop:   { cfg: GP.getDripConfig('mop'),   macros: Object.assign({}, macros.mop) },
+      spray: { cfg: GP.getDripConfig('spray'), macros: Object.assign({}, macros.spray), paintSoftness: GP.getPaintSoftness('spray') },
+      mop:   { cfg: GP.getDripConfig('mop'),   macros: Object.assign({}, macros.mop),   paintSoftness: GP.getPaintSoftness('mop') },
       brush: brushSize,
       color: GP.getColor(),
     };
@@ -389,6 +415,7 @@
     for (const c of ['spray', 'mop']) {
       if (s[c] && s[c].cfg) GP.setDripConfig(c, s[c].cfg);
       if (s[c] && s[c].macros) Object.assign(macros[c], s[c].macros);
+      if (s[c] && s[c].paintSoftness != null) GP.setPaintSoftness(c, s[c].paintSoftness);
     }
     if (s.brush) {
       brushSize = s.brush;
@@ -445,6 +472,7 @@
     qt.innerHTML = '<h2>Quick tune</h2>';
     sidebar.appendChild(qt);
     for (const m of MACROS) {
+      if (!m.caps.includes(currentCap)) continue;
       const cur = macros[currentCap][m.k];
       const disp = (v) => m.fmt ? m.fmt(v) : v.toFixed(2) + '×';
       const div = document.createElement('div');
@@ -464,11 +492,36 @@
       sidebar.appendChild(div);
     }
 
+    // ── Paint edge (the PAINT itself, not drips — drips are always
+    // hard-edged; this only affects the main brush stroke's fuzziness) ──
+    const pe = document.createElement('div');
+    pe.innerHTML = '<h2>Paint edge</h2>';
+    sidebar.appendChild(pe);
+    {
+      const cur = GP.getPaintSoftness(currentCap);
+      const label = (v) => v >= 0.9 ? 'soft (shipped)' : v <= 0.05 ? 'sharp' : v.toFixed(2);
+      const div = document.createElement('div');
+      div.className = 'macro';
+      div.innerHTML = `
+        <div class="row1"><label>SOFTNESS</label><span class="val">${label(cur)}</span></div>
+        <input type="range" min="0" max="1" step="0.02" value="${cur}">
+        <div class="hint">fuzzy spray-mist edge ↔ cleaner edge — always keeps SOME feather, never a hard vector cutout · 1.0 = shipped default</div>`;
+      const slider = div.querySelector('input');
+      const val = div.querySelector('.val');
+      slider.addEventListener('input', () => {
+        const v = parseFloat(slider.value);
+        GP.setPaintSoftness(currentCap, v);
+        val.textContent = label(v);
+        saveAuto();
+      });
+      pe.appendChild(div);
+    }
+
     // ── Presets ──
     const pr = document.createElement('div');
     pr.innerHTML = `
       <h2>Presets</h2>
-      <div class="preset-note">Everything auto-saves and restores on reload. Presets snapshot both caps.</div>
+      <div class="preset-note">Everything auto-saves and restores on reload. Presets snapshot the whole setup.</div>
       <div class="preset-row">
         <select id="presetSel"><option value="">— load a preset —</option></select>
         <button class="act" id="delPreset" title="Delete selected preset">Del</button>
@@ -591,6 +644,7 @@
     foot.querySelector('#resetBtn').addEventListener('click', () => {
       GP.setDripConfig(currentCap, DEFAULTS[currentCap]);
       macros[currentCap] = Object.assign({}, MACRO_DEFAULTS[currentCap]);
+      GP.setPaintSoftness(currentCap, DEFAULT_PAINT_SOFTNESS[currentCap]);
       buildSidebar();
       saveAuto();
     });
@@ -665,33 +719,49 @@
   // Each pattern is a list of strokes (polyline in stage fractions) played at
   // a real px/sec pen speed so the engine's speed-dependent behaviour is
   // exercised the same way a human hand would.
+
+  // Catmull-Rom spline through waypoints, densely resampled — gives a genuine
+  // curve (no straight facets) while reusing the same "polyline of many tiny
+  // segments" traveler every other pattern already uses.
+  function catmullRomPoint(p0, p1, p2, p3, t) {
+    const t2 = t * t, t3 = t2 * t;
+    const b0 = -0.5*t3 + t2 - 0.5*t;
+    const b1 =  1.5*t3 - 2.5*t2 + 1;
+    const b2 = -1.5*t3 + 2*t2 + 0.5*t;
+    const b3 =  0.5*t3 - 0.5*t2;
+    return [
+      p0[0]*b0 + p1[0]*b1 + p2[0]*b2 + p3[0]*b3,
+      p0[1]*b0 + p1[1]*b1 + p2[1]*b2 + p3[1]*b3,
+    ];
+  }
+  function sampleCatmullRom(waypoints, samplesPerSeg) {
+    const pts = [waypoints[0], ...waypoints, waypoints[waypoints.length - 1]];
+    const out = [];
+    for (let i = 0; i < pts.length - 3; i++) {
+      for (let s = 0; s < samplesPerSeg; s++) {
+        out.push(catmullRomPoint(pts[i], pts[i+1], pts[i+2], pts[i+3], s / samplesPerSeg));
+      }
+    }
+    out.push(waypoints[waypoints.length - 1]);
+    return out;
+  }
+
   const PATTERNS = {
-    n: {
-      label: 'N-test — ONE continuous stroke, hand slows into/out of corners; drips should favor the corners',
-      speed: 520,
-      strokes: [
-        // Up the left leg, diagonal down, up the right leg — a one-liner N.
-        [[0.38, 0.72], [0.38, 0.30], [0.58, 0.72], [0.58, 0.30]],
-      ],
-      // Real hands decelerate at direction changes: speed drops to `floor`×
-      // at each vertex, recovering over `radiusFrac` of stage height.
-      cornerSlowdown: { radiusFrac: 0.09, floor: 0.2 },
-    },
     vari: {
-      label: 'Vari line — fast → crawl → fast; with SLOW-DRIP BOOST the middle should drip, the ends stay clean',
-      speed: 1800,
-      speedAt: (t) => 80 + 1720 * Math.pow(Math.abs(t - 0.5) * 2, 1.6),
+      label: 'Vari line — new randomized fast→crawl→fast speed profile every run; with SLOW-DRIP BOOST the crawl zone should drip, the rest stays clean',
       strokes: [[[0.25, 0.5], [0.75, 0.5]]],
-    },
-    slow: {
-      label: 'Slow line — 70 px/sec; mop with speed-dependence should drip heavily',
-      speed: 70,
-      strokes: [[[0.30, 0.45], [0.70, 0.45]]],
-    },
-    fast: {
-      label: 'Fast line — 2200 px/sec; should barely drip',
-      speed: 2200,
-      strokes: [[[0.30, 0.60], [0.70, 0.60]]],
+      // genSpeedAt is called fresh on every click so the crawl point,
+      // how slow/fast it gets, and the transition steepness all vary —
+      // exercises speed-dependent dripping at a different spot each time
+      // instead of always the exact same fixed midpoint dip.
+      genSpeedAt: () => {
+        const tMin = 0.28 + Math.random() * 0.44;    // crawl point, not always dead-center
+        const minSpeed = 40 + Math.random() * 140;    // 40–180 px/s at the crawl
+        const maxSpeed = 1100 + Math.random() * 1300; // 1100–2400 px/s at the fast ends
+        const exponent = 1.2 + Math.random() * 1.4;   // transition steepness
+        const norm = Math.max(tMin, 1 - tMin) || 1;
+        return (t) => minSpeed + (maxSpeed - minSpeed) * Math.pow(Math.abs(t - tMin) / norm, exponent);
+      },
     },
     pool: {
       label: 'Pool — pen circles one spot; saturates the wetness cell',
@@ -706,15 +776,36 @@
       })()],
     },
     scribble: {
-      label: 'Scribble — zigzag with self-crossings at mixed speed',
-      speed: 600,
-      strokes: [(() => {
-        const pts = [];
-        for (let i = 0; i <= 14; i++) {
-          pts.push([0.28 + i * 0.032, i % 2 ? 0.36 : 0.62]);
+      label: 'Scribble — new randomized curved path + speed every run; self-crossings expected',
+      // genStrokes/genSpeedAt are called fresh on every click (unlike the
+      // other patterns' fixed strokes/speed) so no two runs are alike.
+      genStrokes: () => {
+        // 6-8 random waypoints in a compact box, through a Catmull-Rom
+        // spline — a small box relative to point spread reliably produces
+        // loopy, self-crossing curves, never straight segments.
+        const n = 6 + Math.floor(Math.random() * 3);
+        const waypoints = [];
+        for (let i = 0; i < n; i++) {
+          waypoints.push([0.24 + Math.random() * 0.52, 0.28 + Math.random() * 0.44]);
         }
-        return pts;
-      })()],
+        return [sampleCatmullRom(waypoints, 24)];
+      },
+      genSpeedAt: () => {
+        // Smoothly varying (continuous in path-progress t) but randomized
+        // per run: a few summed sine terms with random amp/freq/phase, so
+        // fast/slow zones land in different places on the curve every time.
+        const base = 220 + Math.random() * 280;
+        const terms = Array.from({ length: 3 }, () => ({
+          amp: 120 + Math.random() * 480,
+          freq: 0.5 + Math.random() * 3.5,
+          phase: Math.random() * Math.PI * 2,
+        }));
+        return (t) => {
+          let v = base;
+          for (const term of terms) v += term.amp * Math.sin(2 * Math.PI * term.freq * t + term.phase);
+          return Math.max(50, Math.min(2000, v));
+        };
+      },
     },
   };
 
@@ -726,38 +817,28 @@
     if (patternRunning) return;
     const pat = PATTERNS[name];
     const r = paintCanvas.getBoundingClientRect();
-    const strokes = pat.strokes.map(s => s.map(([fx, fy]) => [fx * r.width, fy * r.height]));
+    // genStrokes/genSpeedAt (scribble) regenerate a fresh random path + speed
+    // profile every run; other patterns keep their fixed strokes/speedAt.
+    const rawStrokes = pat.genStrokes ? pat.genStrokes() : pat.strokes;
+    const speedAt = pat.genSpeedAt ? pat.genSpeedAt() : pat.speedAt;
+    const strokes = rawStrokes.map(s => s.map(([fx, fy]) => [fx * r.width, fy * r.height]));
     patternRunning = true;
     patternButtons.forEach(b => b.disabled = true);
     patternLabel.innerHTML = `<b>${name}</b> · ${pat.label}`;
 
-    // Total path length (for speedAt's 0–1 progress) + vertex list (for
-    // corner slow-down).
+    // Total path length, for speedAt's 0–1 progress fraction.
     let totalLen = 0;
-    const vertices = [];
     for (const s of strokes) {
-      for (let i = 0; i < s.length; i++) {
-        vertices.push(s[i]);
-        if (i > 0) totalLen += Math.hypot(s[i][0] - s[i-1][0], s[i][1] - s[i-1][1]);
+      for (let i = 1; i < s.length; i++) {
+        totalLen += Math.hypot(s[i][0] - s[i-1][0], s[i][1] - s[i-1][1]);
       }
     }
-    const cornerR = pat.cornerSlowdown ? pat.cornerSlowdown.radiusFrac * r.height : 0;
     let traveled = 0;
 
-    // Pen speed at the current point: base (or speedAt profile), then
-    // eased down near vertices if the pattern wants corner slow-down.
-    function penSpeed(x, y) {
-      let v = pat.speedAt ? pat.speedAt(Math.min(1, traveled / totalLen)) : pat.speed;
-      if (cornerR > 0) {
-        let dmin = Infinity;
-        for (const [vx, vy] of vertices) {
-          const d = Math.hypot(x - vx, y - vy);
-          if (d < dmin) dmin = d;
-        }
-        const f = Math.min(1, dmin / cornerR);
-        v *= pat.cornerSlowdown.floor + (1 - pat.cornerSlowdown.floor) * f;
-      }
-      return v;
+    // Pen speed at the current point of travel (fixed pat.speed, or the
+    // pattern's speedAt(progress) profile).
+    function penSpeed() {
+      return speedAt ? speedAt(Math.min(1, traveled / totalLen)) : pat.speed;
     }
 
     let si = 0, segI = 0, segT = 0; // stroke index, segment index, px progressed in segment
@@ -781,7 +862,7 @@
         return;
       }
 
-      let travel = penSpeed(px, py) * dt / 1000;
+      let travel = penSpeed() * dt / 1000;
       const stroke = strokes[si];
       while (travel > 0) {
         const [ax, ay] = stroke[segI];
@@ -829,13 +910,25 @@
 
   // ── Export config (Unity handoff) ─────────────────────────────────────────
   document.getElementById('exportBtn').addEventListener('click', async () => {
+    // Old autosaves/presets may still carry keys for mechanics that have
+    // since been removed from the engine (they survive setDripConfig's
+    // merge). Strip them so the export only shows params the engine reads.
+    const sprayCfg = GP.getDripConfig('spray');
+    delete sprayCfg.maxRateMultiplier;
     const out = {
-      _about: 'GRFT+ drip system config — tuned in test-drip-system.html. ' +
-        'Model: every brush stamp may spawn a drip. Spray uses a low-res wetness ' +
-        'grid (cell = wetCellPx) and only spawns where accumulated wetness passes ' +
-        'spawnThreshold, with probability spawnRate scaled up to maxRateMultiplier ' +
-        'by saturation. Mop spawns at flat spawnRate per stamp. Either cap may set ' +
-        'speedDependentDrips: spawn probability is then multiplied by ' +
+      _about: 'GRFT+ spray drip system config — tuned in test-drip-system.html. ' +
+        'The full engine-agnostic implementation spec for Unity lives in ' +
+        'UNITY-DRIP-SPEC.md at the repo root; this JSON is the raw resolved ' +
+        'values. Model: every brush stamp may spawn a drip. Spray uses a low-res ' +
+        'wetness grid (cell = wetCellPx) and only spawns where accumulated wetness ' +
+        'passes spawnThreshold, at a FLAT per-stamp probability spawnRate. ' +
+        'A cell\'s wetness decays every second toward zero by ' +
+        'wetnessGridRetainPerSec^dt (paint "dries" — accumulation is short-term, not ' +
+        'session-long), and the moment a cell actually spawns a drip its wetness is ' +
+        'capped at spawnThreshold then multiplied by wetnessReleaseFactor, so the ' +
+        'exact same spot needs real re-wetting before it can drip again (prevents one ' +
+        'dwell/overlap from chain-firing many drips in a row). With ' +
+        'speedDependentDrips, spawn probability is multiplied by ' +
         'clamp(speedRefPxPerMs / penPxPerMs, speedBoostMin, speedBoostMax) — slower ' +
         'pen = higher probability, faster pen = lower, base rate unchanged at the ' +
         'reference speed. ' +
@@ -847,9 +940,9 @@
         'renders as overlapping stamps (spacing = thickness*stampSpacingFrac) and ' +
         'dies when wetness ≤ 0 or it leaves the stage.',
       wetCellPx: WET_CELL,
-      spray: GP.getDripConfig('spray'),
-      mop: GP.getDripConfig('mop'),
-      quickTune: { _about: 'macro slider positions (1.0 = shipped default); the cap configs above already include their effect', spray: macros.spray, mop: macros.mop },
+      spray: sprayCfg,
+      quickTune: { _about: 'macro slider positions (1.0 = shipped default); the spray config above already includes their effect', spray: macros.spray },
+      paintSoftness: { _about: 'edge softness of the main PAINT strokes only — NOT drips, which always render hard-edged. 1 = fully fuzzy/soft, 0 = sharpest allowed (always retains a real feather, never a hard vector edge).', spray: GP.getPaintSoftness('spray') },
       exportedAt: new Date().toISOString(),
     };
     const json = JSON.stringify(out, null, 2);

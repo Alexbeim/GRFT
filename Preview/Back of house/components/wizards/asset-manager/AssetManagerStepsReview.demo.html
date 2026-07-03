@@ -1,0 +1,2488 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Asset Manager — step review</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  html, body { margin: 0; background: #f0eee8; font-family: -apple-system, sans-serif; }
+  #nav { position: sticky; top: 0; z-index: 100; background: #0A0B0C; display: flex; gap: 2px; padding: 10px 20px; overflow-x: auto; }
+  #nav button { flex: none; background: transparent; border: none; color: #9A9A96; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: .04em; padding: 10px 14px; border-radius: 2px; cursor: pointer; white-space: nowrap; }
+  #nav button.active { background: #FEBD17; color: #0A0B0C; font-weight: 700; }
+  #nav button:hover:not(.active) { background: #1c1e21; color: #fff; }
+  #stage { padding: 40px 20px; display: flex; justify-content: center; }
+  .frame { background: #fff; border: 1px solid #E6E3DC; border-radius: 3px; padding: 32px; max-width: 1100px; width: 100%; }
+</style>
+</head>
+<body>
+<div id="nav"></div>
+<div id="stage"><div id="root">Loading…</div></div>
+
+<script type="text/plain" id="src-step1">
+import React, { useState, useRef, useCallback } from "react";
+
+/**
+ * Asset Manager — Step 1: Welcome.
+ * Hero intro, project timeline, "what we'll cover" checklist, and collaborator invites.
+ * Fully standalone: no dependency on the other 7 steps or a surrounding wizard shell.
+ * Drop this in wherever step 1 of the client asset-onboarding flow needs to live.
+ */
+
+const FONT_MONO = "var(--gp-font-mono, 'Space Mono', 'Courier New', monospace)";
+const FONT_BODY = "var(--gp-font-body, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const FONT_DISPLAY = "var(--gp-font-display, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const YELLOW = "#FEBD17";
+const INK = "#0A0B0C";
+const HAIRLINE = "var(--gp-hairline-light, rgba(10,11,12,0.12))";
+const MUTED = "#9A9A96";
+const BODY_TXT = "#33333A";
+
+const DEFAULT_MILESTONES = [
+  { date: "May 20", label: "Briefing", sub: "Kickoff with your GRFT+ producer", state: "done" },
+  { date: "Jun 01", label: "Build your assets", sub: "Logos, colors, cans, overlay — right here", state: "active" },
+  { date: "Jun 06", label: "Final changes deadline", sub: "Locks at 5 PM — no changes after this", state: "deadline" },
+  { date: "Jun 07", label: "Approve & lock", sub: "Assets freeze and flow to production", state: "todo" },
+  { date: "Jun 08–12", label: "Production & QA", sub: "We build and test your wall", state: "todo" },
+  { date: "Jun 14", label: "Event day", sub: "On-site setup and live wall", state: "todo" },
+  { date: "Jun 16", label: "Recap delivery", sub: "Edited photos + 60s recap within 48h", state: "todo" },
+];
+
+const MILESTONE_COLORS = {
+  done: { dot: "#16744B", subColor: "#6B6B70" },
+  active: { dot: "#FEBD17", subColor: "#33333A" },
+  deadline: { dot: "#C7402F", subColor: "#C7402F" },
+  todo: { dot: "#ffffff", subColor: "#6B6B70" },
+};
+
+const COVERAGE_STEPS = [
+  { idx: 2, n: "02", label: "Logo upload", desc: "Drop your logos, we check them" },
+  { idx: 3, n: "03", label: "Colors", desc: "Your exact brand palette" },
+  { idx: 4, n: "04", label: "Spray can label", desc: "Design the cans guests paint with" },
+  { idx: 5, n: "05", label: "Stencils, stickers & backgrounds", desc: "Pick, upload, or generate" },
+  { idx: 6, n: "06", label: "Wall overlay", desc: "Your logo on the live 4K wall" },
+  { idx: 7, n: "07", label: "Test drive", desc: "Try it all before launch" },
+  { idx: 8, n: "08", label: "Approve & lock", desc: "Freeze it and you're set" },
+];
+
+const DEFAULT_COLLABORATORS = [
+  { name: "Dana Whitfield", email: "dana@stanleyparkbrewing.com", role: "Owner", pending: false },
+  { name: "Marketing team", email: "marketing@stanleyparkbrewing.com", role: "Editor", pending: true },
+];
+
+function useToast() {
+  const [toast, setToast] = useState(null);
+  const timerRef = useRef(null);
+  const flash = useCallback((msg) => {
+    setToast(msg);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setToast(null), 1900);
+  }, []);
+  return [toast, flash];
+}
+
+function Toast({ message }) {
+  if (!message) return null;
+  return (
+    <div style={{ position: "fixed", bottom: 32, left: "50%", transform: "translateX(-50%)", zIndex: 50, background: INK, color: "#F4F4F2", borderRadius: 4, padding: "12px 20px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.28)" }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: YELLOW, display: "inline-block", flex: "none" }} />
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.06em", color: "#F4F4F2" }}>{message}</span>
+    </div>
+  );
+}
+
+function AskConey({ onAsk }) {
+  return (
+    <div onClick={onAsk} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: INK, borderRadius: 20, padding: "9px 16px", cursor: "pointer", boxShadow: "0 6px 16px rgba(0,0,0,0.18)" }}>
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: YELLOW, display: "inline-block" }} />
+      <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#F4F4F2" }}>Ask Coney</span>
+    </div>
+  );
+}
+
+function StepFooter({ stepNumber, totalSteps, completed, onToggleComplete, onBack, onNext, nextLabel }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${HAIRLINE}`, marginTop: 32, paddingTop: 20 }}>
+      <span
+        onClick={onBack}
+        style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: onBack ? "#6B6B70" : "#c2bfb6", cursor: onBack ? "pointer" : "default" }}
+      >
+        ← Back
+      </span>
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>
+        Step {String(stepNumber).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span
+          onClick={onToggleComplete}
+          style={{
+            border: `1px solid ${completed ? "#16744B" : INK}`, color: completed ? "#16744B" : INK,
+            borderRadius: 2, padding: "11px 18px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em",
+            textTransform: "uppercase", fontWeight: completed ? 700 : 400, cursor: "pointer",
+          }}
+        >
+          {completed ? "✓ Completed" : "Mark complete"}
+        </span>
+        <span onClick={onNext} style={{ background: YELLOW, color: INK, borderRadius: 2, padding: "12px 22px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer" }}>
+          {nextLabel || "Continue →"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function AssetManagerStep1Welcome({
+  eventLabel = "the Brewery Launch Party",
+  eventDate = "Jun 14, 2026",
+  milestones = DEFAULT_MILESTONES,
+  completedSteps = [],
+  initialCollaborators = DEFAULT_COLLABORATORS,
+  onChange,
+  onInvite,
+  onNavigateToStep,
+  completed = false,
+  onToggleComplete,
+  onBack,
+  onNext,
+  stepNumber = 1,
+  totalSteps = 8,
+  showAssistant = true,
+  onAskConey,
+}) {
+  const [collaborators, setCollaborators] = useState(initialCollaborators);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("Editor");
+  const [toast, flash] = useToast();
+
+  const invite = () => {
+    const trimmed = email.trim();
+    if (!trimmed || !trimmed.includes("@")) {
+      flash("Enter a valid email to invite");
+      return;
+    }
+    const next = [...collaborators, { name: trimmed.split("@")[0], email: trimmed, role, pending: true }];
+    setCollaborators(next);
+    onChange?.(next);
+    onInvite?.(trimmed, role);
+    setEmail("");
+    flash(`Invite sent to ${trimmed}`);
+  };
+
+  const askConey = () => { onAskConey ? onAskConey() : flash("Coney is a demo — no chat yet"); };
+
+  const coverageItems = COVERAGE_STEPS.map((s) => ({ ...s, done: completedSteps.includes(s.idx) }));
+
+  return (
+    <div style={{ fontFamily: FONT_BODY, position: "relative", maxWidth: 760 }}>
+      <div style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#B07A00", marginBottom: 10, display: "flex", alignItems: "center", gap: "0.6em" }}>
+        <span style={{ width: 7, height: 7, borderRadius: "50%", background: YELLOW, display: "inline-block" }} />
+        Step 01 · First time here
+      </div>
+      <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 38, letterSpacing: "-0.02em", color: INK, margin: "0 0 16px", maxWidth: "20ch" }}>
+        Welcome. Let's build your wall.
+      </h2>
+      <p style={{ fontSize: 16, lineHeight: 1.6, color: BODY_TXT, margin: "0 0 14px", maxWidth: "64ch" }}>
+        You're setting up the interactive graffiti wall for {eventLabel}. Everything your guests will paint with — your logo, your colors, your spray cans, your stencils — gets built right here, by you.
+      </p>
+      <p style={{ fontSize: 16, lineHeight: 1.6, color: BODY_TXT, margin: "0 0 26px", maxWidth: "64ch" }}>
+        Every step saves automatically, so you can stop any time and pick up right where you left off. Eight steps, in order. Nothing goes live until you approve it at the end, and you can jump back to any step before then. No design software, no back-and-forth — what you build is what lands on the wall.
+      </p>
+
+      <div style={{ maxWidth: 660, marginBottom: 26 }}>
+        <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED, marginBottom: 6 }}>Project timeline</div>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 14, lineHeight: 1.5, color: "#6B6B70", marginBottom: 18 }}>
+          Set from your event date — <span style={{ color: INK, fontWeight: 600 }}>{eventDate}</span>. Changes lock automatically before the event, so the earlier you build, the more time to refine.
+        </div>
+        {milestones.map((m, i) => {
+          const c = MILESTONE_COLORS[m.state] || MILESTONE_COLORS.todo;
+          return (
+            <div key={i} style={{ display: "flex", gap: 16 }}>
+              <div style={{ width: 84, flex: "none", textAlign: "right", fontFamily: FONT_MONO, fontSize: 12, color: INK, paddingTop: 1 }}>{m.date}</div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: "none", paddingTop: 3 }}>
+                <span style={{ width: 13, height: 13, borderRadius: "50%", background: c.dot, boxShadow: `0 0 0 1px ${c.dot}`, flex: "none" }} />
+                {i < milestones.length - 1 && <span style={{ width: 2, flex: 1, background: HAIRLINE, minHeight: 20 }} />}
+              </div>
+              <div style={{ paddingBottom: 16 }}>
+                <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 15, letterSpacing: "-0.01em", color: INK }}>{m.label}</div>
+                <div style={{ fontFamily: FONT_BODY, fontSize: 13, lineHeight: 1.45, color: c.subColor }}>{m.sub}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED, marginBottom: 12 }}>What we'll cover</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: HAIRLINE, border: `1px solid ${HAIRLINE}`, borderRadius: 2, maxWidth: 660, marginBottom: 26 }}>
+        {coverageItems.map((item) => (
+          <div
+            key={item.idx}
+            onClick={() => onNavigateToStep?.(item.idx)}
+            style={{ background: "#fff", padding: "15px 18px", display: "flex", gap: 14, cursor: onNavigateToStep ? "pointer" : "default", alignItems: "flex-start" }}
+          >
+            {item.done ? (
+              <span style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#16744B", flex: "none", marginTop: 1 }}>✓</span>
+            ) : (
+              <span style={{ fontFamily: FONT_MONO, fontSize: 13, color: "#B07A00", flex: "none" }}>{item.n}</span>
+            )}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 15, color: INK, marginBottom: 3 }}>{item.label}</div>
+              <div style={{ fontFamily: FONT_BODY, fontSize: 13, lineHeight: 1.45, color: "#6B6B70" }}>{item.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ maxWidth: 660, marginBottom: 26 }}>
+        <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED, marginBottom: 6 }}>Invite collaborators</div>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 14, lineHeight: 1.5, color: "#6B6B70", marginBottom: 14 }}>
+          Working with a teammate? Delegate any step — invite them by email and they can build alongside you.
+        </div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") invite(); }}
+            placeholder="name@company.com"
+            style={{ flex: 1, minWidth: 200, height: 42, border: `1px solid ${HAIRLINE}`, borderRadius: 2, background: "#fff", padding: "0 12px", fontFamily: FONT_MONO, fontSize: 13, color: INK }}
+          />
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            style={{ height: 42, border: `1px solid ${HAIRLINE}`, borderRadius: 2, background: "#FAF9F6", padding: "0 13px", fontFamily: FONT_MONO, fontSize: 11, color: INK, cursor: "pointer" }}
+          >
+            <option>Editor</option>
+            <option>Viewer</option>
+          </select>
+          <div onClick={invite} style={{ height: 42, background: INK, color: "#fff", borderRadius: 2, display: "flex", alignItems: "center", padding: "0 20px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer" }}>
+            Invite
+          </div>
+        </div>
+        {collaborators.map((c, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, borderTop: `1px solid ${HAIRLINE}`, padding: "11px 0" }}>
+            <span style={{ width: 30, height: 30, borderRadius: "50%", background: "#ECEAE4", flex: "none" }} />
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ fontFamily: FONT_BODY, fontSize: 14, color: INK, display: "block" }}>{c.name}</span>
+              <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: MUTED }}>{c.email}</span>
+            </span>
+            {c.pending && (
+              <span style={{ fontFamily: FONT_MONO, fontSize: 9, letterSpacing: "0.06em", textTransform: "uppercase", color: "#B07A00", background: "#FEF1CE", borderRadius: 2, padding: "4px 8px" }}>Pending</span>
+            )}
+            <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#6B6B70" }}>{c.role}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 14, maxWidth: 660, background: "#FAF9F6", border: `1px solid ${HAIRLINE}`, borderRadius: 2, padding: "14px 16px" }}>
+        <span style={{ width: 42, height: 42, borderRadius: "50%", background: INK, flex: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: YELLOW }} />
+        </span>
+        <span style={{ fontFamily: FONT_BODY, fontSize: 14, lineHeight: 1.5, color: BODY_TXT }}>
+          Stuck on anything, ask Coney in the corner. Hit <span style={{ fontWeight: 700 }}>Continue</span> when you're ready.
+        </span>
+      </div>
+
+      {showAssistant && (
+        <div style={{ position: "fixed", right: 24, bottom: 90, zIndex: 5 }}>
+          <AskConey onAsk={askConey} />
+        </div>
+      )}
+
+      <StepFooter
+        stepNumber={stepNumber}
+        totalSteps={totalSteps}
+        completed={completed}
+        onToggleComplete={onToggleComplete}
+        onBack={onBack}
+        onNext={onNext}
+      />
+      <Toast message={toast} />
+    </div>
+  );
+}
+
+export default AssetManagerStep1Welcome;
+
+</script>
+<script type="text/plain" id="src-step2">
+import React, { useState, useRef, useCallback } from "react";
+
+/**
+ * Asset Manager — Step 2: Logo upload.
+ * Drag/drop or browse upload with real per-file analysis: a large preview on a
+ * transparency checkerboard (so a flattened/opaque export is obvious at a glance),
+ * format + transparency validation, minimum pixel-resolution checks for raster
+ * files, and heuristics that flag documents/brand books instead of a usable logo.
+ * Fully standalone — own local state, no wizard shell dependency.
+ *
+ * AI / EPS / PDF preview: browsers can't rasterize these formats natively, and
+ * they're too unreliable to fake client-side (legacy .eps isn't PDF-based at all;
+ * even PDF-compatible .ai varies by export settings). Pass `getServerPreview` to
+ * generate a real thumbnail server-side (e.g. Ghostscript) at upload time — this
+ * component stays zero-dependency either way; the prop is purely optional.
+ *
+ * Deleting a logo asks for confirmation (these may already be persisted server-side),
+ * then awaits `onDelete` (if provided) before removing it from the list — so a failed
+ * backend delete leaves the card in place instead of vanishing optimistically.
+ *
+ * Every entry passed to `onChange`/`onDelete` includes `.file` — the raw browser File
+ * object for newly-uploaded logos — so the host can actually upload it to storage.
+ * Not JSON-serializable; don't put it straight into a naive state snapshot.
+ */
+
+const FONT_MONO = "var(--gp-font-mono, 'Space Mono', 'Courier New', monospace)";
+const FONT_BODY = "var(--gp-font-body, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const FONT_DISPLAY = "var(--gp-font-display, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const YELLOW = "#FEBD17";
+const INK = "#0A0B0C";
+const HAIRLINE = "var(--gp-hairline-light, rgba(10,11,12,0.12))";
+const MUTED = "#9A9A96";
+
+// Classic Photoshop-style transparency checkerboard — makes a flattened/opaque
+// export obvious immediately, without needing to read a badge.
+const CHECKERBOARD = {
+  backgroundColor: "#fff",
+  backgroundImage:
+    "linear-gradient(45deg, #e2dfd8 25%, transparent 25%), linear-gradient(-45deg, #e2dfd8 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2dfd8 75%), linear-gradient(-45deg, transparent 75%, #e2dfd8 75%)",
+  backgroundSize: "20px 20px",
+  backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px",
+};
+
+const RASTER_TRANSPARENT = ["png", "gif", "webp"];
+const RASTER_OPAQUE_ONLY = ["jpg", "jpeg", "bmp", "tif", "tiff"];
+const VECTOR_EXT = ["svg", "eps", "ai"];
+const NO_NATIVE_PREVIEW_EXT = ["eps", "ai", "pdf"]; // browsers can't rasterize these — see getServerPreview
+const AMBIGUOUS_DOC = ["pdf"];
+const NOT_USABLE = ["doc", "docx", "ppt", "pptx", "key", "indd", "psd", "txt", "zip", "rar", "xls", "xlsx", "csv", "mp4", "mov", "numbers", "pages"];
+const SUSPICIOUS_NAME_RE = /guideline|brand.?book|style.?guide|identity.?(guide|book|manual)|\bmanual\b/i;
+
+// A sample transparent-PNG-style logo, inlined as a data URL so the two seed
+// rows below preview correctly without requiring a real upload.
+const SAMPLE_SVG_DATA_URL =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="72" fill="#0A0B0C"/><circle cx="100" cy="78" r="24" fill="#FEBD17"/></svg>');
+
+const DEFAULT_FILES = [
+  {
+    id: "seed-1", name: "brewing-primary.svg", ext: "svg", sizeLabel: "1.2 MB", kind: "vector",
+    previewUrl: SAMPLE_SVG_DATA_URL, previewKind: "image", dimsLabel: null, status: "done",
+    badges: [{ level: "ok", text: "Vector · scales to any size" }, { level: "ok", text: "Format supports transparency" }, { level: "ok", text: "Fonts outlined" }],
+  },
+  {
+    id: "seed-2", name: "brewing-mark.eps", ext: "eps", sizeLabel: "3.4 MB", kind: "vector",
+    previewUrl: null, previewKind: "none", dimsLabel: null, status: "done",
+    badges: [{ level: "ok", text: "Vector · scales to any size" }, { level: "ok", text: "Print-ready · CMYK spot" }],
+  },
+];
+
+function extOf(name) { return (name.split(".").pop() || "").toLowerCase(); }
+
+function fmtBytes(n) {
+  if (n < 1024) return n + " B";
+  if (n < 1024 * 1024) return (n / 1024).toFixed(0) + " KB";
+  return (n / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+// Sample a downscaled copy of the image and look for any non-opaque pixel —
+// distinguishes a real transparent export from a PNG that just happens to be
+// in a format that supports transparency but was flattened on export.
+function checkHasTransparency(img) {
+  try {
+    const N = 48;
+    const cv = document.createElement("canvas");
+    cv.width = N; cv.height = N;
+    const ctx = cv.getContext("2d");
+    ctx.clearRect(0, 0, N, N);
+    ctx.drawImage(img, 0, 0, N, N);
+    const data = ctx.getImageData(0, 0, N, N).data;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] < 250) return true;
+    }
+    return false;
+  } catch (e) {
+    return null; // canvas read blocked — inconclusive, don't warn
+  }
+}
+
+async function analyzeFile(file, { maxSizeMb, minLongEdgePx }) {
+  const ext = extOf(file.name);
+  const sizeLabel = fmtBytes(file.size);
+  const badges = [];
+  let previewUrl = null, previewKind = "none", kind = "unknown", dimsLabel = null;
+
+  if (SUSPICIOUS_NAME_RE.test(file.name)) {
+    badges.push({ level: "warn", text: "Filename suggests this might be a brand guideline or manual, not a logo — double-check before continuing" });
+  }
+  if (file.size > maxSizeMb * 1024 * 1024) {
+    badges.push({ level: "error", text: `Over the ${maxSizeMb} MB limit` });
+  }
+
+  if (NOT_USABLE.includes(ext)) {
+    badges.push({ level: "error", text: "Not a usable logo format — documents, slides, or raw design files can't go straight on the wall. Export just the logo as SVG, EPS, AI, or PNG." });
+    return { ext, sizeLabel, kind: "document", previewUrl, previewKind, dimsLabel, badges };
+  }
+
+  if (AMBIGUOUS_DOC.includes(ext)) {
+    badges.push({ level: "warn", text: "PDF detected — make sure this is just the logo, not a full brand guideline. Multi-page PDFs can't be used as-is." });
+    return { ext, sizeLabel, kind: "ambiguous", previewUrl, previewKind, dimsLabel, badges, needsServerPreview: NO_NATIVE_PREVIEW_EXT.includes(ext) };
+  }
+
+  if (VECTOR_EXT.includes(ext)) {
+    kind = "vector";
+    badges.push({ level: "ok", text: "Vector · scales to any size" });
+    badges.push({ level: "ok", text: "Format supports transparency" });
+    if (ext === "svg") {
+      previewUrl = URL.createObjectURL(file);
+      previewKind = "image";
+      try {
+        const text = await file.text();
+        if (/<image[\s>]/i.test(text)) {
+          badges.push({ level: "warn", text: "Contains embedded raster — re-export as pure vector paths for best quality" });
+        }
+      } catch (e) {}
+    }
+    return { ext, sizeLabel, kind, previewUrl, previewKind, dimsLabel, badges, needsServerPreview: NO_NATIVE_PREVIEW_EXT.includes(ext) };
+  }
+
+  // Raster
+  kind = "raster";
+  if (RASTER_OPAQUE_ONLY.includes(ext)) {
+    badges.push({ level: "error", text: "This format can't be transparent — export as PNG or SVG with a transparent background" });
+  } else if (RASTER_TRANSPARENT.includes(ext)) {
+    badges.push({ level: "ok", text: "Format supports transparency" });
+  } else {
+    badges.push({ level: "warn", text: "Unrecognized image format — double-check this is the right asset" });
+  }
+
+  previewUrl = URL.createObjectURL(file);
+  previewKind = "image";
+
+  const dims = await new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight, el: img });
+    img.onerror = () => resolve(null);
+    img.src = previewUrl;
+  });
+
+  if (dims) {
+    const longEdge = Math.max(dims.w, dims.h);
+    dimsLabel = `${dims.w} × ${dims.h} px`;
+    if (longEdge < minLongEdgePx) {
+      badges.push({ level: "error", text: `Only ${dimsLabel} — needs at least ${minLongEdgePx}px on the long edge` });
+    } else {
+      badges.push({ level: "ok", text: dimsLabel });
+    }
+    if (RASTER_TRANSPARENT.includes(ext)) {
+      const hasAlpha = checkHasTransparency(dims.el);
+      if (hasAlpha === false) {
+        badges.push({ level: "warn", text: "No transparent pixels found — looks like a flattened/opaque export" });
+      }
+    }
+  } else {
+    badges.push({ level: "warn", text: "Couldn't read image dimensions" });
+  }
+
+  return { ext, sizeLabel, kind, previewUrl, previewKind, dimsLabel, badges };
+}
+
+function useToast() {
+  const [toast, setToast] = useState(null);
+  const timerRef = useRef(null);
+  const flash = useCallback((msg) => {
+    setToast(msg);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setToast(null), 1900);
+  }, []);
+  return [toast, flash];
+}
+
+function Toast({ message }) {
+  if (!message) return null;
+  return (
+    <div style={{ position: "fixed", bottom: 32, left: "50%", transform: "translateX(-50%)", zIndex: 50, background: INK, color: "#F4F4F2", borderRadius: 4, padding: "12px 20px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.28)" }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: YELLOW, display: "inline-block", flex: "none" }} />
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.06em", color: "#F4F4F2" }}>{message}</span>
+    </div>
+  );
+}
+
+const BADGE_COLORS = {
+  ok: { bg: "#E3F1EA", fg: "#16744B", icon: "✓" },
+  warn: { bg: "#FEF1CE", fg: "#B07A00", icon: "⚠" },
+  error: { bg: "#FBEAE7", fg: "#C7402F", icon: "✕" },
+};
+
+function Badge({ level, text }) {
+  const c = BADGE_COLORS[level] || BADGE_COLORS.ok;
+  return (
+    <span style={{ display: "flex", alignItems: "flex-start", gap: 6, fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.02em", color: c.fg, background: c.bg, borderRadius: 2, padding: "6px 8px", lineHeight: 1.4 }}>
+      <span style={{ flex: "none" }}>{c.icon}</span>
+      <span>{text}</span>
+    </span>
+  );
+}
+
+function FileCard({ file, confirming, onRequestRemove, onCancelRemove, onConfirmRemove }) {
+  const checking = file.status === "checking";
+  const deleting = file.status === "deleting";
+  const pending = file.previewKind === "pending";
+  const showImage = !checking && !pending && file.previewKind === "image";
+  return (
+    <div style={{ border: `1px solid ${HAIRLINE}`, borderRadius: 3, overflow: "hidden", background: "#fff", opacity: deleting ? 0.55 : 1 }}>
+      <div style={{ position: "relative", height: 180, ...CHECKERBOARD, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {showImage ? (
+          <img src={file.previewUrl} alt={file.name} style={{ maxWidth: "86%", maxHeight: "86%", objectFit: "contain" }} />
+        ) : (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontFamily: FONT_MONO, fontSize: 16, fontWeight: 700, color: "#6B6B70", letterSpacing: "0.04em" }}>
+              {checking || pending ? "…" : `.${file.ext || "?"}`}
+            </div>
+            <div style={{ fontFamily: FONT_MONO, fontSize: 9, color: MUTED, marginTop: 4, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+              {checking ? "Checking" : pending ? "Generating preview" : "No in-browser preview"}
+            </div>
+          </div>
+        )}
+        {!deleting && !confirming && (
+          <span onClick={onRequestRemove} style={{ position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,0.92)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT_MONO, fontSize: 14, color: "#6B6B70", cursor: "pointer" }}>×</span>
+        )}
+        {confirming && (
+          <div style={{ position: "absolute", inset: 0, background: "rgba(10,11,12,0.86)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 16, textAlign: "center" }}>
+            <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: "#F4F4F2", lineHeight: 1.5 }}>Remove this logo?</span>
+            <div style={{ display: "flex", gap: 8 }}>
+              <span onClick={onCancelRemove} style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#F4F4F2", border: "1px solid rgba(244,244,242,0.4)", borderRadius: 2, padding: "8px 14px", cursor: "pointer" }}>Cancel</span>
+              <span onClick={onConfirmRemove} style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#fff", background: "#C7402F", borderRadius: 2, padding: "8px 14px", fontWeight: 700, cursor: "pointer" }}>Delete</span>
+            </div>
+          </div>
+        )}
+        {deleting && (
+          <div style={{ position: "absolute", inset: 0, background: "rgba(10,11,12,0.86)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "#F4F4F2" }}>Removing…</span>
+          </div>
+        )}
+      </div>
+      <div style={{ padding: "12px 14px" }}>
+        <div style={{ fontFamily: FONT_MONO, fontSize: 12, color: INK, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={file.name}>{file.name}</div>
+        <div style={{ fontFamily: FONT_MONO, fontSize: 10, color: MUTED, marginBottom: 9 }}>{(file.ext || "").toUpperCase()} · {file.sizeLabel}</div>
+        {checking ? (
+          <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: MUTED }}>Checking format, transparency, and resolution…</span>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            {file.badges.map((b, i) => <Badge key={i} level={b.level} text={b.text} />)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StepFooter({ stepNumber, totalSteps, completed, onToggleComplete, onBack, onNext, nextLabel }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${HAIRLINE}`, marginTop: 32, paddingTop: 20 }}>
+      <span onClick={onBack} style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: onBack ? "#6B6B70" : "#c2bfb6", cursor: onBack ? "pointer" : "default" }}>← Back</span>
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>
+        Step {String(stepNumber).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span onClick={onToggleComplete} style={{ border: `1px solid ${completed ? "#16744B" : INK}`, color: completed ? "#16744B" : INK, borderRadius: 2, padding: "11px 18px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: completed ? 700 : 400, cursor: "pointer" }}>
+          {completed ? "✓ Completed" : "Mark complete"}
+        </span>
+        <span onClick={onNext} style={{ background: YELLOW, color: INK, borderRadius: 2, padding: "12px 22px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer" }}>
+          {nextLabel || "Continue →"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function AssetManagerStep2LogoUpload({
+  initialFiles = DEFAULT_FILES,
+  onChange,
+  onDelete,
+  maxSizeMb = 20,
+  minLongEdgePx = 2000,
+  getServerPreview,
+  completed = false,
+  onToggleComplete,
+  onBack,
+  onNext,
+  stepNumber = 2,
+  totalSteps = 8,
+}) {
+  const [files, setFiles] = useState(initialFiles);
+  const [dragOver, setDragOver] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const inputRef = useRef(null);
+  const [toast, flash] = useToast();
+
+  const addFiles = async (fileList) => {
+    const incoming = Array.from(fileList || []);
+    if (!incoming.length) return;
+
+    const pending = incoming.map((f) => ({
+      id: `${f.name}-${f.size}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name: f.name,
+      ext: extOf(f.name),
+      sizeLabel: fmtBytes(f.size),
+      status: "checking",
+      badges: [],
+      previewUrl: null,
+      previewKind: "none",
+      file: f, // the raw browser File — the host uploads this to storage; not JSON-serializable
+    }));
+    setFiles((prev) => [...prev, ...pending]);
+    flash(`Checking ${pending.length} file${pending.length === 1 ? "" : "s"}…`);
+
+    for (const p of pending) {
+      const result = await analyzeFile(p.file, { maxSizeMb, minLongEdgePx });
+      setFiles((prev) => {
+        const next = prev.map((f) => (f.id === p.id ? { ...f, ...result, status: "done" } : f));
+        onChange?.(next);
+        return next;
+      });
+
+      if (result.needsServerPreview && getServerPreview) {
+        setFiles((prev) => prev.map((f) => (f.id === p.id ? { ...f, previewKind: "pending" } : f)));
+        try {
+          const url = await getServerPreview(p.file, { ext: result.ext, name: p.name });
+          setFiles((prev) => {
+            const next = prev.map((f) => (f.id === p.id ? { ...f, previewUrl: url || null, previewKind: url ? "image" : "none" } : f));
+            onChange?.(next);
+            return next;
+          });
+        } catch (e) {
+          setFiles((prev) => prev.map((f) => (f.id === p.id ? { ...f, previewKind: "none" } : f)));
+        }
+      }
+    }
+  };
+
+  const requestRemove = (id) => setConfirmDeleteId(id);
+  const cancelRemove = () => setConfirmDeleteId(null);
+
+  const confirmRemove = async (id) => {
+    setConfirmDeleteId(null);
+    const target = files.find((f) => f.id === id);
+    if (!target) return;
+
+    if (onDelete) {
+      setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, status: "deleting" } : f)));
+      try {
+        await onDelete(target);
+      } catch (e) {
+        setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, status: "done" } : f)));
+        flash("Couldn't remove that logo — try again");
+        return;
+      }
+    }
+
+    setFiles((prev) => {
+      const removed = prev.find((f) => f.id === id);
+      if (removed?.previewUrl && removed.previewUrl.startsWith("blob:")) URL.revokeObjectURL(removed.previewUrl);
+      const next = prev.filter((f) => f.id !== id);
+      onChange?.(next);
+      return next;
+    });
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    addFiles(e.dataTransfer.files);
+  };
+
+  return (
+    <div style={{ fontFamily: FONT_BODY, maxWidth: 900 }}>
+      <div style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#B07A00", marginBottom: 8 }}>Step 02</div>
+      <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 30, letterSpacing: "-0.01em", color: INK, margin: "0 0 6px" }}>Logo upload</h2>
+      <p style={{ fontSize: 14, lineHeight: 1.5, color: "#6B6B70", margin: "0 0 24px", maxWidth: "62ch" }}>
+        Upload one or more logos. We check format, transparency, and resolution automatically, and flag anything that looks like a document or brand guideline instead of a usable logo. Remove anything added by mistake.
+      </p>
+
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+        onClick={() => inputRef.current?.click()}
+        style={{
+          border: `2px dashed ${dragOver ? INK : "#c2bfb6"}`, borderRadius: 3, background: dragOver ? "#F0EEE8" : "#FAF9F6",
+          padding: 40, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, marginBottom: 24, cursor: "pointer",
+        }}
+      >
+        <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#ECEAE4", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, color: MUTED }}>↑</div>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 15, color: "#33333A" }}>
+          Drop logos here, or <span style={{ color: "#B07A00", borderBottom: `2px solid ${YELLOW}` }}>browse</span>
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: MUTED }}>PNG · SVG · AI · EPS</span>
+          <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: INK, background: YELLOW, borderRadius: 2, padding: "3px 8px" }}>Vector preferred</span>
+        </div>
+        <input ref={inputRef} type="file" multiple accept=".png,.svg,.ai,.eps,.gif,.webp,image/*" onChange={(e) => addFiles(e.target.files)} style={{ display: "none" }} />
+      </div>
+
+      <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED, marginBottom: 10 }}>Upload requirements</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: HAIRLINE, border: `1px solid ${HAIRLINE}`, borderRadius: 2, marginBottom: 28 }}>
+        <div style={{ background: "#fff", padding: "13px 15px" }}>
+          <div style={{ fontFamily: FONT_MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: MUTED, marginBottom: 5 }}>Resolution</div>
+          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK }}>Min {minLongEdgePx.toLocaleString()} px on the long edge (raster only — vectors scale infinitely)</div>
+        </div>
+        <div style={{ background: "#fff", padding: "13px 15px" }}>
+          <div style={{ fontFamily: FONT_MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: MUTED, marginBottom: 5 }}>Transparency</div>
+          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK }}>PNG, SVG, EPS, or AI — not JPG</div>
+        </div>
+        <div style={{ background: "#fff", padding: "13px 15px" }}>
+          <div style={{ fontFamily: FONT_MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: MUTED, marginBottom: 5 }}>Format &amp; size</div>
+          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK }}>SVG / EPS / AI or PNG · ≤ {maxSizeMb} MB · logo only, not a brand book</div>
+        </div>
+      </div>
+
+      <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED, marginBottom: 12 }}>{files.length} uploaded</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 16 }}>
+        {files.map((f) => (
+          <FileCard
+            key={f.id}
+            file={f}
+            confirming={confirmDeleteId === f.id}
+            onRequestRemove={() => requestRemove(f.id)}
+            onCancelRemove={cancelRemove}
+            onConfirmRemove={() => confirmRemove(f.id)}
+          />
+        ))}
+      </div>
+
+      <StepFooter stepNumber={stepNumber} totalSteps={totalSteps} completed={completed} onToggleComplete={onToggleComplete} onBack={onBack} onNext={onNext} />
+      <Toast message={toast} />
+    </div>
+  );
+}
+
+export default AssetManagerStep2LogoUpload;
+
+</script>
+<script type="text/plain" id="src-step3">
+import React, { useState, useRef, useCallback, useMemo } from "react";
+
+/**
+ * Asset Manager — Step 3: Color management.
+ * Two organized GRFT+ wall palettes (Default / Pastel), each the same 8 hue-family
+ * pairs × 5 shades (light ramp + dark ramp per family) — both shown at once, side by
+ * side, so the client picks ONE WHOLE PALETTE (not individual colors) with a single
+ * click. No tabs: both options are always visible for direct comparison.
+ *
+ * Colors entered manually (HEX/RGB/CMYK/Pantone) or pulled from an uploaded image are
+ * kept in a standalone "Your colors" section — never merged into or rendered on top of
+ * either palette card, since the client may want only their own colors with no starter
+ * palette at all. Each is individually removable. The 80 base swatches per card are a
+ * preview, not a picker — there's no one-by-one color selection.
+ * Fully standalone — own local state, no wizard shell dependency.
+ */
+
+const FONT_MONO = "var(--gp-font-mono, 'Space Mono', 'Courier New', monospace)";
+const FONT_BODY = "var(--gp-font-body, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const FONT_DISPLAY = "var(--gp-font-display, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const YELLOW = "#FEBD17";
+const INK = "#0A0B0C";
+const HAIRLINE = "var(--gp-hairline-light, rgba(10,11,12,0.12))";
+const MUTED = "#9A9A96";
+
+// Each pair = one hue neighborhood split into a light ramp (pale → vivid mid-tone)
+// and a dark ramp (vivid → near-black), so no single row has to span 10 steps.
+const FAMILY_PAIRS = [
+  { light: { name: "Gray", hue: 213, neutral: true }, dark: { name: "Navy", hue: 213 } },
+  { light: { name: "Pink", hue: 340 }, dark: { name: "Red", hue: 355 } },
+  { light: { name: "Yellow", hue: 42 }, dark: { name: "Brown", hue: 26 } },
+  { light: { name: "Lime", hue: 85 }, dark: { name: "Green", hue: 132 } },
+  { light: { name: "Mint", hue: 160 }, dark: { name: "Teal", hue: 186 } },
+  { light: { name: "Sky", hue: 200 }, dark: { name: "Blue", hue: 215 } },
+  { light: { name: "Lavender", hue: 256 }, dark: { name: "Violet", hue: 268 } },
+  { light: { name: "Orchid", hue: 300 }, dark: { name: "Magenta", hue: 316 } },
+];
+
+// Saturation/lightness curves per shade position (0–100), shared shape across variants
+// so Default/Pastel stay organized the same way — only the mood changes.
+const VARIANT_CURVES = {
+  default: {
+    label: "Default",
+    light: { s: [14, 30, 48, 64, 78], l: [95, 88, 79, 68, 57] },
+    dark: { s: [70, 66, 60, 54, 46], l: [46, 36, 26, 17, 9] },
+    neutralSatCap: 8,
+  },
+  pastel: {
+    label: "Pastel",
+    light: { s: [10, 18, 26, 34, 42], l: [97, 93, 88, 83, 78] },
+    dark: { s: [26, 28, 30, 30, 28], l: [70, 61, 52, 44, 36] },
+    neutralSatCap: 5,
+  },
+};
+const VARIANT_KEYS = ["default", "pastel"];
+
+function hsl2hex(h, s, l) {
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) => {
+    const k = (n + h / 30) % 12;
+    const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(255 * c).toString(16).padStart(2, "0");
+  };
+  return "#" + f(0) + f(8) + f(4);
+}
+
+function hx(n) { return Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0"); }
+
+const PANTONE_MAP = {
+  "185 C": "#E4002B", "186 C": "#C8102E", "286 C": "#0033A0", "021 C": "#FE5000", "021": "#FE5000",
+  "123 C": "#FFC72C", "347 C": "#009A44", "2685 C": "#3A0CA3", "COOL GRAY 11 C": "#53565A",
+  "COOL GRAY 11": "#53565A", "BLACK 6 C": "#101820", "426 C": "#25282A", "WARM RED C": "#F9423A",
+};
+
+function convertToHex(fmt, raw) {
+  const v = (raw || "").trim();
+  if (fmt === "hex") {
+    const m = v.replace(/^#/, "");
+    if (/^[0-9a-fA-F]{6}$/.test(m)) return "#" + m.toUpperCase();
+    if (/^[0-9a-fA-F]{3}$/.test(m)) return "#" + m.split("").map((c) => c + c).join("").toUpperCase();
+    return null;
+  }
+  if (fmt === "rgb") {
+    const p = v.split(/[ ,]+/).filter(Boolean).map(Number);
+    if (p.length === 3 && p.every((n) => n >= 0 && n <= 255)) return ("#" + hx(p[0]) + hx(p[1]) + hx(p[2])).toUpperCase();
+    return null;
+  }
+  if (fmt === "cmyk") {
+    const p = v.split(/[ ,%]+/).filter(Boolean).map(Number);
+    if (p.length === 4 && p.every((n) => n >= 0 && n <= 100)) {
+      const [c, m, y, k] = p.map((n) => n / 100);
+      const r = 255 * (1 - c) * (1 - k), g = 255 * (1 - m) * (1 - k), b = 255 * (1 - y) * (1 - k);
+      return ("#" + hx(r) + hx(g) + hx(b)).toUpperCase();
+    }
+    return null;
+  }
+  if (fmt === "pantone") {
+    const key = v.toUpperCase().replace(/\s+/g, " ");
+    return PANTONE_MAP[key] || null;
+  }
+  return null;
+}
+
+const CONV_PLACEHOLDER = { hex: "#C7402F", pantone: "185 C" };
+
+function rgbToHex(r, g, b) { return ("#" + hx(r) + hx(g) + hx(b)).toUpperCase(); }
+function cmykToHex(c, m, y, k) {
+  const cc = c / 100, mm = m / 100, yy = y / 100, kk = k / 100;
+  const r = 255 * (1 - cc) * (1 - kk), g = 255 * (1 - mm) * (1 - kk), b = 255 * (1 - yy) * (1 - kk);
+  return rgbToHex(r, g, b);
+}
+function hexToRgb(hexVal) {
+  const m = (hexVal || "").replace(/^#/, "");
+  if (!/^[0-9a-fA-F]{6}$/.test(m)) return null;
+  return { r: parseInt(m.slice(0, 2), 16), g: parseInt(m.slice(2, 4), 16), b: parseInt(m.slice(4, 6), 16) };
+}
+
+function buildRow(hue, curve, neutral, neutralSatCap) {
+  return curve.s.map((sVal, i) => {
+    const s = neutral ? Math.min(sVal, neutralSatCap) : sVal;
+    return hsl2hex(hue, s / 100, curve.l[i] / 100).toUpperCase();
+  });
+}
+
+// Flat, ordered list of {hex, family} — grid renders 5-per-row, so family rows read
+// exactly like the reference sheets (one hue neighborhood per pair of rows).
+function buildPalette(variantKey) {
+  const curves = VARIANT_CURVES[variantKey] || VARIANT_CURVES.default;
+  const swatches = [];
+  for (const pair of FAMILY_PAIRS) {
+    for (const [def, curve] of [[pair.light, curves.light], [pair.dark, curves.dark]]) {
+      for (const hexVal of buildRow(def.hue, curve, !!def.neutral, curves.neutralSatCap)) {
+        swatches.push({ hex: hexVal, family: def.name });
+      }
+    }
+  }
+  return swatches;
+}
+
+function useToast() {
+  const [toast, setToast] = useState(null);
+  const timerRef = useRef(null);
+  const flash = useCallback((msg) => {
+    setToast(msg);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setToast(null), 1900);
+  }, []);
+  return [toast, flash];
+}
+
+function Toast({ message }) {
+  if (!message) return null;
+  return (
+    <div style={{ position: "fixed", bottom: 32, left: "50%", transform: "translateX(-50%)", zIndex: 50, background: INK, color: "#F4F4F2", borderRadius: 4, padding: "12px 20px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.28)" }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: YELLOW, display: "inline-block", flex: "none" }} />
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.06em", color: "#F4F4F2" }}>{message}</span>
+    </div>
+  );
+}
+
+// A slider can't produce an invalid value, so RGB/CMYK entry never needs an error
+// state — the live swatch + numeric readout are the confirmation.
+function ChannelSlider({ label, value, max, suffix, onChange }) {
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: MUTED, marginBottom: 5 }}>
+        <span>{label}</span>
+        <span style={{ color: INK }}>{value}{suffix || ""}</span>
+      </div>
+      <input
+        type="range" min={0} max={max} value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        style={{ width: "100%", accentColor: YELLOW, cursor: "pointer" }}
+      />
+    </div>
+  );
+}
+
+function StepFooter({ stepNumber, totalSteps, completed, onToggleComplete, onBack, onNext, nextLabel }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${HAIRLINE}`, marginTop: 32, paddingTop: 20 }}>
+      <span onClick={onBack} style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: onBack ? "#6B6B70" : "#c2bfb6", cursor: onBack ? "pointer" : "default" }}>← Back</span>
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>
+        Step {String(stepNumber).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span onClick={onToggleComplete} style={{ border: `1px solid ${completed ? "#16744B" : INK}`, color: completed ? "#16744B" : INK, borderRadius: 2, padding: "11px 18px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: completed ? 700 : 400, cursor: "pointer" }}>
+          {completed ? "✓ Completed" : "Mark complete"}
+        </span>
+        <span onClick={onNext} style={{ background: YELLOW, color: INK, borderRadius: 2, padding: "12px 22px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer" }}>
+          {nextLabel || "Continue →"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Pure preview — the base 80 swatches only. Never mixes in the client's own colors,
+// so a card never implies "these are part of Default/Pastel."
+function PaletteCard({ variantKey, selected, onSelect }) {
+  const swatches = useMemo(() => buildPalette(variantKey), [variantKey]);
+  const label = VARIANT_CURVES[variantKey].label;
+  return (
+    <div style={{ flex: 1, minWidth: 240, border: `${selected ? 2 : 1}px solid ${selected ? INK : HAIRLINE}`, borderRadius: 3, padding: selected ? 15 : 16, background: "#fff" }}>
+      <div onClick={onSelect} title={selected ? "Click to unselect this palette" : "Click to select this palette"} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", marginBottom: 14 }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ width: 16, height: 16, borderRadius: "50%", border: `2px solid ${selected ? INK : "#c2bfb6"}`, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
+            {selected && <span style={{ width: 8, height: 8, borderRadius: "50%", background: INK }} />}
+          </span>
+          <span style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 16, color: INK }}>{label}</span>
+        </span>
+        {selected && (
+          <span style={{ fontFamily: FONT_MONO, fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#16744B", background: "#E3F1EA", borderRadius: 2, padding: "3px 8px" }}>Selected</span>
+        )}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 3 }}>
+        {swatches.map((sw, i) => (
+          <div
+            key={i}
+            title={`${sw.family} · ${sw.hex}`}
+            style={{ aspectRatio: "2.4 / 1", borderRadius: 2, background: sw.hex, boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.08)" }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function AssetManagerStep3ColorManagement({
+  initialVariant = "default",
+  initialExtras = [], // array of hex strings the client has added on top of the base palette
+  onChange,
+  completed = false,
+  onToggleComplete,
+  onBack,
+  onNext,
+  stepNumber = 3,
+  totalSteps = 8,
+}) {
+  const [variant, setVariant] = useState(initialVariant);
+  const [extras, setExtras] = useState(() => initialExtras.map((h) => h.toUpperCase()));
+  const [extracted, setExtracted] = useState([]);
+  const [convertFmt, setConvertFmt] = useState("hex");
+  const [hexInput, setHexInput] = useState("#C7402F");
+  const [rgb, setRgb] = useState({ r: 199, g: 64, b: 47 });
+  const [cmyk, setCmyk] = useState({ c: 0, m: 75, y: 82, k: 22 });
+  const [pantoneInput, setPantoneInput] = useState("");
+  const [toast, flash] = useToast();
+
+  const extrasSet = useMemo(() => new Set(extras), [extras]);
+
+  // variant can be null — the client unchecked both palettes and is building a
+  // wall palette entirely from their own colors, no starter set included.
+  const emit = (nextVariant, nextExtras) => {
+    const base = nextVariant ? buildPalette(nextVariant).map((s) => s.hex) : [];
+    const palette = Array.from(new Set([...nextExtras, ...base]));
+    onChange?.({ variant: nextVariant, extras: nextExtras, palette });
+  };
+
+  // Clicking the already-selected palette unchecks it — both cards can be off at once.
+  const selectVariant = (key) => {
+    const next = variant === key ? null : key;
+    setVariant(next);
+    emit(next, extras);
+  };
+
+  const useOnlyMyColors = () => {
+    setVariant(null);
+    emit(null, extras);
+  };
+
+  const addExtra = (hexVal) => {
+    const hexUp = hexVal.toUpperCase();
+    if (extrasSet.has(hexUp)) { flash(`${hexUp} is already added`); return; }
+    setExtras((prev) => {
+      const next = [...prev, hexUp];
+      emit(variant, next);
+      return next;
+    });
+    flash(`Added ${hexUp}`);
+  };
+
+  const removeExtra = (hexVal) => {
+    setExtras((prev) => {
+      const next = prev.filter((h) => h !== hexVal);
+      emit(variant, next);
+      return next;
+    });
+  };
+
+  // RGB/CMYK come from sliders, so they're always valid — only HEX (free text) and
+  // Pantone (a name lookup) can fail to resolve.
+  const convertHex =
+    convertFmt === "hex" ? convertToHex("hex", hexInput) :
+    convertFmt === "rgb" ? rgbToHex(rgb.r, rgb.g, rgb.b) :
+    convertFmt === "cmyk" ? cmykToHex(cmyk.c, cmyk.m, cmyk.y, cmyk.k) :
+    convertToHex("pantone", pantoneInput);
+
+  const addConverted = () => {
+    if (!convertHex) { flash(`Enter a valid ${convertFmt.toUpperCase()} value`); return; }
+    addExtra(convertHex);
+  };
+
+  // Picking a native color also drives the RGB sliders, so switching to the RGB tab
+  // afterward shows exactly what you picked instead of resetting.
+  const onPickNativeColor = (hexVal) => {
+    setHexInput(hexVal.toUpperCase());
+    const asRgb = hexToRgb(hexVal);
+    if (asRgb) setRgb(asRgb);
+  };
+
+  const onImage = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const img = new Image();
+    img.onload = () => {
+      const N = 48;
+      const cv = document.createElement("canvas");
+      cv.width = N; cv.height = N;
+      const ctx = cv.getContext("2d");
+      ctx.drawImage(img, 0, 0, N, N);
+      let data;
+      try { data = ctx.getImageData(0, 0, N, N).data; }
+      catch (err) { flash("Couldn't read that image"); return; }
+      const buckets = {};
+      for (let i = 0; i < data.length; i += 4) {
+        const a = data[i + 3];
+        if (a < 125) continue;
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        const key = (r >> 5) + "," + (g >> 5) + "," + (b >> 5);
+        if (!buckets[key]) buckets[key] = { r: 0, g: 0, b: 0, n: 0 };
+        buckets[key].r += r; buckets[key].g += g; buckets[key].b += b; buckets[key].n++;
+      }
+      const top = Object.values(buckets).sort((a, b) => b.n - a.n).slice(0, 8)
+        .map((o) => ("#" + hx(o.r / o.n) + hx(o.g / o.n) + hx(o.b / o.n)).toUpperCase());
+      setExtracted(top);
+      flash(`${top.length} colors extracted from your image`);
+    };
+    img.onerror = () => flash("Couldn't load that image");
+    img.src = URL.createObjectURL(file);
+  };
+
+  return (
+    <div style={{ fontFamily: FONT_BODY, maxWidth: 900 }}>
+      <div style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#B07A00", marginBottom: 8 }}>Step 03</div>
+      <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 30, letterSpacing: "-0.01em", color: INK, margin: "0 0 6px" }}>Color management</h2>
+      <p style={{ fontSize: 14, lineHeight: 1.5, color: "#6B6B70", margin: "0 0 22px", maxWidth: "64ch" }}>
+        Choose the palette you want on the wall — Default or Pastel, whichever fits — or skip both and build entirely from your own colors. Add colors by entering them or pulling key colors from your logo; they stay in "Your colors," kept separate from either starter palette.
+      </p>
+
+      <div style={{ display: "flex", gap: 36, flexWrap: "wrap", marginBottom: 28 }}>
+        <div style={{ flex: 1, minWidth: 280 }}>
+          <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED, marginBottom: 12 }}>Enter a color · convert to HEX</div>
+          <div style={{ display: "inline-flex", border: `1px solid ${HAIRLINE}`, borderRadius: 2, overflow: "hidden", marginBottom: 14 }}>
+            {["hex", "rgb", "cmyk", "pantone"].map((f, i) => {
+              const active = convertFmt === f;
+              return (
+                <span key={f} onClick={() => setConvertFmt(f)} style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.04em", color: active ? INK : "#6B6B70", background: active ? YELLOW : "transparent", padding: "8px 13px", fontWeight: active ? 700 : 400, cursor: "pointer", borderLeft: i > 0 ? `1px solid ${HAIRLINE}` : "none" }}>
+                  {f.toUpperCase()}
+                </span>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 12 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {convertFmt === "hex" && (
+                <div style={{ height: 42, border: `1px solid ${HAIRLINE}`, borderRadius: 2, background: "#fff", display: "flex", alignItems: "center", padding: "0 12px" }}>
+                  <input
+                    value={hexInput}
+                    onChange={(e) => setHexInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") addConverted(); }}
+                    placeholder={CONV_PLACEHOLDER.hex}
+                    style={{ border: "none", outline: "none", width: "100%", fontFamily: FONT_MONO, fontSize: 13, color: INK, background: "transparent" }}
+                  />
+                </div>
+              )}
+
+              {convertFmt === "rgb" && (
+                <>
+                  <ChannelSlider label="Red" value={rgb.r} max={255} onChange={(v) => setRgb((s) => ({ ...s, r: v }))} />
+                  <ChannelSlider label="Green" value={rgb.g} max={255} onChange={(v) => setRgb((s) => ({ ...s, g: v }))} />
+                  <ChannelSlider label="Blue" value={rgb.b} max={255} onChange={(v) => setRgb((s) => ({ ...s, b: v }))} />
+                </>
+              )}
+
+              {convertFmt === "cmyk" && (
+                <>
+                  <ChannelSlider label="Cyan" value={cmyk.c} max={100} suffix="%" onChange={(v) => setCmyk((s) => ({ ...s, c: v }))} />
+                  <ChannelSlider label="Magenta" value={cmyk.m} max={100} suffix="%" onChange={(v) => setCmyk((s) => ({ ...s, m: v }))} />
+                  <ChannelSlider label="Yellow" value={cmyk.y} max={100} suffix="%" onChange={(v) => setCmyk((s) => ({ ...s, y: v }))} />
+                  <ChannelSlider label="Key (black)" value={cmyk.k} max={100} suffix="%" onChange={(v) => setCmyk((s) => ({ ...s, k: v }))} />
+                </>
+              )}
+
+              {convertFmt === "pantone" && (
+                <div style={{ height: 42, border: `1px solid ${HAIRLINE}`, borderRadius: 2, background: "#fff", display: "flex", alignItems: "center", padding: "0 12px" }}>
+                  <input
+                    value={pantoneInput}
+                    onChange={(e) => setPantoneInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") addConverted(); }}
+                    placeholder={CONV_PLACEHOLDER.pantone}
+                    style={{ border: "none", outline: "none", width: "100%", fontFamily: FONT_MONO, fontSize: 13, color: INK, background: "transparent" }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Always the larger preview square, always on the right, same size and
+                position regardless of which format is active. */}
+            <div style={{ flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+              {convertFmt === "hex" ? (
+                <input
+                  type="color"
+                  value={convertHex || "#000000"}
+                  onChange={(e) => onPickNativeColor(e.target.value)}
+                  title="Pick visually — always a valid color"
+                  style={{ width: 72, height: 72, border: `1px solid ${HAIRLINE}`, borderRadius: 3, padding: 0, cursor: "pointer", background: "none" }}
+                />
+              ) : (
+                <div style={{ width: 72, height: 72, borderRadius: 3, border: `1px solid ${HAIRLINE}`, background: convertHex || "#FAF9F6" }} />
+              )}
+              <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: convertHex ? INK : MUTED }}>{convertHex || "—"}</span>
+            </div>
+          </div>
+
+          {convertFmt === "pantone" && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontFamily: FONT_MONO, fontSize: 9, letterSpacing: "0.06em", textTransform: "uppercase", color: MUTED, marginBottom: 6 }}>Or pick a known code</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {Object.entries(PANTONE_MAP).map(([name, hexVal]) => (
+                  <span
+                    key={name}
+                    onClick={() => setPantoneInput(name)}
+                    title={hexVal}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, border: `1px solid ${pantoneInput.toUpperCase() === name ? INK : HAIRLINE}`, borderRadius: 2, padding: "4px 8px 4px 4px", cursor: "pointer" }}
+                  >
+                    <span style={{ width: 14, height: 14, borderRadius: 2, background: hexVal, display: "inline-block" }} />
+                    <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: INK }}>{name}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            {!convertHex && (
+              <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: "#C7402F" }}>
+                {convertFmt === "pantone" ? "Code not recognized — try one of the chips below" : "Enter a valid HEX value, e.g. #C7402F"}
+              </span>
+            )}
+            <span onClick={addConverted} style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: INK, border: `1px solid ${INK}`, borderRadius: 2, padding: "8px 14px", cursor: "pointer" }}>+ Add color</span>
+          </div>
+        </div>
+
+        <div style={{ flex: 1, minWidth: 280 }}>
+          <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED, marginBottom: 12 }}>Pull colors from an image or logo</div>
+          <label style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, border: "2px dashed #c2bfb6", borderRadius: 3, background: "#FAF9F6", padding: 22, cursor: "pointer" }}>
+            <span style={{ width: 38, height: 38, borderRadius: "50%", background: "#ECEAE4", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, color: MUTED }}>↑</span>
+            <span style={{ fontFamily: FONT_BODY, fontSize: 13, color: "#33333A" }}>Drop or choose an image — we read the main colors</span>
+            <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: MUTED }}>PNG · JPG · SVG · logo or photo</span>
+            <input type="file" accept="image/*" onChange={onImage} style={{ display: "none" }} />
+          </label>
+          {extracted.length > 0 && (
+            <>
+              <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: MUTED, margin: "16px 0 9px" }}>Extracted colors — tap to add</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {extracted.map((hexVal, i) => {
+                  const already = extrasSet.has(hexVal);
+                  return (
+                    <span
+                      key={i}
+                      onClick={() => addExtra(hexVal)}
+                      title={already ? `${hexVal} already added` : `Add ${hexVal}`}
+                      style={{ display: "inline-flex", alignItems: "center", gap: 7, border: `1px solid ${already ? "#16744B" : HAIRLINE}`, borderRadius: 2, padding: "5px 9px 5px 5px", cursor: already ? "default" : "pointer", opacity: already ? 0.6 : 1 }}
+                    >
+                      <span style={{ width: 22, height: 22, borderRadius: 2, background: hexVal, display: "inline-block" }} />
+                      <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: INK }}>{hexVal}</span>
+                      {already && <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: "#16744B" }}>✓</span>}
+                    </span>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Standalone — never nested inside a palette card, so it never implies these
+          colors belong to Default or Pastel. This is the client's own set. */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED, marginBottom: 12 }}>Your colors{extras.length > 0 ? ` (${extras.length})` : ""}</div>
+        {extras.length === 0 ? (
+          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: MUTED, border: `1px dashed ${HAIRLINE}`, borderRadius: 2, padding: "12px 14px" }}>
+            None added yet — enter a color or pull one from an image above.
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {extras.map((hexVal) => (
+              <span
+                key={hexVal}
+                onClick={() => removeExtra(hexVal)}
+                title={`Remove ${hexVal}`}
+                style={{ display: "inline-flex", alignItems: "center", gap: 7, border: `1px solid ${INK}`, borderRadius: 2, padding: "5px 9px 5px 5px", cursor: "pointer" }}
+              >
+                <span style={{ width: 22, height: 22, borderRadius: 2, background: hexVal, display: "inline-block" }} />
+                <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: INK }}>{hexVal}</span>
+                <span style={{ fontFamily: FONT_MONO, fontSize: 12, color: MUTED }}>×</span>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
+        <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>Choose one palette for the wall — optional</span>
+        {variant && <span onClick={useOnlyMyColors} style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.04em", color: MUTED, cursor: "pointer" }}>Use only my colors, no starter palette</span>}
+      </div>
+      {!variant && extras.length === 0 && (
+        <div style={{ fontFamily: FONT_MONO, fontSize: 12, color: "#B07A00", background: "#FEF1CE", border: "1px solid #f0dfa1", borderRadius: 2, padding: "10px 14px", marginBottom: 16 }}>
+          No palette chosen and no colors added yet — pick a palette below, or add at least one color above.
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 8 }}>
+        {VARIANT_KEYS.map((key) => (
+          <PaletteCard
+            key={key}
+            variantKey={key}
+            selected={variant === key}
+            onSelect={() => selectVariant(key)}
+          />
+        ))}
+      </div>
+
+      <StepFooter stepNumber={stepNumber} totalSteps={totalSteps} completed={completed} onToggleComplete={onToggleComplete} onBack={onBack} onNext={onNext} />
+      <Toast message={toast} />
+    </div>
+  );
+}
+
+export default AssetManagerStep3ColorManagement;
+
+</script>
+<script type="text/plain" id="src-step4">
+import React, { useState, useRef, useCallback } from "react";
+
+/**
+ * Asset Manager — Step 4: Spray can label.
+ * Artwork source, can color, gradient, then drag-to-position the label on a live
+ * can preview with snap guides, plus a 360° rotation slider with face detection.
+ * Fully standalone — own local state, no wizard shell dependency.
+ */
+
+const FONT_MONO = "var(--gp-font-mono, 'Space Mono', 'Courier New', monospace)";
+const FONT_BODY = "var(--gp-font-body, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const FONT_DISPLAY = "var(--gp-font-display, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const YELLOW = "#FEBD17";
+const INK = "#0A0B0C";
+const HAIRLINE = "var(--gp-hairline-light, rgba(10,11,12,0.12))";
+const MUTED = "#9A9A96";
+
+const CAN_PALETTE = ["#0A0B0C", "#FEBD17", "#C7402F", "#2A6FDB", "#1F8A5B"];
+const FACE_DEFS = [{ label: "Front", d: 0 }, { label: "Right", d: 90 }, { label: "Back", d: 180 }, { label: "Left", d: 270 }];
+
+function faceFor(d) {
+  const n = ((d % 360) + 360) % 360;
+  if (n < 45 || n >= 315) return "Front";
+  if (n < 135) return "Right";
+  if (n < 225) return "Back";
+  return "Left";
+}
+
+function useToast() {
+  const [toast, setToast] = useState(null);
+  const timerRef = useRef(null);
+  const flash = useCallback((msg) => {
+    setToast(msg);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setToast(null), 1900);
+  }, []);
+  return [toast, flash];
+}
+
+function Toast({ message }) {
+  if (!message) return null;
+  return (
+    <div style={{ position: "fixed", bottom: 32, left: "50%", transform: "translateX(-50%)", zIndex: 50, background: INK, color: "#F4F4F2", borderRadius: 4, padding: "12px 20px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.28)" }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: YELLOW, display: "inline-block", flex: "none" }} />
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.06em", color: "#F4F4F2" }}>{message}</span>
+    </div>
+  );
+}
+
+function StepFooter({ stepNumber, totalSteps, completed, onToggleComplete, onBack, onNext, nextLabel }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${HAIRLINE}`, marginTop: 32, paddingTop: 20 }}>
+      <span onClick={onBack} style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: onBack ? "#6B6B70" : "#c2bfb6", cursor: onBack ? "pointer" : "default" }}>← Back</span>
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>
+        Step {String(stepNumber).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span onClick={onToggleComplete} style={{ border: `1px solid ${completed ? "#16744B" : INK}`, color: completed ? "#16744B" : INK, borderRadius: 2, padding: "11px 18px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: completed ? 700 : 400, cursor: "pointer" }}>
+          {completed ? "✓ Completed" : "Mark complete"}
+        </span>
+        <span onClick={onNext} style={{ background: YELLOW, color: INK, borderRadius: 2, padding: "12px 22px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer" }}>
+          {nextLabel || "Continue →"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function AssetManagerStep4SprayCanLabel({
+  onChange,
+  completed = false,
+  onToggleComplete,
+  onBack,
+  onNext,
+  stepNumber = 4,
+  totalSteps = 8,
+}) {
+  const [artSource, setArtSource] = useState("uploads");
+  const [artTile, setArtTile] = useState(0);
+  const [canColor, setCanColor] = useState(1);
+  const [gradientOn, setGradientOn] = useState(true);
+  const [rotateDeg, setRotateDeg] = useState(0);
+  const [canArtX, setCanArtX] = useState(50);
+  const [canArtY, setCanArtY] = useState(50);
+  const [canDrag, setCanDrag] = useState(false);
+  const [canGuideX, setCanGuideX] = useState(null);
+  const [canGuideY, setCanGuideY] = useState(null);
+  const canRef = useRef(null);
+  const [toast, flash] = useToast();
+
+  const emit = (patch) => onChange?.({ artSource, artTile, canColor, gradientOn, rotateDeg, canArtX, canArtY, ...patch });
+
+  const startCanDrag = (e) => { e.preventDefault?.(); setCanDrag(true); };
+  const onCanMove = (e) => {
+    if (!canDrag || !canRef.current) return;
+    const r = canRef.current.getBoundingClientRect();
+    let x = Math.max(12, Math.min(88, ((e.clientX - r.left) / r.width) * 100));
+    let y = Math.max(12, Math.min(88, ((e.clientY - r.top) / r.height) * 100));
+    let gx = null, gy = null;
+    if (Math.abs(x - 50) < 3) { x = 50; gx = 50; }
+    for (const t of [33, 50, 67]) { if (Math.abs(y - t) < 3) { y = t; gy = t; break; } }
+    setCanArtX(x); setCanArtY(y); setCanGuideX(gx); setCanGuideY(gy);
+    emit({ canArtX: x, canArtY: y });
+  };
+  const endCanDrag = () => { if (canDrag) { setCanDrag(false); setCanGuideX(null); setCanGuideY(null); } };
+
+  const rad = (rotateDeg * Math.PI) / 180;
+  const lx = canArtX + Math.sin(rad) * 30;
+  const labelOpacity = Math.cos(rad) > 0 ? 1 : 0.12;
+  const canFace = faceFor(rotateDeg);
+
+  const setRotation = (d) => { setRotateDeg(d); emit({ rotateDeg: d }); };
+
+  return (
+    <div style={{ fontFamily: FONT_BODY, maxWidth: 900 }}>
+      <div style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#B07A00", marginBottom: 8 }}>Step 04</div>
+      <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 30, letterSpacing: "-0.01em", color: INK, margin: "0 0 6px" }}>Spray can label</h2>
+      <p style={{ fontSize: 14, lineHeight: 1.5, color: "#6B6B70", margin: "0 0 22px", maxWidth: "62ch" }}>Design the label that wraps each spray can — artwork, color, gradient, then position.</p>
+
+      <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
+        <div style={{ width: 348, flex: "none", display: "flex", flexDirection: "column", gap: 22 }}>
+          {/* 1 artwork */}
+          <div>
+            <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED, marginBottom: 10 }}>1 · Artwork</div>
+            <div style={{ display: "inline-flex", border: `1px solid ${HAIRLINE}`, borderRadius: 2, overflow: "hidden", marginBottom: 12 }}>
+              {[{ key: "uploads", label: "From uploads" }, { key: "upload", label: "Upload new" }, { key: "fullwrap", label: "Full wrap" }].map((o) => {
+                const active = artSource === o.key;
+                return (
+                  <span key={o.key} onClick={() => { setArtSource(o.key); emit({ artSource: o.key }); }} style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase", color: active ? INK : "#6B6B70", background: active ? YELLOW : "transparent", padding: "8px 12px", fontWeight: active ? 700 : 400, cursor: "pointer", borderLeft: `1px solid ${HAIRLINE}` }}>
+                    {o.label}
+                  </span>
+                );
+              })}
+            </div>
+            <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+              {[0, 1].map((i) => (
+                <div key={i} onClick={() => { setArtTile(i); emit({ artTile: i }); }} style={{ width: 60, height: 60, borderRadius: 2, background: "#ECEAE4", border: `2px solid ${artTile === i ? YELLOW : "transparent"}`, cursor: "pointer" }} />
+              ))}
+            </div>
+            <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.04em", color: MUTED }}>Full wrap requires 2480 × 1040 px @ 300 dpi</div>
+          </div>
+
+          {/* 2 can color */}
+          <div style={{ borderTop: `1px solid ${HAIRLINE}`, paddingTop: 18 }}>
+            <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED, marginBottom: 10 }}>2 · Can color</div>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              {CAN_PALETTE.map((hex, i) => (
+                <div
+                  key={hex}
+                  onClick={() => { setCanColor(i); emit({ canColor: i }); }}
+                  style={{ width: 34, height: 34, borderRadius: "50%", background: hex, cursor: "pointer", outline: canColor === i ? `2px solid ${INK}` : "none", outlineOffset: 2 }}
+                />
+              ))}
+              <div onClick={() => flash("Color picker is a demo")} style={{ width: 34, height: 34, borderRadius: "50%", border: "1px dashed #c2bfb6", display: "flex", alignItems: "center", justifyContent: "center", color: MUTED, fontSize: 16, cursor: "pointer" }}>+</div>
+            </div>
+            <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.04em", color: MUTED, marginTop: 8 }}>From palette, or + a new color</div>
+          </div>
+
+          {/* 3 gradient */}
+          <div style={{ borderTop: `1px solid ${HAIRLINE}`, paddingTop: 18 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>3 · Gradient</span>
+              <span onClick={() => { const v = !gradientOn; setGradientOn(v); emit({ gradientOn: v }); }} style={{ width: 32, height: 18, borderRadius: 9, background: gradientOn ? YELLOW : "#e2dfd8", position: "relative", cursor: "pointer" }}>
+                <span style={{ position: "absolute", top: 2, [gradientOn ? "right" : "left"]: 2, width: 14, height: 14, borderRadius: "50%", background: gradientOn ? INK : "#fff", boxShadow: gradientOn ? "none" : "0 1px 2px rgba(0,0,0,0.2)" }} />
+              </span>
+            </div>
+            {gradientOn && <div style={{ height: 30, borderRadius: 2, background: `linear-gradient(90deg, ${YELLOW}, #C7402F)`, marginBottom: 10 }} />}
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <div style={{ width: 26, height: 26, borderRadius: "50%", background: YELLOW, border: "1px solid #d8d5cd" }} />
+              <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: MUTED }}>→</span>
+              <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#C7402F", border: "1px solid #d8d5cd" }} />
+              <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.04em", color: MUTED, marginLeft: 6 }}>Palette or new colors</span>
+            </div>
+          </div>
+
+          {/* 4 placement */}
+          <div style={{ borderTop: `1px solid ${HAIRLINE}`, paddingTop: 18 }}>
+            <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED, marginBottom: 10 }}>4 · Placement</div>
+            <div style={{ fontFamily: FONT_BODY, fontSize: 13, lineHeight: 1.5, color: "#6B6B70" }}>Drag the artwork on the can to position it — it snaps to the can's center line and to the top, middle and bottom thirds.</div>
+          </div>
+        </div>
+
+        {/* preview */}
+        <div style={{ flex: 1, minWidth: 320, display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ flex: 1, background: "#ECEAE4", borderRadius: 2, position: "relative", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 420, overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: 14, left: 16, fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>Real-time 3D preview</div>
+            <div style={{ position: "absolute", top: 12, right: 14, fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: INK, background: "#fff", border: "1px solid #d8d5cd", borderRadius: 2, padding: "5px 10px" }}>{canFace} · {rotateDeg}°</div>
+            <div
+              ref={canRef}
+              onPointerMove={onCanMove}
+              onPointerUp={endCanDrag}
+              onPointerLeave={endCanDrag}
+              style={{ width: 104, height: 330, borderRadius: "14px 14px 6px 6px", background: "#fff", border: "1px solid #d8d5cd", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 14, touchAction: "none" }}
+            >
+              <div style={{ width: 32, height: 24, background: "#d8d5cd", borderRadius: 3 }} />
+              {canGuideX != null && <div style={{ position: "absolute", left: `${canGuideX}%`, top: 0, bottom: 0, width: 1, background: YELLOW, opacity: 0.9, pointerEvents: "none" }} />}
+              {canGuideY != null && <div style={{ position: "absolute", top: `${canGuideY}%`, left: 0, right: 0, height: 1, background: YELLOW, opacity: 0.9, pointerEvents: "none" }} />}
+              <div
+                onPointerDown={startCanDrag}
+                style={{
+                  position: "absolute", width: 64, height: 64, background: CAN_PALETTE[canColor], borderRadius: 4, cursor: "grab", touchAction: "none",
+                  left: `${lx.toFixed(1)}%`, top: `${canArtY}%`, transform: "translate(-50%,-50%)", opacity: labelOpacity.toFixed(2),
+                }}
+              />
+              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 42, background: "linear-gradient(90deg, rgba(0,0,0,0.06), transparent 18%, transparent 82%, rgba(0,0,0,0.06))", pointerEvents: "none" }} />
+            </div>
+          </div>
+          <div style={{ background: "#fff", border: `1px solid ${HAIRLINE}`, borderRadius: 2, padding: "14px 16px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 11 }}>
+              <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>Rotate to inspect · full 360°</span>
+              <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: INK }}>{rotateDeg}°</span>
+            </div>
+            <input type="range" min="0" max="360" value={rotateDeg} onChange={(e) => setRotation(Number(e.target.value))} style={{ width: "100%", accentColor: YELLOW, cursor: "pointer" }} />
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              {FACE_DEFS.map((f) => {
+                const active = canFace === f.label;
+                return (
+                  <span
+                    key={f.label}
+                    onClick={() => setRotation(f.d)}
+                    style={{
+                      flex: 1, textAlign: "center", fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase",
+                      color: active ? INK : "#6B6B70", background: active ? YELLOW : "transparent", border: active ? "none" : `1px solid ${HAIRLINE}`,
+                      borderRadius: 2, padding: "8px 0", fontWeight: active ? 700 : 400, cursor: "pointer",
+                    }}
+                  >
+                    {f.label}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <StepFooter stepNumber={stepNumber} totalSteps={totalSteps} completed={completed} onToggleComplete={onToggleComplete} onBack={onBack} onNext={onNext} />
+      <Toast message={toast} />
+    </div>
+  );
+}
+
+export default AssetManagerStep4SprayCanLabel;
+
+</script>
+<script type="text/plain" id="src-step5">
+import React, { useState } from "react";
+
+/**
+ * Asset Manager — Step 5: Asset builder.
+ * Stencils / stickers / backgrounds tabs, a premade/upload/AI source toggle, and a
+ * multi-select tile grid. Fully standalone — own local state, no wizard shell dependency.
+ */
+
+const FONT_MONO = "var(--gp-font-mono, 'Space Mono', 'Courier New', monospace)";
+const FONT_BODY = "var(--gp-font-body, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const FONT_DISPLAY = "var(--gp-font-display, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const YELLOW = "#FEBD17";
+const INK = "#0A0B0C";
+const HAIRLINE = "var(--gp-hairline-light, rgba(10,11,12,0.12))";
+const MUTED = "#9A9A96";
+
+const TAB_DEFS = [
+  { key: "stencils", label: "Stencils", count: 10 },
+  { key: "stickers", label: "Stickers", count: 8 },
+  { key: "backgrounds", label: "Backgrounds", count: 6 },
+];
+const SOURCE_DEFS = [
+  { key: "premade", label: "Premade" },
+  { key: "upload", label: "Upload new" },
+  { key: "ai", label: "Make with AI" },
+];
+
+function StepFooter({ stepNumber, totalSteps, completed, onToggleComplete, onBack, onNext, nextLabel }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${HAIRLINE}`, marginTop: 32, paddingTop: 20 }}>
+      <span onClick={onBack} style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: onBack ? "#6B6B70" : "#c2bfb6", cursor: onBack ? "pointer" : "default" }}>← Back</span>
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>
+        Step {String(stepNumber).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span onClick={onToggleComplete} style={{ border: `1px solid ${completed ? "#16744B" : INK}`, color: completed ? "#16744B" : INK, borderRadius: 2, padding: "11px 18px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: completed ? 700 : 400, cursor: "pointer" }}>
+          {completed ? "✓ Completed" : "Mark complete"}
+        </span>
+        <span onClick={onNext} style={{ background: YELLOW, color: INK, borderRadius: 2, padding: "12px 22px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer" }}>
+          {nextLabel || "Continue →"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function AssetManagerStep5AssetBuilder({
+  initialTab = "stencils",
+  initialSource = "premade",
+  initialSelection = { stencils: [0, 3], stickers: [], backgrounds: [] },
+  onChange,
+  completed = false,
+  onToggleComplete,
+  onBack,
+  onNext,
+  stepNumber = 5,
+  totalSteps = 8,
+}) {
+  const [tab, setTab] = useState(initialTab);
+  const [source, setSource] = useState(initialSource);
+  const [sel, setSel] = useState(initialSelection);
+
+  const curCount = (TAB_DEFS.find((t) => t.key === tab) || {}).count || 10;
+  const selectedNow = sel[tab] || [];
+
+  const toggleTile = (i) => {
+    setSel((prev) => {
+      const arr = prev[tab] || [];
+      const nextArr = arr.includes(i) ? arr.filter((x) => x !== i) : [...arr, i];
+      const next = { ...prev, [tab]: nextArr };
+      onChange?.(next);
+      return next;
+    });
+  };
+
+  return (
+    <div style={{ fontFamily: FONT_BODY, maxWidth: 720 }}>
+      <div style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#B07A00", marginBottom: 8 }}>Step 05</div>
+      <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 30, letterSpacing: "-0.01em", color: INK, margin: "0 0 16px" }}>Asset builder</h2>
+
+      <div style={{ display: "flex", gap: 24, borderBottom: `1px solid ${HAIRLINE}`, marginBottom: 20 }}>
+        {TAB_DEFS.map((t) => {
+          const active = tab === t.key;
+          return (
+            <span
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              style={{
+                fontFamily: FONT_MONO, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase",
+                color: active ? INK : MUTED, fontWeight: active ? 700 : 400, paddingBottom: 12,
+                borderBottom: active ? `2px solid ${YELLOW}` : "2px solid transparent", cursor: "pointer",
+              }}
+            >
+              {t.label}
+            </span>
+          );
+        })}
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22, flexWrap: "wrap", gap: 10 }}>
+        <div style={{ display: "inline-flex", border: `1px solid ${HAIRLINE}`, borderRadius: 2, overflow: "hidden" }}>
+          {SOURCE_DEFS.map((s, i) => {
+            const active = source === s.key;
+            return (
+              <span key={s.key} onClick={() => setSource(s.key)} style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: active ? INK : "#6B6B70", background: active ? YELLOW : "transparent", padding: "9px 16px", fontWeight: active ? 700 : 400, cursor: "pointer", borderLeft: i > 0 ? `1px solid ${HAIRLINE}` : "none" }}>
+                {s.label}
+              </span>
+            );
+          })}
+        </div>
+        <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: MUTED }}>{selectedNow.length} selected · tap to toggle</span>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
+        {Array.from({ length: curCount }, (_, i) => {
+          const isSel = selectedNow.includes(i);
+          return (
+            <div
+              key={i}
+              onClick={() => toggleTile(i)}
+              style={{ aspectRatio: "1", borderRadius: 2, background: "#ECEAE4", border: `2px solid ${isSel ? YELLOW : "transparent"}`, position: "relative", cursor: "pointer" }}
+            >
+              {isSel && (
+                <span style={{ position: "absolute", top: 6, right: 6, width: 18, height: 18, borderRadius: "50%", background: YELLOW, color: INK, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT_MONO, fontSize: 10 }}>✓</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <StepFooter stepNumber={stepNumber} totalSteps={totalSteps} completed={completed} onToggleComplete={onToggleComplete} onBack={onBack} onNext={onNext} />
+    </div>
+  );
+}
+
+export default AssetManagerStep5AssetBuilder;
+
+</script>
+<script type="text/plain" id="src-step6">
+import React, { useState, useRef, useCallback } from "react";
+
+/**
+ * Asset Manager — Step 6: Wall overlay.
+ * Composite one or more real logo images onto a live wall preview — anchor to a
+ * fixed position with padding, or drag freely with snap guides (wall center + other
+ * logos) — then export the whole overlay as a single transparent PNG at the wall's
+ * actual pixel resolution, logos only, ready to composite onto the live paint canvas
+ * in production.
+ * Fully standalone — own local state, no wizard shell dependency.
+ *
+ * Screen size: `wallWidth`/`wallHeight` (default 3840×2160, 16:9) drive both the
+ * preview's aspect ratio and the exported PNG's pixel dimensions. For now these are
+ * a fixed 16:9 default — the intent is for the host app to eventually pass the
+ * actual screen dimensions configured for the event (the same source of truth as
+ * the setup diagram's screen sizing) once that's wired up, so the overlay and the
+ * physical screen always agree on resolution and aspect ratio.
+ */
+
+const FONT_MONO = "var(--gp-font-mono, 'Space Mono', 'Courier New', monospace)";
+const FONT_BODY = "var(--gp-font-body, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const FONT_DISPLAY = "var(--gp-font-display, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const YELLOW = "#FEBD17";
+const INK = "#0A0B0C";
+const HAIRLINE = "var(--gp-hairline-light, rgba(10,11,12,0.12))";
+const MUTED = "#9A9A96";
+
+// Two sample logos with different aspect ratios (1:1 and 3:1), inlined as SVG data
+// URLs so the seed rows below preview and export correctly without a real upload.
+const SAMPLE_MARK_SVG =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92" fill="#0A0B0C"/><circle cx="100" cy="70" r="30" fill="#FEBD17"/></svg>');
+const SAMPLE_WORDMARK_SVG =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 160"><rect x="4" y="4" width="472" height="152" rx="12" fill="#fff"/><text x="240" y="98" font-family="monospace" font-size="52" font-weight="700" text-anchor="middle" fill="#0A0B0C">SPONSOR</text></svg>');
+
+const DEFAULT_LOGOS = [
+  { id: "seed-1", name: "Brand logo", kind: "From assets", src: SAMPLE_MARK_SVG, naturalW: 200, naturalH: 200, mode: "anchored", anchor: "br", padding: 6, size: 14 },
+  { id: "seed-2", name: "Sponsor mark", kind: "From assets", src: SAMPLE_WORDMARK_SVG, naturalW: 480, naturalH: 160, mode: "anchored", anchor: "tl", padding: 6, size: 22 },
+];
+const ANCHOR_KEYS = ["tl", "tc", "tr", "ml", "mc", "mr", "bl", "bc", "br"];
+
+// anchor math in percentages of wall width/height, given each logo's own true
+// half-width/half-height (so padding touches the actual image edge, not a guess).
+function axy(anchor, padding, halfWPct, halfHPct) {
+  const xs = { l: padding + halfWPct, c: 50, r: 100 - padding - halfWPct };
+  const ys = { t: padding + halfHPct, m: 50, b: 100 - padding - halfHPct };
+  const vy = anchor[0] === "t" ? "t" : anchor[0] === "b" ? "b" : "m";
+  const hx = anchor[1] === "l" ? "l" : anchor[1] === "r" ? "r" : "c";
+  return { x: xs[hx], y: ys[vy] };
+}
+
+function aspectOf(lg) { return lg.naturalW && lg.naturalH ? lg.naturalW / lg.naturalH : 1; }
+
+// A logo's width is a % of wall width; its height in % of wall height depends on
+// both its own image aspect ratio and the wall's aspect ratio.
+function heightPctOf(lg, wallAR) { return (lg.size * wallAR) / aspectOf(lg); }
+
+function getXY(lg, wallAR) {
+  if (lg.mode === "free") return { x: lg.x, y: lg.y };
+  const halfH = heightPctOf(lg, wallAR) / 2;
+  return axy(lg.anchor, lg.padding, lg.size / 2, halfH);
+}
+
+function loadImageEl(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    if (!src.startsWith("blob:") && !src.startsWith("data:")) img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("image failed to load"));
+    img.src = src;
+  });
+}
+
+// Renders logos only, at full wall resolution, on a transparent canvas — no wall
+// background — so the export is a straight composite layer for production.
+async function exportOverlayPng(logos, wallWidth, wallHeight) {
+  const wallAR = wallWidth / wallHeight;
+  const canvas = document.createElement("canvas");
+  canvas.width = wallWidth;
+  canvas.height = wallHeight;
+  const ctx = canvas.getContext("2d");
+  for (const lg of logos) {
+    if (!lg.src) continue;
+    const img = await loadImageEl(lg.src);
+    const xy = getXY(lg, wallAR);
+    const wPx = (lg.size / 100) * wallWidth;
+    const hPx = wPx / aspectOf(lg);
+    const cx = (xy.x / 100) * wallWidth;
+    const cy = (xy.y / 100) * wallHeight;
+    ctx.drawImage(img, cx - wPx / 2, cy - hPx / 2, wPx, hPx);
+  }
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("toBlob failed"))), "image/png");
+  });
+}
+
+function useToast() {
+  const [toast, setToast] = useState(null);
+  const timerRef = useRef(null);
+  const flash = useCallback((msg) => {
+    setToast(msg);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setToast(null), 1900);
+  }, []);
+  return [toast, flash];
+}
+
+function Toast({ message }) {
+  if (!message) return null;
+  return (
+    <div style={{ position: "fixed", bottom: 32, left: "50%", transform: "translateX(-50%)", zIndex: 50, background: INK, color: "#F4F4F2", borderRadius: 4, padding: "12px 20px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.28)" }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: YELLOW, display: "inline-block", flex: "none" }} />
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.06em", color: "#F4F4F2" }}>{message}</span>
+    </div>
+  );
+}
+
+function StepFooter({ stepNumber, totalSteps, completed, onToggleComplete, onBack, onNext, nextLabel }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${HAIRLINE}`, marginTop: 32, paddingTop: 20 }}>
+      <span onClick={onBack} style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: onBack ? "#6B6B70" : "#c2bfb6", cursor: onBack ? "pointer" : "default" }}>← Back</span>
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>
+        Step {String(stepNumber).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span onClick={onToggleComplete} style={{ border: `1px solid ${completed ? "#16744B" : INK}`, color: completed ? "#16744B" : INK, borderRadius: 2, padding: "11px 18px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: completed ? 700 : 400, cursor: "pointer" }}>
+          {completed ? "✓ Completed" : "Mark complete"}
+        </span>
+        <span onClick={onNext} style={{ background: YELLOW, color: INK, borderRadius: 2, padding: "12px 22px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer" }}>
+          {nextLabel || "Continue →"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function AssetManagerStep6WallOverlay({
+  initialLogos = DEFAULT_LOGOS,
+  onChange,
+  onExport, // (blob) => void — fired in addition to the automatic local download, e.g. to also persist server-side
+  wallWidth = 3840,
+  wallHeight = 2160, // 16:9 default — swap for the event's real screen size once that's wired up
+  completed = false,
+  onToggleComplete,
+  onBack,
+  onNext,
+  stepNumber = 6,
+  totalSteps = 8,
+}) {
+  const [logos, setLogos] = useState(initialLogos);
+  const [wallSel, setWallSel] = useState(0);
+  const [drag, setDrag] = useState(null);
+  const [guideX, setGuideX] = useState(null);
+  const [guideY, setGuideY] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const [dragOverWall, setDragOverWall] = useState(false);
+  const wallRef = useRef(null);
+  const addInputRef = useRef(null);
+  const replaceInputRef = useRef(null);
+  const [toast, flash] = useToast();
+
+  const WALL_AR = wallWidth / wallHeight;
+  const commit = (next) => { setLogos(next); onChange?.(next); };
+
+  const startDrag = (i) => (e) => {
+    e.preventDefault?.();
+    setWallSel(i);
+    setDrag({ i });
+    setLogos((prev) => {
+      const next = prev.map((lg, idx) => (idx === i && lg.mode !== "free" ? { ...lg, ...getXY(lg, WALL_AR), mode: "free" } : lg));
+      onChange?.(next);
+      return next;
+    });
+  };
+  const onMove = (e) => {
+    if (!drag || !wallRef.current) return;
+    const r = wallRef.current.getBoundingClientRect();
+    let x = Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100));
+    let y = Math.max(0, Math.min(100, ((e.clientY - r.top) / r.height) * 100));
+    const TH = 2.6;
+    const others = logos.map((lg, idx) => (idx === drag.i ? null : getXY(lg, WALL_AR))).filter(Boolean);
+    let gx = null, gy = null;
+    for (const t of [50, ...others.map((o) => o.x)]) { if (Math.abs(x - t) < TH) { x = t; gx = t; break; } }
+    for (const t of [50, ...others.map((o) => o.y)]) { if (Math.abs(y - t) < TH) { y = t; gy = t; break; } }
+    setGuideX(gx); setGuideY(gy);
+    setLogos((prev) => {
+      const next = prev.map((lg, idx) => (idx === drag.i ? { ...lg, mode: "free", x, y } : lg));
+      onChange?.(next);
+      return next;
+    });
+  };
+  const endDrag = () => { if (drag) { setDrag(null); setGuideX(null); setGuideY(null); } };
+
+  const sel = logos[wallSel] || logos[0];
+  const updateSel = (patch) => {
+    const next = logos.map((lg, i) => (i === wallSel ? { ...lg, ...patch } : lg));
+    commit(next);
+  };
+  const setFree = () => { const xy = getXY(sel, WALL_AR); updateSel({ mode: "free", x: xy.x, y: xy.y }); };
+  const setAnchored = () => updateSel({ mode: "anchored" });
+
+  const removeLogo = (i) => {
+    const target = logos[i];
+    if (target?.src?.startsWith("blob:")) URL.revokeObjectURL(target.src);
+    const next = logos.filter((_, idx) => idx !== i);
+    commit(next);
+    setWallSel((s) => Math.max(0, Math.min(next.length - 1, s)));
+    flash("Removed logo");
+  };
+
+  // Reads real files, loads each to get its true pixel dimensions (so aspect ratio
+  // on the wall is correct), then either appends new logos or replaces one in place.
+  const handleFiles = async (fileList, replaceIndex) => {
+    const incoming = Array.from(fileList || []);
+    if (!incoming.length) return;
+    for (const file of incoming) {
+      try {
+        const src = URL.createObjectURL(file);
+        const img = await loadImageEl(src);
+        const meta = { src, naturalW: img.naturalWidth, naturalH: img.naturalHeight, file, name: file.name, kind: "Uploaded" };
+        if (replaceIndex != null) {
+          setLogos((prev) => {
+            const old = prev[replaceIndex];
+            if (old?.src?.startsWith("blob:")) URL.revokeObjectURL(old.src);
+            const next = prev.map((lg, idx) => (idx === replaceIndex ? { ...lg, ...meta } : lg));
+            onChange?.(next);
+            return next;
+          });
+          flash(`Replaced with ${file.name}`);
+        } else {
+          let newIndex = 0;
+          setLogos((prev) => {
+            const next = [...prev, { id: `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, mode: "anchored", anchor: "mc", padding: 6, size: 18, x: 50, y: 50, ...meta }];
+            newIndex = next.length - 1;
+            onChange?.(next);
+            return next;
+          });
+          setWallSel(newIndex);
+          flash(`Added ${file.name}`);
+        }
+      } catch (e) {
+        flash(`Couldn't load ${file.name}`);
+      }
+    }
+  };
+
+  const downloadOverlay = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const blob = await exportOverlayPng(logos, wallWidth, wallHeight);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `wall-overlay-${wallWidth}x${wallHeight}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      onExport?.(blob);
+      flash(`Downloaded ${wallWidth}×${wallHeight} PNG`);
+    } catch (e) {
+      flash("Couldn't export the overlay — try again");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const selXY = getXY(sel, WALL_AR);
+  const selX = Math.round(selXY.x);
+  const selY = Math.round(selXY.y);
+
+  return (
+    <div style={{ fontFamily: FONT_BODY, maxWidth: 980 }}>
+      <div style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#B07A00", marginBottom: 8 }}>Step 06</div>
+      <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 30, letterSpacing: "-0.01em", color: INK, margin: "0 0 6px" }}>Wall overlay</h2>
+      <p style={{ fontSize: 14, lineHeight: 1.5, color: "#6B6B70", margin: "0 0 24px", maxWidth: "62ch" }}>
+        Upload one or more logos — your brand mark, a sponsor, anything — composited onto the live wall. Anchor each to a fixed position with padding, or drag it where you want — it snaps to the wall center and lines up with your other logos. When you're happy with it, download the whole thing as a single transparent PNG.
+      </p>
+
+      <div style={{ display: "flex", gap: 28, flexWrap: "wrap", alignItems: "flex-start" }}>
+        <div style={{ flex: 1, minWidth: 380 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>Wall display preview</span>
+            <span onClick={downloadOverlay} style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: exporting ? MUTED : INK, border: `1px solid ${exporting ? HAIRLINE : INK}`, borderRadius: 2, padding: "7px 12px", cursor: exporting ? "default" : "pointer" }}>
+              {exporting ? "Exporting…" : "↓ Download PNG"}
+            </span>
+          </div>
+          <div style={{ background: "#16181b", borderRadius: 6, padding: 16, boxShadow: "0 1px 3px rgba(0,0,0,.2)" }}>
+            <div
+              ref={wallRef}
+              onPointerMove={onMove}
+              onPointerUp={endDrag}
+              onPointerLeave={endDrag}
+              onDragOver={(e) => { e.preventDefault(); setDragOverWall(true); }}
+              onDragLeave={() => setDragOverWall(false)}
+              onDrop={(e) => { e.preventDefault(); setDragOverWall(false); handleFiles(e.dataTransfer.files); }}
+              style={{ aspectRatio: `${wallWidth}/${wallHeight}`, background: INK, borderRadius: 2, position: "relative", overflow: "hidden", touchAction: "none", outline: dragOverWall ? `2px dashed ${YELLOW}` : "none", outlineOffset: -2 }}
+            >
+              <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(125deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 52px)" }} />
+              <div style={{ position: "absolute", top: 14, left: 16, fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "#5a5d62" }}>Live wall · {wallWidth.toLocaleString()} × {wallHeight.toLocaleString()}</div>
+              {guideX != null && <div style={{ position: "absolute", left: `${guideX}%`, top: 0, bottom: 0, width: 1, background: YELLOW, opacity: 0.9, pointerEvents: "none" }} />}
+              {guideY != null && <div style={{ position: "absolute", top: `${guideY}%`, left: 0, right: 0, height: 1, background: YELLOW, opacity: 0.9, pointerEvents: "none" }} />}
+              {dragOverWall && (
+                <div style={{ position: "absolute", inset: 0, background: "rgba(10,11,12,0.7)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                  <span style={{ fontFamily: FONT_MONO, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", color: YELLOW }}>Drop to add logo</span>
+                </div>
+              )}
+              {logos.map((lg, i) => {
+                const xy = getXY(lg, WALL_AR);
+                const heightPct = heightPctOf(lg, WALL_AR);
+                const isSel = i === wallSel;
+                return (
+                  <div
+                    key={lg.id ?? i}
+                    onPointerDown={startDrag(i)}
+                    onClick={() => setWallSel(i)}
+                    style={{
+                      position: "absolute", left: `${xy.x.toFixed(2)}%`, top: `${xy.y.toFixed(2)}%`, width: `${lg.size}%`, height: `${heightPct}%`,
+                      transform: "translate(-50%,-50%)", cursor: "grab", touchAction: "none",
+                      outline: isSel ? `2px dashed ${YELLOW}` : "1px solid rgba(255,255,255,0.35)", outlineOffset: 3,
+                    }}
+                  >
+                    {lg.src ? (
+                      <img src={lg.src} alt={lg.name} draggable={false} style={{ width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none", display: "block" }} />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", background: "#fff", borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT_MONO, fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: MUTED }}>{lg.name}</div>
+                    )}
+                  </div>
+                );
+              })}
+              {sel.mode === "free" && (
+                <div style={{ position: "absolute", bottom: 12, left: 16, fontFamily: FONT_MONO, fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: YELLOW, pointerEvents: "none" }}>
+                  Free placement · drag to position, snaps to guides
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{ fontFamily: FONT_MONO, fontSize: 10, color: MUTED, marginTop: 8 }}>
+            Exports at {wallWidth.toLocaleString()} × {wallHeight.toLocaleString()}px, transparent background, logos only — ready to composite onto the live wall.
+          </div>
+        </div>
+
+        <div style={{ width: 340, flex: "none", display: "flex", flexDirection: "column", gap: 20 }}>
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>Overlay logos</span>
+              <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: MUTED }}>{logos.length} logos</span>
+            </div>
+            {logos.map((lg, i) => {
+              const isSel = i === wallSel;
+              return (
+                <div key={lg.id ?? i} onClick={() => setWallSel(i)} style={{ display: "flex", alignItems: "center", gap: 11, border: `1px solid ${isSel ? INK : HAIRLINE}`, borderRadius: 2, padding: "11px 12px", marginBottom: 8, cursor: "pointer" }}>
+                  <span style={{ width: 34, height: 26, borderRadius: 2, background: "repeating-conic-gradient(#ECEAE4 0% 25%, #fff 0% 50%) 50% / 8px 8px", flex: "none", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                    {lg.src && <img src={lg.src} alt="" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />}
+                  </span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK, display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lg.name}</span>
+                    <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: MUTED }}>{lg.kind}</span>
+                  </span>
+                  {isSel && <span onClick={(e) => { e.stopPropagation(); removeLogo(i); }} style={{ fontFamily: FONT_MONO, fontSize: 15, color: MUTED, cursor: "pointer" }}>×</span>}
+                </div>
+              );
+            })}
+            <div style={{ display: "flex", gap: 8, marginTop: 2 }}>
+              <span onClick={() => addInputRef.current?.click()} style={{ flex: 1, textAlign: "center", fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: INK, border: "1px dashed #c2bfb6", borderRadius: 2, padding: "9px 0", cursor: "pointer" }}>+ Upload logo</span>
+              <span onClick={() => replaceInputRef.current?.click()} style={{ flex: 1, textAlign: "center", fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#6B6B70", border: `1px solid ${HAIRLINE}`, borderRadius: 2, padding: "9px 0", cursor: "pointer" }}>Replace image</span>
+            </div>
+            <input ref={addInputRef} type="file" accept="image/*" multiple onChange={(e) => { handleFiles(e.target.files); e.target.value = ""; }} style={{ display: "none" }} />
+            <input ref={replaceInputRef} type="file" accept="image/*" onChange={(e) => { handleFiles(e.target.files, wallSel); e.target.value = ""; }} style={{ display: "none" }} />
+          </div>
+
+          {/* One grouped card — mode, anchor/free control, and both sliders all
+              configure the same selected logo, so they read as a single unit. */}
+          <div style={{ border: `1px solid ${HAIRLINE}`, borderRadius: 3, background: "#FAF9F6", padding: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>Placement · {sel.name}</span>
+              <div style={{ display: "inline-flex", border: `1px solid ${HAIRLINE}`, borderRadius: 2, overflow: "hidden", background: "#fff" }}>
+                <span onClick={setAnchored} style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase", color: sel.mode === "anchored" ? INK : "#6B6B70", background: sel.mode === "anchored" ? YELLOW : "transparent", padding: "7px 13px", fontWeight: sel.mode === "anchored" ? 700 : 400, cursor: "pointer" }}>Anchored</span>
+                <span onClick={setFree} style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase", color: sel.mode === "free" ? INK : "#6B6B70", background: sel.mode === "free" ? YELLOW : "transparent", padding: "7px 13px", fontWeight: sel.mode === "free" ? 700 : 400, cursor: "pointer", borderLeft: `1px solid ${HAIRLINE}` }}>Free</span>
+              </div>
+            </div>
+
+            {sel.mode === "anchored" ? (
+              <div style={{ display: "flex", gap: 20, marginBottom: 18 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, width: 108, flex: "none" }}>
+                  {ANCHOR_KEYS.map((a) => {
+                    const active = sel.anchor === a;
+                    return <span key={a} onClick={() => updateSel({ anchor: a })} title={a} style={{ aspectRatio: "1", borderRadius: 2, background: active ? YELLOW : "#fff", border: `1px solid ${active ? YELLOW : HAIRLINE}`, cursor: "pointer" }} />;
+                  })}
+                </div>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: MUTED, marginBottom: 7 }}><span>Padding</span><span>{sel.padding}%</span></div>
+                  <input type="range" min="0" max="20" value={sel.padding} onChange={(e) => updateSel({ padding: Number(e.target.value) })} style={{ width: "100%", accentColor: YELLOW, cursor: "pointer" }} />
+                </div>
+              </div>
+            ) : (
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: MUTED, marginBottom: 7 }}><span>Horizontal</span><span>{selX}%</span></div>
+                <input type="range" min="0" max="100" value={selX} onChange={(e) => updateSel({ x: Number(e.target.value) })} style={{ width: "100%", accentColor: YELLOW, cursor: "pointer", marginBottom: 14 }} />
+                <div style={{ display: "flex", justifyContent: "space-between", fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: MUTED, marginBottom: 7 }}><span>Vertical</span><span>{selY}%</span></div>
+                <input type="range" min="0" max="100" value={selY} onChange={(e) => updateSel({ y: Number(e.target.value) })} style={{ width: "100%", accentColor: YELLOW, cursor: "pointer" }} />
+              </div>
+            )}
+
+            <div style={{ borderTop: `1px solid ${HAIRLINE}`, paddingTop: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: MUTED, marginBottom: 7 }}><span>Size</span><span>{sel.size}%</span></div>
+              <input type="range" min="4" max="50" value={sel.size} onChange={(e) => updateSel({ size: Number(e.target.value) })} style={{ width: "100%", accentColor: YELLOW, cursor: "pointer" }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <StepFooter stepNumber={stepNumber} totalSteps={totalSteps} completed={completed} onToggleComplete={onToggleComplete} onBack={onBack} onNext={onNext} />
+      <Toast message={toast} />
+    </div>
+  );
+}
+
+export default AssetManagerStep6WallOverlay;
+
+</script>
+<script type="text/plain" id="src-step7">
+import React, { useState } from "react";
+
+/**
+ * Asset Manager — Step 7: Test area.
+ * A trial-mode entry point into the browser paint app — tool rail + canvas frame.
+ * The actual paint engine is out of scope here; this is the launch surface for it.
+ * Fully standalone — own local state, no wizard shell dependency.
+ */
+
+const FONT_MONO = "var(--gp-font-mono, 'Space Mono', 'Courier New', monospace)";
+const FONT_BODY = "var(--gp-font-body, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const FONT_DISPLAY = "var(--gp-font-display, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const YELLOW = "#FEBD17";
+const INK = "#0A0B0C";
+const HAIRLINE = "var(--gp-hairline-light, rgba(10,11,12,0.12))";
+const MUTED = "#9A9A96";
+
+const TOOLS = [
+  { key: "cans", label: "Cans" },
+  { key: "stencil", label: "Stencil" },
+  { key: "sticker", label: "Sticker" },
+  { key: "color", label: "Color" },
+  { key: "bg", label: "BG" },
+];
+
+function StepFooter({ stepNumber, totalSteps, completed, onToggleComplete, onBack, onNext, nextLabel }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${HAIRLINE}`, marginTop: 32, paddingTop: 20 }}>
+      <span onClick={onBack} style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: onBack ? "#6B6B70" : "#c2bfb6", cursor: onBack ? "pointer" : "default" }}>← Back</span>
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>
+        Step {String(stepNumber).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span onClick={onToggleComplete} style={{ border: `1px solid ${completed ? "#16744B" : INK}`, color: completed ? "#16744B" : INK, borderRadius: 2, padding: "11px 18px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: completed ? 700 : 400, cursor: "pointer" }}>
+          {completed ? "✓ Completed" : "Mark complete"}
+        </span>
+        <span onClick={onNext} style={{ background: YELLOW, color: INK, borderRadius: 2, padding: "12px 22px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer" }}>
+          {nextLabel || "Continue →"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function AssetManagerStep7TestArea({
+  onLaunch,
+  completed = false,
+  onToggleComplete,
+  onBack,
+  onNext,
+  stepNumber = 7,
+  totalSteps = 8,
+}) {
+  const [activeTool, setActiveTool] = useState("cans");
+  const [activeColor, setActiveColor] = useState(2);
+  const colors = ["#ffffff", "#ffffff", YELLOW];
+
+  return (
+    <div style={{ fontFamily: FONT_BODY, maxWidth: 760 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+        <div style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#B07A00" }}>Step 07</div>
+        <span style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: INK, background: YELLOW, borderRadius: 2, padding: "3px 9px" }}>Trial mode</span>
+      </div>
+      <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 30, letterSpacing: "-0.01em", color: INK, margin: "0 0 6px" }}>Test area</h2>
+      <p style={{ fontSize: 14, lineHeight: 1.5, color: "#6B6B70", margin: "0 0 24px", maxWidth: "62ch" }}>A browser version of the paint app. Trial every can, stencil, sticker, color and background before you launch.</p>
+
+      <div style={{ display: "flex", gap: 18 }}>
+        <div style={{ width: 84, flex: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+          {TOOLS.map((t) => {
+            const active = activeTool === t.key;
+            return (
+              <div
+                key={t.key}
+                onClick={() => setActiveTool(t.key)}
+                style={{ aspectRatio: "1", borderRadius: 2, background: active ? INK : "#ECEAE4", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT_MONO, fontSize: 9, letterSpacing: "0.06em", textTransform: "uppercase", color: active ? "#fff" : "#6B6B70", cursor: "pointer" }}
+              >
+                {t.label}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ flex: 1, minHeight: 380, background: "#ECEAE4", borderRadius: 2, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>Paint canvas · {TOOLS.find((t) => t.key === activeTool)?.label}</span>
+          <div style={{ position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 10 }}>
+            {colors.map((c, i) => (
+              <div key={i} onClick={() => setActiveColor(i)} style={{ width: 42, height: 42, borderRadius: "50%", background: c, border: c === "#ffffff" ? "1px solid #d8d5cd" : "none", outline: activeColor === i ? `2px solid ${INK}` : "none", outlineOffset: 2, cursor: "pointer" }} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <span onClick={onLaunch} style={{ display: "inline-flex", alignItems: "center", gap: 10, background: INK, color: "#fff", borderRadius: 2, padding: "13px 22px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer" }}>
+          Launch full trial →
+        </span>
+      </div>
+
+      <StepFooter stepNumber={stepNumber} totalSteps={totalSteps} completed={completed} onToggleComplete={onToggleComplete} onBack={onBack} onNext={onNext} />
+    </div>
+  );
+}
+
+export default AssetManagerStep7TestArea;
+
+</script>
+<script type="text/plain" id="src-step8">
+import React, { useState } from "react";
+
+/**
+ * Asset Manager — Step 8: Approve & lock.
+ * Final checklist recap and the approve/lock action that freezes assets and hands
+ * off to production. Fully standalone — own local state, no wizard shell dependency.
+ */
+
+const FONT_MONO = "var(--gp-font-mono, 'Space Mono', 'Courier New', monospace)";
+const FONT_BODY = "var(--gp-font-body, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const FONT_DISPLAY = "var(--gp-font-display, 'Manrope', 'Helvetica Neue', Arial, sans-serif)";
+const YELLOW = "#FEBD17";
+const INK = "#0A0B0C";
+const HAIRLINE = "var(--gp-hairline-light, rgba(10,11,12,0.12))";
+const MUTED = "#9A9A96";
+
+const DEFAULT_ITEMS = [
+  { label: "Logos", meta: "2 files" },
+  { label: "Color palette", meta: "5 swatches" },
+  { label: "Can designs", meta: "2 placements" },
+  { label: "Stencils, stickers & backgrounds", meta: "8 assets" },
+  { label: "Wall overlay", meta: "Bottom-right" },
+];
+
+function StepFooter({ stepNumber, totalSteps, completed, onToggleComplete, onBack, onNext, nextLabel }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${HAIRLINE}`, marginTop: 32, paddingTop: 20 }}>
+      <span onClick={onBack} style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: onBack ? "#6B6B70" : "#c2bfb6", cursor: onBack ? "pointer" : "default" }}>← Back</span>
+      <span style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: MUTED }}>
+        Step {String(stepNumber).padStart(2, "0")} / {String(totalSteps).padStart(2, "0")}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span onClick={onToggleComplete} style={{ border: `1px solid ${completed ? "#16744B" : INK}`, color: completed ? "#16744B" : INK, borderRadius: 2, padding: "11px 18px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: completed ? 700 : 400, cursor: "pointer" }}>
+          {completed ? "✓ Completed" : "Mark complete"}
+        </span>
+        <span onClick={onNext} style={{ background: YELLOW, color: INK, borderRadius: 2, padding: "12px 22px", fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer" }}>
+          {nextLabel || "Continue →"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function AssetManagerStep8ApproveLock({
+  items = DEFAULT_ITEMS,
+  onApprove,
+  completed = false,
+  onToggleComplete,
+  onBack,
+  onNext,
+  stepNumber = 8,
+  totalSteps = 8,
+}) {
+  const [locked, setLocked] = useState(false);
+
+  const approveLock = () => {
+    setLocked(true);
+    onApprove?.();
+  };
+
+  return (
+    <div style={{ fontFamily: FONT_BODY, maxWidth: 620 }}>
+      <div style={{ fontFamily: FONT_MONO, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#B07A00", marginBottom: 8 }}>Step 08</div>
+      <h2 style={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 30, letterSpacing: "-0.01em", color: INK, margin: "0 0 6px" }}>Approve &amp; lock</h2>
+      <p style={{ fontSize: 14, lineHeight: 1.5, color: "#6B6B70", margin: "0 0 24px", maxWidth: "62ch" }}>
+        Confirm your assets. On approval they freeze and flow into the event record — nothing changes after launch without a reopen.
+      </p>
+
+      <div style={{ maxWidth: 560 }}>
+        {items.map((item, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, borderTop: `1px solid ${HAIRLINE}`, borderBottom: i === items.length - 1 ? `1px solid ${HAIRLINE}` : "none", padding: "16px 0", marginBottom: i === items.length - 1 ? 24 : 0 }}>
+            <span style={{ width: 24, height: 24, borderRadius: "50%", background: "#16744B", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>✓</span>
+            <span style={{ flex: 1, fontFamily: FONT_BODY, fontSize: 15, color: INK }}>{item.label}</span>
+            <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: MUTED }}>{item.meta}</span>
+          </div>
+        ))}
+
+        {locked ? (
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#E3F1EA", color: "#16744B", borderRadius: 2, padding: "15px 26px", fontFamily: FONT_MONO, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700 }}>
+            ✓ Assets approved & locked
+          </div>
+        ) : (
+          <div onClick={approveLock} style={{ display: "inline-flex", alignItems: "center", gap: 10, background: YELLOW, color: INK, borderRadius: 2, padding: "15px 26px", fontFamily: FONT_MONO, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer" }}>
+            Approve &amp; lock assets →
+          </div>
+        )}
+      </div>
+
+      <StepFooter stepNumber={stepNumber} totalSteps={totalSteps} completed={completed} onToggleComplete={onToggleComplete} onBack={onBack} onNext={onNext} />
+    </div>
+  );
+}
+
+export default AssetManagerStep8ApproveLock;
+
+</script>
+
+<script>
+(function () {
+  try {
+  const { useState } = React;
+  const e = React.createElement;
+
+  function compile(scriptId, exportName) {
+    const src = document.getElementById(scriptId).textContent;
+    const cleaned = src
+      .replace(/^import[^\n]*\n/m, "")
+      .replace(new RegExp("^export function " + exportName, "m"), "function " + exportName)
+      .replace(new RegExp("^export default " + exportName + ";?\\s*$", "m"), "");
+    const compiled = Babel.transform(cleaned, { presets: [["react", { runtime: "classic" }]] }).code;
+    const wrapped = new Function(
+      "React", "useState", "useRef", "useCallback", "useEffect", "useMemo",
+      compiled + "\nreturn " + exportName + ";"
+    );
+    return wrapped(React, React.useState, React.useRef, React.useCallback, React.useEffect, React.useMemo);
+  }
+
+  const AssetManagerStep1Welcome = compile("src-step1", "AssetManagerStep1Welcome");
+  const AssetManagerStep2LogoUpload = compile("src-step2", "AssetManagerStep2LogoUpload");
+  const AssetManagerStep3ColorManagement = compile("src-step3", "AssetManagerStep3ColorManagement");
+  const AssetManagerStep4SprayCanLabel = compile("src-step4", "AssetManagerStep4SprayCanLabel");
+  const AssetManagerStep5AssetBuilder = compile("src-step5", "AssetManagerStep5AssetBuilder");
+  const AssetManagerStep6WallOverlay = compile("src-step6", "AssetManagerStep6WallOverlay");
+  const AssetManagerStep7TestArea = compile("src-step7", "AssetManagerStep7TestArea");
+  const AssetManagerStep8ApproveLock = compile("src-step8", "AssetManagerStep8ApproveLock");
+
+
+
+  function mockOnDelete(file) {
+    console.log("mockOnDelete called for", file.name, "— simulating backend DELETE request");
+    return new Promise((resolve) => setTimeout(resolve, 700));
+  }
+
+  // Mock of a backend thumbnail-generation endpoint: draws a placeholder with the
+  // real filename/extension after a simulated network delay. A real integration
+  // would upload the file and return a rendered PNG/JPEG thumbnail URL.
+  function mockGetServerPreview(file, meta) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const c = document.createElement("canvas");
+        c.width = 400; c.height = 400;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#FAF9F6"; ctx.fillRect(0, 0, 400, 400);
+        ctx.strokeStyle = "#c2bfb6"; ctx.setLineDash([8, 6]); ctx.strokeRect(20, 20, 360, 360);
+        ctx.fillStyle = "#0A0B0C"; ctx.font = "bold 28px monospace"; ctx.textAlign = "center";
+        ctx.fillText("." + meta.ext.toUpperCase(), 200, 190);
+        ctx.fillStyle = "#6B6B70"; ctx.font = "13px monospace";
+        ctx.fillText("server-rendered mock", 200, 220);
+        resolve(c.toDataURL("image/png"));
+      }, 900);
+    });
+  }
+
+  const TABS = [
+      { n: 1, label: "1. Welcome" },
+      { n: 2, label: "2. Logo upload" },
+      { n: 3, label: "3. Color management" },
+      { n: 4, label: "4. Spray can label" },
+      { n: 5, label: "5. Asset builder" },
+      { n: 6, label: "6. Wall overlay" },
+      { n: 7, label: "7. Test area" },
+      { n: 8, label: "8. Approve & lock" }
+  ];
+
+  function App() {
+    const [active, setActive] = useState(1);
+    const [completedSteps, setCompletedSteps] = useState([]);
+    const toggleComplete = (idx) => setCompletedSteps((prev) => prev.includes(idx) ? prev.filter((x) => x !== idx) : [...prev, idx]);
+
+    const navEl = document.getElementById("nav");
+    navEl.innerHTML = "";
+    TABS.forEach((t) => {
+      const btn = document.createElement("button");
+      btn.textContent = t.label + (completedSteps.includes(t.n) ? " ✓" : "");
+      if (t.n === active) btn.className = "active";
+      btn.onclick = () => setActive(t.n);
+      navEl.appendChild(btn);
+    });
+
+    let content;
+    try {
+      if (active === 1) {
+        return e(AssetManagerStep1Welcome, {
+          completed: completedSteps.includes(1),
+          onToggleComplete: () => toggleComplete(1),
+          onBack: () => setActive(Math.max(1, 1 - 1)),
+          onNext: () => setActive(Math.min(8, 1 + 1)),
+          onNavigateToStep: (n) => console.log('navigate to step', n)
+        });
+      }
+      if (active === 2) {
+        return e(AssetManagerStep2LogoUpload, {
+          completed: completedSteps.includes(2),
+          onToggleComplete: () => toggleComplete(2),
+          onBack: () => setActive(Math.max(1, 2 - 1)),
+          onNext: () => setActive(Math.min(8, 2 + 1)),
+          getServerPreview: mockGetServerPreview,
+          onDelete: mockOnDelete
+        });
+      }
+      if (active === 3) {
+        return e(AssetManagerStep3ColorManagement, {
+          completed: completedSteps.includes(3),
+          onToggleComplete: () => toggleComplete(3),
+          onBack: () => setActive(Math.max(1, 3 - 1)),
+          onNext: () => setActive(Math.min(8, 3 + 1))
+        });
+      }
+      if (active === 4) {
+        return e(AssetManagerStep4SprayCanLabel, {
+          completed: completedSteps.includes(4),
+          onToggleComplete: () => toggleComplete(4),
+          onBack: () => setActive(Math.max(1, 4 - 1)),
+          onNext: () => setActive(Math.min(8, 4 + 1))
+        });
+      }
+      if (active === 5) {
+        return e(AssetManagerStep5AssetBuilder, {
+          completed: completedSteps.includes(5),
+          onToggleComplete: () => toggleComplete(5),
+          onBack: () => setActive(Math.max(1, 5 - 1)),
+          onNext: () => setActive(Math.min(8, 5 + 1))
+        });
+      }
+      if (active === 6) {
+        return e(AssetManagerStep6WallOverlay, {
+          completed: completedSteps.includes(6),
+          onToggleComplete: () => toggleComplete(6),
+          onBack: () => setActive(Math.max(1, 6 - 1)),
+          onNext: () => setActive(Math.min(8, 6 + 1))
+        });
+      }
+      if (active === 7) {
+        return e(AssetManagerStep7TestArea, {
+          completed: completedSteps.includes(7),
+          onToggleComplete: () => toggleComplete(7),
+          onBack: () => setActive(Math.max(1, 7 - 1)),
+          onNext: () => setActive(Math.min(8, 7 + 1))
+        });
+      }
+      if (active === 8) {
+        return e(AssetManagerStep8ApproveLock, {
+          completed: completedSteps.includes(8),
+          onToggleComplete: () => toggleComplete(8),
+          onBack: () => setActive(Math.max(1, 8 - 1)),
+          onNext: () => setActive(Math.min(8, 8 + 1))
+        });
+      }
+      content = e("div", null, "Unknown step");
+    } catch (err) {
+      console.error(err);
+      content = e("div", { style: { color: "#C7402F", fontFamily: "monospace" } }, "Step " + active + " failed to render: " + err.message);
+    }
+
+    return e("div", { className: "frame" }, content);
+  }
+
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  root.render(e(App));
+  } catch (err) {
+    document.getElementById("root").textContent = "Loader failed: " + (err && err.message);
+    console.error("LOADER ERROR", err);
+  }
+})();
+</script>
+</body>
+</html>
