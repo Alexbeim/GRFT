@@ -13,6 +13,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8776"],
       "port": 8776
+    },
+    {
+      "name": "followups",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["/Users/alex/Library/Mobile Documents/com~apple~CloudDocs/Dev/graffiti-followups/server.js"],
+      "port": 8788
     }
   ]
 }
