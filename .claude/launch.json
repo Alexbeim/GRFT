@@ -19,6 +19,18 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["/Users/alex/Library/Mobile Documents/com~apple~CloudDocs/Dev/graffiti-followups/server.js"],
       "port": 8788
+    },
+    {
+      "name": "tracking-client",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "/Users/alex/Library/Mobile Documents/com~apple~CloudDocs/Dev/grft-javascript-client/node_modules/vite/bin/vite.js",
+        "/Users/alex/Library/Mobile Documents/com~apple~CloudDocs/Dev/grft-javascript-client",
+        "--host", "0.0.0.0",
+        "--port", "5174",
+        "--strictPort"
+      ],
+      "port": 5174
     }
   ]
 }
