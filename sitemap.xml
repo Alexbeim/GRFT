@@ -233,12 +233,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://graffitiplus.io/gal/nba-all-star-2025</loc>
-    <lastmod>2026-05-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://graffitiplus.io/gal/panorama-festival-2016</loc>
     <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
@@ -279,6 +273,39 @@
     <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+
+
+  <!-- City rental pages -->
+  <url>
+    <loc>https://graffitiplus.io/graffiti-wall-rental-los-angeles</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://graffitiplus.io/graffiti-wall-rental-new-york</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://graffitiplus.io/graffiti-wall-rental-las-vegas</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://graffitiplus.io/graffiti-wall-rental-san-francisco</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://graffitiplus.io/graffiti-wall-rental-miami</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 
 </urlset>
