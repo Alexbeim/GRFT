@@ -103,7 +103,7 @@
       <li><a href="/about">About</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
-    <a href="mailto:info@graffitiplus.io?subject=Book%20a%20Graffiti%2B%20demo&body=Hi%20Graffiti%2B%20team%2C%0A%0AWe'd%20like%20to%20book%20a%20demo.%20Here%20are%20a%20few%20details%20about%20our%20event%3A%0A%0A" class="nav-cta">Book a demo</a>
+    <a href="#contact" class="nav-cta">Book a demo</a>
     <button class="nav-hamburger" aria-label="Menu" id="nav-hamburger">☰</button>
   </div>
 </nav>
@@ -367,9 +367,24 @@
 </footer>
 
 <script>
-  document.getElementById("nav-hamburger").addEventListener("click", () => {
-    document.getElementById("nav-links").classList.toggle("open");
+  document.getElementById('nav-hamburger').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('nav-links').classList.toggle('open');
   });
+  // Close the mobile menu on link tap / outside tap (prevents dead clicks)
+  (function () {
+    var links = document.getElementById('nav-links');
+    if (!links) return;
+    links.addEventListener('click', function (e) {
+      if (e.target.closest('a')) links.classList.remove('open');
+    });
+    document.addEventListener('click', function (e) {
+      if (links.classList.contains('open') && !e.target.closest('nav') && !e.target.closest('#nav-hamburger')) {
+        links.classList.remove('open');
+      }
+    });
+  })();
+
 
   // Case study crossfades — each gallery cycles independently with a random offset
   document.querySelectorAll('.case-fade').forEach((gallery, gi) => {

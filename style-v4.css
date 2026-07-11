@@ -99,6 +99,22 @@ nav a, nav .nav-links a {
   letter-spacing: var(--track-body);
 }
 
+/* Nav links are 14px text — pad the hit area out to ~44px tall so near-miss
+   clicks still land (Clarity showed dead clicks clustered around nav links).
+   Negative margin cancels the visual footprint, so layout is unchanged. */
+nav .nav-links a {
+  display: inline-block;
+  padding: 14px 10px;
+  margin: -14px -10px;
+}
+
+/* Anchor jumps (#contact etc.) glide instead of teleporting — visible motion
+   confirms the click landed. */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
 nav .nav-links {
   gap: 36px !important;
 }

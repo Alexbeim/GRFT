@@ -301,6 +301,7 @@
       visibility: visible;
       transition: opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s;
       z-index: 2;
+      cursor: pointer;   /* whole slide clicks through to its project page */
     }
     .hc-slide-bg {
       position: absolute;
@@ -520,7 +521,7 @@
       <li><a href="/about">About</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
-    <a href="mailto:info@graffitiplus.io?subject=Book%20a%20Graffiti%2B%20demo&body=Hi%20Graffiti%2B%20team%2C%0A%0AWe'd%20like%20to%20book%20a%20demo.%20Here%20are%20a%20few%20details%20about%20our%20event%3A%0A%0A" class="nav-cta">Book a demo</a>
+    <a href="#contact" class="nav-cta">Book a demo</a>
     <button class="nav-hamburger" aria-label="Menu" id="nav-hamburger">☰</button>
   </div>
 </nav>
@@ -1068,8 +1069,62 @@
   <div class="contact-email-cta">
     <p class="contact-email-prompt">Drop us a line with a few details about your event — we read every message and reply fast.</p>
     <a class="btn-email" href="mailto:info@graffitiplus.io?subject=Graffiti%2B%20enquiry">Email us</a>
+    <!-- mailto fails silently for webmail-only users; always show the address itself -->
+    <p class="contact-email-addr">
+      <span id="contact-email-text">info@graffitiplus.io</span>
+      <button type="button" class="contact-copy-btn" id="contact-copy-btn" aria-label="Copy email address">Copy</button>
+    </p>
   </div>
 </section>
+<style>
+  .contact-email-addr {
+    margin: 18px 0 0;
+    font-size: 16px;
+    letter-spacing: 0.02em;
+    color: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    user-select: all;
+  }
+  .contact-copy-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.6);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .contact-copy-btn:hover { border-color: var(--accent, #FEBD17); color: var(--accent, #FEBD17); }
+</style>
+<script>
+  document.getElementById('contact-copy-btn').addEventListener('click', function () {
+    var btn = this;
+    var done = function () {
+      btn.textContent = 'Copied!';
+      setTimeout(function () { btn.textContent = 'Copy'; }, 1800);
+    };
+    var fallback = function () {
+      var range = document.createRange();
+      range.selectNodeContents(document.getElementById('contact-email-text'));
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      try { document.execCommand('copy'); done(); } catch (err) { /* selection stays for manual copy */ }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText('info@graffitiplus.io').then(done, fallback);
+    } else {
+      fallback();
+    }
+  });
+</script>
 
 <!-- FOOTER -->
 <footer>
@@ -1104,9 +1159,23 @@
 </footer>
 
 <script>
-  document.getElementById('nav-hamburger').addEventListener('click', () => {
+  document.getElementById('nav-hamburger').addEventListener('click', (e) => {
+    e.stopPropagation();
     document.getElementById('nav-links').classList.toggle('open');
   });
+  // Close the mobile menu when a link is tapped or the user taps outside it —
+  // otherwise taps on the page around an open menu do nothing (dead clicks).
+  (function () {
+    var links = document.getElementById('nav-links');
+    links.addEventListener('click', function (e) {
+      if (e.target.closest('a')) links.classList.remove('open');
+    });
+    document.addEventListener('click', function (e) {
+      if (links.classList.contains('open') && !e.target.closest('nav')) {
+        links.classList.remove('open');
+      }
+    });
+  })();
 
   // Use-case grid: click a box to expand its detail in place (one open at a time)
   (function () {
@@ -1369,6 +1438,16 @@
   root.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowRight') { e.preventDefault(); go(next(current)); }
     if (e.key === 'ArrowLeft')  { e.preventDefault(); go(prev(current)); }
+  });
+
+  // Whole-slide click-through: people click the big image/title expecting to
+  // open the project (Clarity showed heavy dead clicks here). Anything that
+  // isn't a control follows the active slide's CTA link.
+  root.addEventListener('click', function (e) {
+    if (e.target.closest('a, button, .hc-progress, .hc-arrows')) return;
+    var slide = e.target.closest('.hc-slide.is-active') || slides[current];
+    var cta = slide && slide.querySelector('.hc-cta');
+    if (cta) window.location.href = cta.getAttribute('href');
   });
 
   go(0);
