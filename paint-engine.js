@@ -137,6 +137,16 @@
                                   // second with no new paint — paint "dries"
                                   // fast so accumulation reads as short-term,
                                   // not a puddle that remembers the whole session
+      // A drip's STARTING width reflects how saturated its source section
+      // was, not just brush size — a spot that pooled a lot of paint
+      // (well past threshold) should drip wider than one that just barely
+      // qualified. wetnessWidthInfluence: 0 = no effect, 1 = fully
+      // proportional to saturation. maxWetnessWidthMult caps how far an
+      // extremely saturated cell can widen a drip (brief: "consistent,
+      // capped range" — applies to saturation-driven width same as it
+      // does to brush-size-driven width).
+      wetnessWidthInfluence: 0.5,
+      maxWetnessWidthMult: 2.2,
       // Speed response — ON for spray (has been since the second re-tune).
       // Painting slower now directly raises drip probability on top of the
       // wetness-grid effect, up to speedBoostMax:
@@ -155,6 +165,12 @@
       initialWetness: 1.2,        // run length 0.75× (single application)
       endSlowdown: 0.5,           // wetness level below which the drip eases to
                                   // a stop (smoothstep) instead of dying mid-fall
+      // A real drip doesn't fade to a thin nothing — surface tension pools
+      // the last bit of paint into a small bead right as it dries up, at
+      // the same moment (same wetness signal) it eases to a stop. Blends
+      // thickness UP toward minThickness × endBlobFrac as the drip's life
+      // approaches 0 — see the end of tickDrips.
+      endBlobFrac: 1.8,
       initialThicknessFrac: 0.2475, // thickness 0.55× (single application)
       minThicknessFrac: 0.0990,     // thickness 0.55× (single application)
       stampSpacingFrac: 0.18,     // tight overlap so drip reads as a stream, not dots
@@ -183,6 +199,7 @@
       thicknessDrain: 0.011,
       initialWetness: 1.25,
       endSlowdown: 0.5,
+      endBlobFrac: 1.8,
       initialThicknessFrac: 0.45,
       minThicknessFrac: 0.18,
       stampSpacingFrac: 0.22,
@@ -552,6 +569,17 @@
       }
     }
 
+    // Starting width reflects how saturated the SOURCE SECTION was, not
+    // just brush size — a cell that pooled well past threshold drips wider
+    // than one that just barely qualified. Capped (maxWetnessWidthMult) so
+    // an extremely saturated cell still can't spawn an oversized drip.
+    let widthFromWetness = 1;
+    if (dcfg.useWetness) {
+      const satRatio = Math.min(dcfg.maxWetnessWidthMult != null ? dcfg.maxWetnessWidthMult : 2.2,
+                                 localWet / dcfg.spawnThreshold);
+      widthFromWetness = 1 + (satRatio - 1) * (dcfg.wetnessWidthInfluence != null ? dcfg.wetnessWidthInfluence : 0.5);
+    }
+
     const startX = x + (Math.random() - 0.5) * dcfg.spreadX;
     activeDrips.push({
       // baseX is the un-swayed centerline of the drip (advances by vx).
@@ -565,7 +593,7 @@
       swayFreq: swayFreq,   // pop/glitch mid-flight instead of reading as
       swayPhase: swayPhase, // a smooth response to the slider
       age: 0,
-      thickness: size * dcfg.initialThicknessFrac * (0.8 + Math.random() * 0.4),
+      thickness: size * dcfg.initialThicknessFrac * widthFromWetness * (0.8 + Math.random() * 0.4),
       wetness: dcfg.initialWetness * (0.7 + Math.random() * 0.6),
       spawnSize: size,      // needed to live-recompute minThickness below
       capName: cap.current,
@@ -591,6 +619,7 @@
       d._stampSpacingFrac = dcfg.stampSpacingFrac;
       d._endSlowdown = dcfg.endSlowdown != null ? dcfg.endSlowdown : 0.5;
       d._minThickness = d.spawnSize * (dcfg.minThicknessFrac != null ? dcfg.minThicknessFrac : 0.18);
+      d._endBlobFrac = dcfg.endBlobFrac != null ? dcfg.endBlobFrac : 1.8;
     }
     return d;
   }
@@ -653,6 +682,16 @@
       d.wetness -= d._wetnessDrain * dtSec * 60;
       d.thickness *= Math.max(0, 1 - d._thicknessDrain * dtSec * 60);
       if (d.thickness < d._minThickness) d.thickness = d._minThickness;
+      // End-of-life blob: a real drip doesn't fade to a thin nothing —
+      // surface tension pools the last bit of paint into a small bead
+      // right as it dries up. Blends thickness UP toward that bead size
+      // using the SAME lifeF computed above, so the widening lands at
+      // exactly the moment the fall eases to a stop, not before.
+      if (d._endSlowdown > 0 && d.wetness < d._endSlowdown) {
+        const blobSize = d._minThickness * d._endBlobFrac;
+        const blobT = 1 - lifeF; // 0 at full speed, → 1 at a full stop
+        d.thickness += (blobSize - d.thickness) * blobT * blobT;
+      }
 
       // Kill conditions: paint exhausted OR dropped off the canvas.
       if (d.wetness <= 0 || d.y > stageH + 40) {
