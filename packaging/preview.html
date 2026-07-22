@@ -1,0 +1,22 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>GRFT+ sleeve preview</title>
+<style>
+  body { margin:0; background:#2a2a2a; font:13px -apple-system,sans-serif; color:#ccc; }
+  .wrap { padding:14px; }
+  h2 { font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#888; margin:16px 0 6px; }
+  img, object { width:100%; display:block; background:#111; }
+  .noguides #GUIDES, .noguides #DIE_CUT { display:none; }
+</style>
+<div class="wrap">
+  <h2>Artwork + die line + guides</h2>
+  <object id="a" type="image/svg+xml" data="grft-toy-sleeve.svg"></object>
+  <h2>Artwork only (as printed)</h2>
+  <object id="b" type="image/svg+xml" data="grft-toy-sleeve.svg"></object>
+</div>
+<script>
+  document.getElementById('b').addEventListener('load', e => {
+    const d = e.target.contentDocument;
+    ['GUIDES','DIE_CUT'].forEach(id => { const g = d.getElementById(id); if (g) g.style.display='none'; });
+  });
+</script>
