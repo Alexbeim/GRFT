@@ -3528,6 +3528,38 @@ footer {
   letter-spacing: var(--track-heading);
 }
 
+/* Numbered "how it worked" steps — accent counters, matches body type */
+.gal-story-body .gal-story-steps {
+  list-style: none;
+  counter-reset: story-step;
+  margin: 0 0 var(--sp-22);
+  padding: 0;
+}
+.gal-story-body .gal-story-steps li {
+  counter-increment: story-step;
+  position: relative;
+  padding-left: 3.2rem;
+  margin: 0 0 var(--sp-17);
+  font-size: 17px;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.72);
+}
+.gal-story-body .gal-story-steps li::before {
+  content: counter(story-step);
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  width: 2.1rem;
+  height: 2.1rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: var(--w-bold);
+  border-radius: 50%;
+}
+
 /* Media strip — flexible grid for additional photos & videos */
 .gal-story-media {
   max-width: 1200px;
