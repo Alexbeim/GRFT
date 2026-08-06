@@ -9,18 +9,36 @@ on:
   push:
     branches: [main]
 
+# Only the newest push to main matters. When several commits are pushed in a
+# burst, cancel the superseded in-flight pings cleanly instead of letting them
+# pile up and email "cancelled" notifications. cancel-in-progress makes the
+# supersede intentional (a fresh run will ping once the burst settles).
+concurrency:
+  group: indexnow-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait 30s for GitHub Pages to deploy
-        run: sleep 30
+      - name: Wait for GitHub Pages to publish the new sitemap
+        run: sleep 45
 
       - name: Ping IndexNow
+        # A failed ping is non-fatal — it's a best-effort nudge to search
+        # engines, so a transient hiccup should never fail the run or email us.
+        continue-on-error: true
         run: |
           KEY="324f435af9b0468aa120c201fcf0aefd"
           URL="https://graffitiplus.io/sitemap.xml"
           response=$(curl -sS -o /dev/null -w "%{http_code}" \
             "https://api.indexnow.org/indexnow?url=${URL}&key=${KEY}")
           echo "IndexNow HTTP $response"
-          [[ "$response" =~ ^(200|202)$ ]]
+          if [[ "$response" =~ ^(200|202)$ ]]; then
+            echo "✅ IndexNow accepted the ping."
+          else
+            echo "⚠️ IndexNow returned $response (non-fatal, will retry next push)."
+          fi
