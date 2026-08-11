@@ -42,19 +42,21 @@
     color:var(--canvas);
     font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-font-smoothing:antialiased;
-    line-height:1.5;
+    font-size:17px;
+    line-height:1.61;
   }
-  /* top bar — logo only, no full nav. keeps the form the one path forward */
-  .topbar{max-width:720px;margin:0 auto;padding:28px 24px 0}
+  /* top bar — logo only, no full nav. keeps the form the one path forward.
+     logo height + border match the site nav (style-v4.css) for continuity. */
+  .topbar{max-width:720px;margin:0 auto;padding:24px 24px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
   .topbar a{display:inline-flex}
-  .topbar img{height:26px;width:auto;display:block}
-  .wrap{max-width:720px;margin:0 auto;padding:28px 24px 96px}
+  .topbar img{height:56px;width:auto;display:block}
+  .wrap{max-width:720px;margin:0 auto;padding:36px 24px 96px}
   .eyebrow{
     font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
     text-transform:uppercase;letter-spacing:.22em;font-size:12px;
     color:var(--yellow);margin:0 0 18px;
   }
-  h1{font-weight:700;letter-spacing:-.02em;font-size:44px;line-height:1.05;margin:0 0 16px}
+  h1{font-weight:700;letter-spacing:-.02em;font-size:clamp(32px,5.2vw,52px);line-height:1.08;margin:0 0 16px}
   h1 .y,h2 .y{color:var(--yellow)}
   h1 .grft{font-size:1.05em}
   h2{font-weight:700;letter-spacing:-.02em;font-size:28px;line-height:1.1;margin:0 0 8px}
@@ -109,7 +111,7 @@
   #done .eyebrow{margin-bottom:22px}
   .footline{max-width:720px;margin:0 auto;padding:0 24px 48px;color:var(--slate);font-size:13px}
   .footline a{color:var(--slate)}
-  @media(max-width:560px){h1{font-size:34px}.wrap{padding:20px 18px 72px}.stats{gap:18px 28px}}
+  @media(max-width:560px){.topbar img{height:44px}.wrap{padding:24px 18px 72px}.stats{gap:18px 28px}}
 </style>
 
 <div class="topbar">
@@ -121,7 +123,7 @@
 <div class="wrap">
   <div id="intro">
     <p class="eyebrow">Representation</p>
-    <h1>Partnership inquiries come in every week —<br>finding the right partner takes time.</h1>
+    <h1>Partnership inquiries come in every week. Finding the right ones takes time.</h1>
     <p class="lede-about">Graffiti+ started in 2008 on one idea: put a real spray can in someone's hand, in public, and let them make something — no instruction needed, no skill barrier, graffiti writers shaping every version of it along the way. That idea is what's carried us onto six continents and onto activations for Chanel, Nike, Hennessy and Porsche, without losing the thing that made it work in the first place.</p>
     <p class="lede">We think of a regional partner less like a vendor and more like a long-term relationship — you'd be carrying our name and our culture into your market for years, so it has to be right, not just well-timed. This form is how we find out: your market, your track record, and your team's connection to graffiti and street culture. Specific answers tell us more than a polished pitch would. If it lines up, we'll set up a call.</p>
 
