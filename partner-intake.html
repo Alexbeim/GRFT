@@ -157,8 +157,24 @@
         <input type="text" name="territory" data-required></div>
       <div class="q"><label class="qlabel">Company website</label>
         <input type="url" name="website" placeholder="https://"></div>
+      <div class="q"><label class="qlabel">Social media</label>
+        <p class="hint">Instagram, LinkedIn, etc. — whatever's most active.</p>
+        <input type="text" name="socials" placeholder="@handle or profile link"></div>
       <div class="q"><label class="qlabel">Years operating<span class="req">*</span></label>
         <input type="number" name="years" min="0" data-required></div>
+      <div class="q"><label class="qlabel">Company size<span class="req">*</span></label>
+        <select name="company_size" data-required>
+          <option value="" selected disabled>Select…</option>
+          <option value="1–5">1–5 employees</option>
+          <option value="6–20">6–20 employees</option>
+          <option value="21–50">21–50 employees</option>
+          <option value="51–200">51–200 employees</option>
+          <option value="200+">200+ employees</option>
+        </select></div>
+      <div class="q"><label class="qlabel">Languages your team operates in</label>
+        <input type="text" name="languages"></div>
+      <div class="q"><label class="qlabel">How did you hear about Graffiti+?</label>
+        <input type="text" name="referral"></div>
     </section>
 
     <!-- STEP 2 -->
@@ -260,6 +276,13 @@
         <textarea name="price_expectations"></textarea></div>
       <div class="q"><label class="qlabel">Minimum annual volume you'd commit to (if any)</label>
         <input type="text" name="min_volume"></div>
+      <div class="q"><label class="qlabel">When would you be ready to start?</label>
+        <div class="opts" data-single>
+          <label class="opt"><input type="radio" name="timing" value="Immediately"><span>Immediately</span></label>
+          <label class="opt"><input type="radio" name="timing" value="Within 3 months"><span>Within 3 months</span></label>
+          <label class="opt"><input type="radio" name="timing" value="3–6 months"><span>3–6 months</span></label>
+          <label class="opt"><input type="radio" name="timing" value="Just exploring for now"><span>Just exploring for now</span></label>
+        </div></div>
     </section>
 
     <!-- STEP 6 -->
