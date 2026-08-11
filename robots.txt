@@ -4,6 +4,7 @@ Allow: /
 Disallow: /lab.html
 Disallow: /painter.html
 Disallow: /tag-designer.html
+Disallow: /partner-intake.html
 Disallow: /grft-traced-paths.json
 Disallow: /grft-traced-paths-slim.json
 Disallow: /grft-traced-paths-404.json

@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Represent Graffiti+ | Partner Program</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Unlisted — shared directly with prospective partners, kept out of search + social previews. -->
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta property="og:title" content="">
+<meta property="og:description" content="">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" type="image/png" href="images/favicon.png">
+<link rel="apple-touch-icon" href="images/favicon.png">
+
+<style>
+  @font-face {
+    font-family: "GraffitiPlus Display";
+    src: url("Fonts/GraffitiPlusDisplay-Regular.woff2?v=3") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  .grft{
+    font-family:"GraffitiPlus Display","Inter",sans-serif;
+    font-weight:400;
+    line-height:0.95;
+  }
+  :root{
+    --obsidian:#000d10;
+    --yellow:#FEBD17;
+    --canvas:#ffffff;
+    --slate:#8e8e95;
+    --line:rgba(255,255,255,.14);
+    --field:#0a171a;
+    --field-focus:#0f2024;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--obsidian);
+    color:var(--canvas);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  /* top bar — logo only, no full nav. keeps the form the one path forward */
+  .topbar{max-width:720px;margin:0 auto;padding:28px 24px 0}
+  .topbar a{display:inline-flex}
+  .topbar img{height:26px;width:auto;display:block}
+  .wrap{max-width:720px;margin:0 auto;padding:28px 24px 96px}
+  .eyebrow{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    text-transform:uppercase;letter-spacing:.22em;font-size:12px;
+    color:var(--yellow);margin:0 0 18px;
+  }
+  h1{font-weight:700;letter-spacing:-.02em;font-size:44px;line-height:1.05;margin:0 0 16px}
+  h1 .y,h2 .y{color:var(--yellow)}
+  h1 .grft{font-size:1.05em}
+  h2{font-weight:700;letter-spacing:-.02em;font-size:28px;line-height:1.1;margin:0 0 8px}
+  .lede{color:var(--slate);font-size:17px;max-width:56ch;margin:0 0 26px}
+  .lede-about{color:rgba(255,255,255,.82);font-size:17px;max-width:58ch;margin:0 0 22px}
+  .stats{display:flex;flex-wrap:wrap;gap:24px 36px;margin:0 0 36px;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .stat{display:flex;flex-direction:column;gap:2px}
+  .stat b{font-size:26px;color:var(--yellow)}
+  .stat span{font-size:12px;color:var(--slate);text-transform:uppercase;letter-spacing:.1em}
+  /* progress */
+  .bar{height:3px;background:var(--line);margin:0 0 40px;overflow:hidden}
+  .bar>span{display:block;height:100%;width:0;background:var(--yellow);transition:width .3s ease}
+  .stepmeta{font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--slate);margin:0 0 8px}
+  /* fields */
+  .step{display:none}
+  .step.active{display:block;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .q{margin:0 0 26px}
+  label.qlabel{display:block;font-weight:600;font-size:16px;margin:0 0 10px}
+  label.qlabel .req{color:var(--yellow);margin-left:4px}
+  .hint{color:var(--slate);font-size:13px;margin:-4px 0 10px}
+  input[type=text],input[type=email],input[type=url],input[type=number],textarea,select{
+    width:100%;background:var(--field);border:1px solid var(--line);color:var(--canvas);
+    font-family:inherit;font-size:15px;padding:13px 14px;border-radius:0;outline:none;
+    transition:border-color .15s,background .15s;
+  }
+  textarea{min-height:96px;resize:vertical}
+  input:focus,textarea:focus,select:focus{border-color:var(--yellow);background:var(--field-focus)}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{display:flex;align-items:flex-start;gap:11px;border:1px solid var(--line);
+    padding:12px 14px;cursor:pointer;transition:border-color .15s,background .15s}
+  .opt:hover{border-color:var(--slate)}
+  .opt input{accent-color:var(--yellow);margin-top:3px;width:16px;height:16px;flex:none}
+  .opt.checked{border-color:var(--yellow);background:var(--field-focus)}
+  .opt span{font-size:15px}
+  /* honeypot — hidden from real visitors, bots tend to fill every field */
+  .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  /* nav */
+  .formnav{display:flex;justify-content:space-between;align-items:center;margin-top:36px;gap:16px}
+  button{font-family:inherit;font-weight:600;font-size:15px;cursor:pointer;border-radius:0;
+    border:1px solid var(--yellow);padding:13px 26px;transition:transform .05s,opacity .15s}
+  button:disabled{opacity:.55;cursor:default}
+  button:active:not(:disabled){transform:translateY(1px)}
+  .btn-primary{background:var(--yellow);color:var(--obsidian)}
+  .btn-ghost{background:transparent;color:var(--canvas);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--slate)}
+  .err{color:#ff6b6b;font-size:13px;margin-top:8px;display:none}
+  .err.show{display:block}
+  /* done */
+  #done{display:none;text-align:center;padding:40px 0}
+  #done .eyebrow{margin-bottom:22px}
+  .footline{max-width:720px;margin:0 auto;padding:0 24px 48px;color:var(--slate);font-size:13px}
+  .footline a{color:var(--slate)}
+  @media(max-width:560px){h1{font-size:34px}.wrap{padding:20px 18px 72px}.stats{gap:18px 28px}}
+</style>
+
+<div class="topbar">
+  <a href="https://graffitiplus.io/" aria-label="Graffiti+ home">
+    <img src="images/logo-v4.webp" alt="Graffiti+">
+  </a>
+</div>
+
+<div class="wrap">
+  <div id="intro">
+    <p class="eyebrow">Representation</p>
+    <h1>Partnership inquiries come in every week —<br>finding the right partner takes time.</h1>
+    <p class="lede-about">Graffiti+ started in 2008 on one idea: put a real spray can in someone's hand, in public, and let them make something — no instruction needed, no skill barrier, graffiti writers shaping every version of it along the way. That idea is what's carried us onto six continents and onto activations for Chanel, Nike, Hennessy and Porsche, without losing the thing that made it work in the first place.</p>
+    <p class="lede">We think of a regional partner less like a vendor and more like a long-term relationship — you'd be carrying our name and our culture into your market for years, so it has to be right, not just well-timed. This form is how we find out: your market, your track record, and your team's connection to graffiti and street culture. Specific answers tell us more than a polished pitch would. If it lines up, we'll set up a call.</p>
+
+    <div class="stats" id="stats">
+      <div class="stat"><b id="statYears">—</b><span>Years deployed</span></div>
+      <div class="stat"><b>6</b><span>Continents</span></div>
+      <div class="stat"><b>500+</b><span>Activations</span></div>
+    </div>
+  </div>
+
+  <div class="bar"><span id="progress"></span></div>
+
+  <form id="intake" name="partner-intake" onsubmit="return false;">
+    <!-- honeypot field: real users never see or fill this -->
+    <div class="hp" aria-hidden="true">
+      <label for="company_url">Leave this field blank</label>
+      <input type="text" id="company_url" name="company_url" tabindex="-1" autocomplete="off">
+    </div>
+
+    <!-- STEP 1 -->
+    <section class="step active" data-step="1">
+      <p class="stepmeta">01 — About you</p>
+      <h2>You & your <span class="y">company</span></h2>
+      <div class="q"><label class="qlabel">Your full name<span class="req">*</span></label>
+        <input type="text" name="full_name" data-required></div>
+      <div class="q"><label class="qlabel">Company legal name<span class="req">*</span></label>
+        <input type="text" name="company" data-required></div>
+      <div class="q"><label class="qlabel">Your role / title<span class="req">*</span></label>
+        <input type="text" name="role" data-required></div>
+      <div class="q"><label class="qlabel">Email<span class="req">*</span></label>
+        <input type="email" name="email" data-required></div>
+      <div class="q"><label class="qlabel">Country / territory you want to represent<span class="req">*</span></label>
+        <input type="text" name="territory" data-required></div>
+      <div class="q"><label class="qlabel">Company website</label>
+        <input type="url" name="website" placeholder="https://"></div>
+      <div class="q"><label class="qlabel">Years operating<span class="req">*</span></label>
+        <input type="number" name="years" min="0" data-required></div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="step" data-step="2">
+      <p class="stepmeta">02 — The opportunity</p>
+      <h2>Your <span class="y">market</span></h2>
+      <div class="q"><label class="qlabel">Describe the market for experiential / interactive activations in your country<span class="req">*</span></label>
+        <textarea name="market" data-required></textarea></div>
+      <div class="q"><label class="qlabel">Who are the main buyers in your market?</label>
+        <div class="opts" data-multi>
+          <label class="opt"><input type="checkbox" name="buyers" value="Brands (direct)"><span>Brands (direct)</span></label>
+          <label class="opt"><input type="checkbox" name="buyers" value="Creative / experiential agencies"><span>Creative / experiential agencies</span></label>
+          <label class="opt"><input type="checkbox" name="buyers" value="Festivals & fairs"><span>Festivals &amp; fairs</span></label>
+          <label class="opt"><input type="checkbox" name="buyers" value="Government / tourism"><span>Government / tourism</span></label>
+          <label class="opt"><input type="checkbox" name="buyers" value="Corporate events"><span>Corporate events</span></label>
+        </div></div>
+      <div class="q"><label class="qlabel">Estimated Graffiti+ activations you could drive per year</label>
+        <input type="text" name="volume"></div>
+      <div class="q"><label class="qlabel">Typical pricing norms & client payment terms in your market<span class="req">*</span></label>
+        <textarea name="pricing_norms" data-required></textarea></div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="step" data-step="3">
+      <p class="stepmeta">03 — Track record</p>
+      <h2>Your <span class="y">clients</span> & work</h2>
+      <div class="q"><label class="qlabel">List 3–5 relevant activations/events you've delivered<span class="req">*</span></label>
+        <p class="hint">Name, client, scale, year.</p>
+        <textarea name="past_events" data-required></textarea></div>
+      <div class="q"><label class="qlabel">What types of clients do you currently hold active relationships with?</label>
+        <div class="opts" data-multi>
+          <label class="opt"><input type="checkbox" name="client_types" value="Global brands"><span>Global brands</span></label>
+          <label class="opt"><input type="checkbox" name="client_types" value="Regional / local brands"><span>Regional / local brands</span></label>
+          <label class="opt"><input type="checkbox" name="client_types" value="Creative & experiential agencies"><span>Creative &amp; experiential agencies</span></label>
+          <label class="opt"><input type="checkbox" name="client_types" value="Festivals & event producers"><span>Festivals &amp; event producers</span></label>
+          <label class="opt"><input type="checkbox" name="client_types" value="Government / tourism boards"><span>Government / tourism boards</span></label>
+          <label class="opt"><input type="checkbox" name="client_types" value="Corporate / private events"><span>Corporate / private events</span></label>
+        </div></div>
+      <div class="q"><label class="qlabel">Name a few of your most significant current clients</label>
+        <p class="hint">Or describe them if under NDA.</p>
+        <textarea name="key_clients"></textarea></div>
+      <div class="q"><label class="qlabel">Brands, products, or IPs you currently represent or distribute</label>
+        <textarea name="brands_repped"></textarea></div>
+      <div class="q"><label class="qlabel">Client references (2–3: name, company, contact)<span class="req">*</span></label>
+        <textarea name="references" data-required></textarea></div>
+      <div class="q"><label class="qlabel">Portfolio / case study link</label>
+        <input type="url" name="portfolio" placeholder="https://"></div>
+    </section>
+
+    <!-- STEP 4 -->
+    <section class="step" data-step="4">
+      <p class="stepmeta">04 — Operations</p>
+      <h2>How you'd <span class="y">deliver</span></h2>
+      <div class="q"><label class="qlabel">Could you run a Graffiti+ activation with your own team?<span class="req">*</span></label>
+        <div class="opts" data-single>
+          <label class="opt"><input type="radio" name="delivery" value="Yes, fully in-house" data-required><span>Yes, fully in-house</span></label>
+          <label class="opt"><input type="radio" name="delivery" value="Partly — some subcontracting"><span>Partly — some subcontracting</span></label>
+          <label class="opt"><input type="radio" name="delivery" value="No — fully subcontracted"><span>No — fully subcontracted</span></label>
+        </div></div>
+      <div class="q"><label class="qlabel">LED / AV equipment — how do you source it?<span class="req">*</span></label>
+        <div class="opts" data-single>
+          <label class="opt"><input type="radio" name="led" value="We own it" data-required><span>We own it</span></label>
+          <label class="opt"><input type="radio" name="led" value="We rent locally"><span>We rent locally</span></label>
+          <label class="opt"><input type="radio" name="led" value="We source per project"><span>We source per project</span></label>
+          <label class="opt"><input type="radio" name="led" value="Not sure yet"><span>Not sure yet</span></label>
+        </div></div>
+      <div class="q"><label class="qlabel">Warehousing & logistics capability</label>
+        <textarea name="logistics"></textarea></div>
+      <div class="q"><label class="qlabel">Can you train and staff technical operators locally?<span class="req">*</span></label>
+        <div class="opts" data-single>
+          <label class="opt"><input type="radio" name="staffing" value="Yes" data-required><span>Yes</span></label>
+          <label class="opt"><input type="radio" name="staffing" value="With support from Graffiti+"><span>With support from Graffiti+</span></label>
+          <label class="opt"><input type="radio" name="staffing" value="No"><span>No</span></label>
+        </div></div>
+      <div class="q"><label class="qlabel">Main per-event production cost drivers in your market</label>
+        <p class="hint">Transport, setup, staffing, etc.</p>
+        <textarea name="cost_drivers"></textarea></div>
+    </section>
+
+    <!-- STEP 5 -->
+    <section class="step" data-step="5">
+      <p class="stepmeta">05 — Commercial</p>
+      <h2>The <span class="y">deal</span></h2>
+      <div class="q"><label class="qlabel">Able to invest upfront (equipment, marketing, minimums)?<span class="req">*</span></label>
+        <div class="opts" data-single>
+          <label class="opt"><input type="radio" name="investment" value="Yes" data-required><span>Yes</span></label>
+          <label class="opt"><input type="radio" name="investment" value="To a limited extent"><span>To a limited extent</span></label>
+          <label class="opt"><input type="radio" name="investment" value="No"><span>No</span></label>
+        </div></div>
+      <div class="q"><label class="qlabel">Preferred commercial model</label>
+        <div class="opts" data-multi>
+          <label class="opt"><input type="checkbox" name="model" value="Per-event license"><span>Per-event license</span></label>
+          <label class="opt"><input type="checkbox" name="model" value="Revenue share"><span>Revenue share</span></label>
+          <label class="opt"><input type="checkbox" name="model" value="Distributor margin / markup"><span>Distributor margin / markup</span></label>
+          <label class="opt"><input type="checkbox" name="model" value="Retainer"><span>Retainer</span></label>
+          <label class="opt"><input type="checkbox" name="model" value="Open to discuss"><span>Open to discuss</span></label>
+        </div></div>
+      <div class="q"><label class="qlabel">Your expectations on pricing to end clients</label>
+        <textarea name="price_expectations"></textarea></div>
+      <div class="q"><label class="qlabel">Minimum annual volume you'd commit to (if any)</label>
+        <input type="text" name="min_volume"></div>
+    </section>
+
+    <!-- STEP 6 -->
+    <section class="step" data-step="6">
+      <p class="stepmeta">06 — Graffiti & values</p>
+      <h2>Your relationship to the <span class="y">culture</span></h2>
+      <div class="q"><label class="qlabel">How would you and your team describe your relationship to graffiti and street art culture? What draws you to it?<span class="req">*</span></label>
+        <textarea name="graffiti_affinity" data-required></textarea></div>
+      <div class="q"><label class="qlabel">Does anyone in your management or staff have hands-on experience with graffiti or street art?<span class="req">*</span></label>
+        <p class="hint">As artists, writers, curators, or within the community.</p>
+        <div class="opts" data-single>
+          <label class="opt"><input type="radio" name="graffiti_experience" value="Yes" data-required><span>Yes</span></label>
+          <label class="opt"><input type="radio" name="graffiti_experience" value="No"><span>No</span></label>
+          <label class="opt"><input type="radio" name="graffiti_experience" value="Not sure"><span>Not sure</span></label>
+        </div></div>
+      <div class="q"><label class="qlabel">If yes, tell us about it.</label>
+        <textarea name="graffiti_experience_detail"></textarea></div>
+      <div class="q"><label class="qlabel">Your company mission and core values<span class="req">*</span></label>
+        <textarea name="values" data-required></textarea></div>
+      <div class="q"><label class="qlabel">Why is Graffiti+ specifically the right partner for you?<span class="req">*</span></label>
+        <textarea name="why_us" data-required></textarea></div>
+      <div class="q"><label class="qlabel">Anything else you'd like us to know?</label>
+        <textarea name="other"></textarea></div>
+    </section>
+
+    <p class="err" id="err">Please fill in the required fields on this step.</p>
+
+    <div class="formnav">
+      <button type="button" class="btn-ghost" id="back" style="visibility:hidden">Back</button>
+      <button type="button" class="btn-primary" id="next">Continue</button>
+    </div>
+  </form>
+
+  <div id="done">
+    <p class="eyebrow">Received</p>
+    <h2>Thanks — we've got it.</h2>
+    <p class="lede" style="margin:12px auto 0">We review every submission personally. If it looks like a fit,
+      we'll reach out to set up a call. Appreciate you taking the time.</p>
+  </div>
+</div>
+
+<p class="footline">Questions first? Email <a href="mailto:info@graffitiplus.io">info@graffitiplus.io</a>. © <span id="yr"></span> Graffiti+ / Tangible Interaction Design Inc.</p>
+
+<script>
+  document.getElementById('statYears').textContent = new Date().getFullYear() - 2008;
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  // ── Formspree endpoint. Create a free form at formspree.io and paste its
+  //    endpoint here (looks like https://formspree.io/f/xxxxxxxx).
+  //    Blank = preview mode: the form still walks through and shows the
+  //    thank-you screen, but nothing is sent anywhere.
+  const FORM_ENDPOINT = "https://formspree.io/f/xwleovkr";
+
+  const REQUIRE_FIELDS = true;
+
+  const steps = Array.from(document.querySelectorAll('.step'));
+  const total = steps.length;
+  let cur = 0;
+  const progress = document.getElementById('progress');
+  const backBtn = document.getElementById('back');
+  const nextBtn = document.getElementById('next');
+  const errBox = document.getElementById('err');
+
+  function render(){
+    steps.forEach((s,i)=>s.classList.toggle('active', i===cur));
+    progress.style.width = ((cur)/(total)*100 + (100/total)) + '%';
+    backBtn.style.visibility = cur===0 ? 'hidden' : 'visible';
+    nextBtn.textContent = cur===total-1 ? 'Submit' : 'Continue';
+    // intro copy (headline, story, stats) only makes sense on the first step
+    document.getElementById('intro').style.display = cur===0 ? '' : 'none';
+    errBox.classList.remove('show');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function validate(){
+    if(!REQUIRE_FIELDS) return true;
+    const step = steps[cur];
+    let ok = true;
+    step.querySelectorAll('[data-required]').forEach(el=>{
+      if(el.type==='radio'){
+        const group = step.querySelectorAll('input[name="'+el.name+'"]');
+        if(![...group].some(r=>r.checked)) ok=false;
+      } else if(!el.value.trim()){ ok=false; }
+    });
+    return ok;
+  }
+
+  nextBtn.addEventListener('click', ()=>{
+    if(!validate()){ errBox.textContent = 'Please fill in the required fields on this step.'; errBox.classList.add('show'); return; }
+    if(cur < total-1){ cur++; render(); }
+    else submit();
+  });
+  backBtn.addEventListener('click', ()=>{ if(cur>0){ cur--; render(); } });
+
+  // highlight selected option cards
+  document.querySelectorAll('.opt input').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      const box = inp.closest('.opts');
+      if(inp.type==='radio') box.querySelectorAll('.opt').forEach(o=>o.classList.remove('checked'));
+      inp.closest('.opt').classList.toggle('checked', inp.checked);
+    });
+  });
+
+  async function submit(){
+    const form = document.getElementById('intake');
+    if(form.company_url.value){ return; } // honeypot tripped — silently drop
+    nextBtn.disabled = true;
+    nextBtn.textContent = 'Sending…';
+    const data = new FormData(form);
+    try{
+      if(FORM_ENDPOINT){
+        const res = await fetch(FORM_ENDPOINT, {method:'POST', body:data, headers:{'Accept':'application/json'}});
+        if(!res.ok) throw new Error('Request failed');
+      }
+      document.getElementById('intake').style.display='none';
+      document.querySelector('.bar').style.display='none';
+      document.getElementById('done').style.display='block';
+      window.scrollTo({top:0,behavior:'smooth'});
+    }catch(e){
+      nextBtn.disabled = false;
+      nextBtn.textContent = 'Submit';
+      errBox.textContent = "Something went wrong sending your submission — please email your details to info@graffitiplus.io instead.";
+      errBox.classList.add('show');
+    }
+  }
+
+  render();
+</script>
+</html>
