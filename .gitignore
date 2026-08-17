@@ -11,3 +11,7 @@ __MACOSX/
 .env
 .env.local
 tools/output/
+
+# Heavy non-live assets — keep local, keep out of the deployed site (GitHub Pages 1 GB limit)
+images/not-in-use/
+Preview/
