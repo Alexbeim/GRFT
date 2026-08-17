@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 # Unlisted experiments + private trace data — keep out of indexing
+Disallow: /gal/house-of-fresh.html
+Disallow: /gal/house-of-fresh
 Disallow: /lab.html
 Disallow: /painter.html
 Disallow: /tag-designer.html
