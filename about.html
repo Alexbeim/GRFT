@@ -528,7 +528,7 @@
     <!-- 2008 -->
     <div class="tl-card tl-featured">
       <div class="tl-card-media tl-video">
-        <video class="tl-autoplay-video" src="videos/2008.webm" muted playsinline loop preload="none"></video>
+        <video class="tl-autoplay-video" data-has-audio src="videos/2008.webm" muted playsinline loop preload="none"></video>
       </div>
       <div class="tl-dot"></div>
       <div class="tl-card-content">
@@ -565,7 +565,7 @@
     <!-- 2016 -->
     <div class="tl-card">
       <div class="tl-card-media tl-video">
-        <video class="tl-autoplay-video" src="videos/panorama.webm" muted playsinline loop preload="none"></video>
+        <video class="tl-autoplay-video" data-has-audio src="videos/panorama.webm" muted playsinline loop preload="none"></video>
       </div>
       <div class="tl-dot"></div>
       <div class="tl-card-content">
@@ -583,7 +583,7 @@
     <!-- 2019 -->
     <div class="tl-card">
       <div class="tl-card-media tl-video">
-        <video class="tl-autoplay-video" src="videos/king-cross.webm" muted playsinline loop preload="none"></video>
+        <video class="tl-autoplay-video" data-has-audio src="videos/king-cross.webm" muted playsinline loop preload="none"></video>
       </div>
       <div class="tl-dot"></div>
       <div class="tl-card-content">
@@ -603,7 +603,7 @@
     <!-- 2018–2023 R&D -->
     <div class="tl-card tl-featured">
       <div class="tl-card-media tl-video">
-        <video class="tl-autoplay-video" src="videos/led-screen-v3.webm" muted playsinline loop preload="none"></video>
+        <video class="tl-autoplay-video" data-has-audio src="videos/led-screen-v3.webm" muted playsinline loop preload="none"></video>
       </div>
       <div class="tl-dot"></div>
       <div class="tl-card-content">
@@ -623,7 +623,7 @@
     <!-- 2024 -->
     <div class="tl-card">
       <div class="tl-card-media tl-video">
-        <video class="tl-autoplay-video" src="videos/3d-car.webm" muted playsinline loop preload="none"></video>
+        <video class="tl-autoplay-video" data-has-audio src="videos/3d-car.webm" muted playsinline loop preload="none"></video>
       </div>
       <div class="tl-dot"></div>
       <div class="tl-card-content">
@@ -772,5 +772,6 @@
 
   document.querySelectorAll('.tl-autoplay-video').forEach(v => observer.observe(v));
 </script>
+<script defer src="/js/video-sound.js"></script>
 </body>
 </html>
