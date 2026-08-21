@@ -15,3 +15,10 @@ tools/output/
 # Heavy non-live assets — keep local, keep out of the deployed site (GitHub Pages 1 GB limit)
 images/not-in-use/
 Preview/
+
+# Source video masters — converted into vid/*.mp4, kept out of the repo (delete the local copies when convenient)
+videos/mo_cap_graffiti_wall_for_panorama_festival_v1 (1080p).mp4
+images/og-panorama-festival-2016.jpg
+
+# Panorama photo source originals — optimized into images/panorama-*.webp, keep originals local only
+images/Panorama/
