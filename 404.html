@@ -5,6 +5,7 @@
 <title>404 · Graffiti+</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="That page got tagged over. Head back to graffitiplus.io.">
+<meta name="robots" content="noindex, follow">
 
 <!-- GitHub Pages serves this 404 page at the requested (missing) URL, e.g.
      /preview-x7k2/ — so relative asset paths would resolve against that path
@@ -333,6 +334,30 @@
     <button class="nf-btn nf-go" id="nf-go" type="button">▶ Tag it</button>
   </div>
 
+</div>
+
+<!-- Recovery links for agents / crawlers / screen readers. Present in the HTML
+     (so a bot that reads this 404 gets a clear map of where to look next) but
+     visually hidden — sighted humans use the nav bar above. Removing the inline
+     style below makes it a visible on-page panel again. -->
+<div class="nf-recovery" role="navigation" aria-label="Where to go next" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
+  <p style="margin:0 0 10px;font-weight:600;color:#fff;">This page doesn't exist (HTTP 404). Try one of these:</p>
+  <p style="margin:0 0 14px;">
+    <a href="/">Home</a> ·
+    <a href="/rentals">Rentals</a> ·
+    <a href="/add-ons">Add-ons</a> ·
+    <a href="/gallery">Gallery</a> ·
+    <a href="/about">About</a> ·
+    <a href="/privacy">Privacy</a> ·
+    <a href="/#contact">Contact</a>
+  </p>
+  <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.55);">
+    For agents &amp; crawlers:
+    <a href="/sitemap.xml">Sitemap</a> ·
+    <a href="/llms.txt">llms.txt</a> ·
+    <a href="/llms-full.txt">llms-full.txt</a>
+    — the full list of real pages lives in the sitemap.
+  </p>
 </div>
 
 <script src="paint-engine.js"></script>
