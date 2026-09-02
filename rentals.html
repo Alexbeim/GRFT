@@ -101,9 +101,9 @@
     .rental-card-img:focus-visible { outline: 2px solid var(--accent, #ffc800); outline-offset: -2px; }
 
     .rv-lightbox {
-      position: fixed; inset: 0; z-index: 1000;
+      position: fixed; left: 0; right: 0; bottom: 0; top: var(--rv-nav-h, 88px); z-index: 1000;
       display: none; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.92); padding: 5vh 4vw;
+      background: rgba(0,0,0,0.92); padding: 4vh 4vw;
     }
     .rv-lightbox.is-open { display: flex; }
     .rv-media {
@@ -121,7 +121,7 @@
       background: linear-gradient(to top, rgba(0,0,0,0.72), transparent); pointer-events: none;
     }
     .rv-close {
-      position: fixed; top: 18px; right: 22px; z-index: 1001;
+      position: absolute; top: 14px; right: 18px; z-index: 1001;
       width: 46px; height: 46px; display: grid; place-items: center;
       background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.28);
       border-radius: 999px; color: #fff; font-size: 24px; line-height: 1; cursor: pointer;
@@ -464,29 +464,41 @@
     '<button class="rv-close" type="button" aria-label="Close video">×</button>' +
     '<div class="rv-media"><video muted loop playsinline preload="metadata"></video><p class="rv-title"></p></div>';
   document.body.appendChild(lb);
+  var siteNav = document.querySelector('nav');
 
   var lbVideo = lb.querySelector('video');
   var lbTitle = lb.querySelector('.rv-title');
   var lastFocus = null;
+  var registry = {};   // slug -> { src, title, poster }
 
-  function open(src, title, poster) {
-    if (poster) lbVideo.poster = poster; else lbVideo.removeAttribute('poster');
-    lbVideo.src = src;
-    lbTitle.textContent = title || '';
-    lbTitle.style.display = title ? '' : 'none';
+  function open(slug) {
+    var item = registry[slug];
+    if (!item) return;
+    // Start the backdrop below the sticky nav so the branding stays visible.
+    document.documentElement.style.setProperty('--rv-nav-h', (siteNav ? siteNav.offsetHeight : 88) + 'px');
+    if (item.poster) lbVideo.poster = item.poster; else lbVideo.removeAttribute('poster');
+    lbVideo.src = item.src;
+    lbTitle.textContent = item.title || '';
+    lbTitle.style.display = item.title ? '' : 'none';
     lb.classList.add('is-open');
     document.body.style.overflow = 'hidden';
     lastFocus = document.activeElement;
     lb.querySelector('.rv-close').focus();
     var p = lbVideo.play();
     if (p && p.catch) p.catch(function () {});
+    // Reflect state in the URL so the open view is shareable (no scroll jump).
+    if (location.hash.slice(1).toLowerCase() !== slug) {
+      history.replaceState(null, '', '#' + slug);
+    }
   }
   function close() {
+    if (!lb.classList.contains('is-open')) return;
     lb.classList.remove('is-open');
     document.body.style.overflow = '';
     lbVideo.pause();
     lbVideo.removeAttribute('src');
     lbVideo.load();
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
@@ -506,6 +518,10 @@
     var h2 = card.querySelector('h2');
     var title = h2 ? h2.textContent.trim() : '';
     var poster = v.getAttribute('poster');
+    // Stable slug from the file name: videos/rentals-projection.mp4 -> "projection"
+    var slug = (src.split('/').pop() || '').replace(/^rentals-/, '').replace(/\.mp4$/i, '').toLowerCase();
+    registry[slug] = { src: src, title: title, poster: poster };
+    v.setAttribute('data-video-slug', slug);
 
     if (getComputedStyle(card).position === 'static') card.style.position = 'relative';
     var badge = document.createElement('div');
@@ -516,11 +532,21 @@
     v.setAttribute('role', 'button');
     v.setAttribute('tabindex', '0');
     v.setAttribute('aria-label', 'Play ' + (title || 'video') + ' larger');
-    v.addEventListener('click', function () { open(src, title, poster); });
+    v.addEventListener('click', function () { open(slug); });
     v.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(src, title, poster); }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(slug); }
     });
   });
+
+  // Deep-link support: /rentals#projection (also #led, #lcd) opens that video
+  // on load, and reacts if the hash is edited or navigated.
+  function syncFromHash() {
+    var slug = location.hash.slice(1).toLowerCase();
+    if (registry[slug]) open(slug);
+    else close();
+  }
+  window.addEventListener('hashchange', syncFromHash);
+  syncFromHash();
 })();
 </script>
 <script defer src="/js/video-sound.js"></script>
