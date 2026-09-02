@@ -86,6 +86,49 @@
     })(window, document, "clarity", "script", "wv7dut1dl9");
     }
   </script>
+  <!-- Click-to-enlarge for the rental-card videos -->
+  <style>
+    .rental-card-img { cursor: zoom-in; }
+    .rv-expand {
+      position: absolute; top: 12px; right: 12px; z-index: 3;
+      width: 34px; height: 34px; display: grid; place-items: center;
+      background: rgba(0,0,0,0.5); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.28); border-radius: 8px;
+      color: #fff; pointer-events: none; opacity: 0.6; transition: opacity 0.2s ease;
+    }
+    .rental-card:hover .rv-expand,
+    .rental-card:focus-within .rv-expand { opacity: 1; }
+    .rental-card-img:focus-visible { outline: 2px solid var(--accent, #ffc800); outline-offset: -2px; }
+
+    .rv-lightbox {
+      position: fixed; inset: 0; z-index: 1000;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.92); padding: 5vh 4vw;
+    }
+    .rv-lightbox.is-open { display: flex; }
+    .rv-media {
+      position: relative; width: min(92vw, 1400px);
+      aspect-ratio: 12 / 5;   /* same crop as the cards — hides the burned-in caption strip */
+      max-height: 86vh; background: #000; overflow: hidden;
+      box-shadow: 0 30px 90px rgba(0,0,0,0.6);
+    }
+    .rv-media video {
+      width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block;
+    }
+    .rv-title {
+      position: absolute; left: 0; right: 0; bottom: 0; margin: 0;
+      padding: 26px 22px 16px; color: #fff; font-size: 15px; letter-spacing: 0.02em;
+      background: linear-gradient(to top, rgba(0,0,0,0.72), transparent); pointer-events: none;
+    }
+    .rv-close {
+      position: fixed; top: 18px; right: 22px; z-index: 1001;
+      width: 46px; height: 46px; display: grid; place-items: center;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 999px; color: #fff; font-size: 24px; line-height: 1; cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .rv-close:hover { background: var(--accent, #ffc800); color: #000d10; transform: scale(1.05); }
+  </style>
 </head>
 <body>
 
@@ -117,7 +160,7 @@
 <!-- RENTAL CARDS -->
 <div class="rental-cards">
   <div class="rental-card">
-    <video autoplay muted loop playsinline class="rental-card-img"><source src="videos/rentals-led.mp4" type="video/mp4"></video>
+    <video autoplay muted loop playsinline preload="metadata" poster="images/rentals-led-poster.webp" class="rental-card-img"><source src="videos/rentals-led.mp4" type="video/mp4"></video>
     <div class="rental-card-body">
       <div class="rental-card-num">01</div>
       <h2>LED Screen</h2>
@@ -148,7 +191,7 @@
     </div>
   </div>
   <div class="rental-card">
-    <video autoplay muted loop playsinline class="rental-card-img"><source src="videos/rentals-lcd.mp4" type="video/mp4"></video>
+    <video autoplay muted loop playsinline preload="metadata" poster="images/rentals-lcd-poster.webp" class="rental-card-img"><source src="videos/rentals-lcd.mp4" type="video/mp4"></video>
     <div class="rental-card-body">
       <div class="rental-card-num">02</div>
       <h2>TV LCD Screen</h2>
@@ -179,7 +222,7 @@
     </div>
   </div>
   <div class="rental-card">
-    <video autoplay muted loop playsinline class="rental-card-img"><source src="videos/rentals-projection.mp4" type="video/mp4"></video>
+    <video autoplay muted loop playsinline preload="metadata" poster="images/rentals-projection-poster.webp" class="rental-card-img"><source src="videos/rentals-projection.mp4" type="video/mp4"></video>
     <div class="rental-card-body">
       <div class="rental-card-num">03</div>
       <h2>Projection Screen</h2>
@@ -403,6 +446,82 @@
       }, interval);
     }, offset);
   });
+</script>
+<script>
+// Click-to-enlarge for the three rental-card videos. Opens a same-page
+// lightbox that plays the video larger (silent, looping — same crop as the
+// card so the burned-in caption stays hidden). Close: button, backdrop, Esc.
+(function () {
+  var cards = document.querySelectorAll('.rental-card');
+  if (!cards.length) return;
+
+  var lb = document.createElement('div');
+  lb.className = 'rv-lightbox';
+  lb.setAttribute('role', 'dialog');
+  lb.setAttribute('aria-modal', 'true');
+  lb.setAttribute('aria-label', 'Enlarged video');
+  lb.innerHTML =
+    '<button class="rv-close" type="button" aria-label="Close video">×</button>' +
+    '<div class="rv-media"><video muted loop playsinline preload="metadata"></video><p class="rv-title"></p></div>';
+  document.body.appendChild(lb);
+
+  var lbVideo = lb.querySelector('video');
+  var lbTitle = lb.querySelector('.rv-title');
+  var lastFocus = null;
+
+  function open(src, title, poster) {
+    if (poster) lbVideo.poster = poster; else lbVideo.removeAttribute('poster');
+    lbVideo.src = src;
+    lbTitle.textContent = title || '';
+    lbTitle.style.display = title ? '' : 'none';
+    lb.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    lastFocus = document.activeElement;
+    lb.querySelector('.rv-close').focus();
+    var p = lbVideo.play();
+    if (p && p.catch) p.catch(function () {});
+  }
+  function close() {
+    lb.classList.remove('is-open');
+    document.body.style.overflow = '';
+    lbVideo.pause();
+    lbVideo.removeAttribute('src');
+    lbVideo.load();
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  lb.addEventListener('click', function (e) {
+    if (e.target === lb || e.target.closest('.rv-close')) close();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && lb.classList.contains('is-open')) close();
+  });
+
+  cards.forEach(function (card) {
+    var v = card.querySelector('.rental-card-img');
+    if (!v) return;
+    var srcEl = v.querySelector('source');
+    var src = srcEl ? srcEl.getAttribute('src') : v.getAttribute('src');
+    if (!src) return;
+    var h2 = card.querySelector('h2');
+    var title = h2 ? h2.textContent.trim() : '';
+    var poster = v.getAttribute('poster');
+
+    if (getComputedStyle(card).position === 'static') card.style.position = 'relative';
+    var badge = document.createElement('div');
+    badge.className = 'rv-expand';
+    badge.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+    card.appendChild(badge);
+
+    v.setAttribute('role', 'button');
+    v.setAttribute('tabindex', '0');
+    v.setAttribute('aria-label', 'Play ' + (title || 'video') + ' larger');
+    v.addEventListener('click', function () { open(src, title, poster); });
+    v.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(src, title, poster); }
+    });
+  });
+})();
 </script>
 <script defer src="/js/video-sound.js"></script>
 </body>
