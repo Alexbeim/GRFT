@@ -412,5 +412,17 @@
     }, offset);
   });
 </script>
+<script>
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="mailto:"], a[href^="tel:"]');
+    if (!a || typeof gtag !== 'function') return;
+    var method = a.href.indexOf('tel:') === 0 ? 'phone' : 'email';
+    gtag('event', 'contact_click', {
+      contact_method: method,
+      link_text: (a.textContent || '').trim().slice(0, 50),
+      page_path: location.pathname
+    });
+  });
+</script>
 </body>
 </html>

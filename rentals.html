@@ -364,7 +364,7 @@
 
 <!-- CITY PAGES -->
 <section class="city-xlinks" style="padding: 48px var(--sp-60); text-align: center; font-size: 14px; color: rgba(255,255,255,0.4);">
-  <p>Graffiti wall rentals in <a href="/graffiti-wall-rental-los-angeles" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">Los Angeles</a>, <a href="/graffiti-wall-rental-new-york" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">New York</a>, <a href="/graffiti-wall-rental-las-vegas" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">Las Vegas</a>, <a href="/graffiti-wall-rental-san-francisco" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">San Francisco</a> and <a href="/graffiti-wall-rental-miami" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">Miami</a> — our busiest markets, staffed by local writers. Deployable anywhere your event lands, worldwide. Running a brand activation? <a href="/interactive-graffiti-wall-brand-activation" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">See our interactive graffiti wall brand activations</a>.</p>
+  <p>Graffiti wall rentals in <a href="/graffiti-wall-rental-los-angeles" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">Los Angeles</a>, <a href="/graffiti-wall-rental-new-york" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">New York</a>, <a href="/graffiti-wall-rental-las-vegas" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">Las Vegas</a>, <a href="/graffiti-wall-rental-san-francisco" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">San Francisco</a> and <a href="/graffiti-wall-rental-miami" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">Miami</a> — our busiest markets, staffed by local writers. Deployable anywhere your event lands, worldwide. Running a brand activation? <a href="/interactive-graffiti-wall-brand-activation" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">See our interactive graffiti wall brand activations</a>. Exhibiting soon? <a href="/trade-show-booth-ideas" style="color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 3px;">Trade show booth ideas that stop traffic</a>.</p>
 </section>
 
 <!-- CONTACT -->
@@ -552,5 +552,17 @@
 })();
 </script>
 <script defer src="/js/video-sound.js"></script>
+<script>
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="mailto:"], a[href^="tel:"]');
+    if (!a || typeof gtag !== 'function') return;
+    var method = a.href.indexOf('tel:') === 0 ? 'phone' : 'email';
+    gtag('event', 'contact_click', {
+      contact_method: method,
+      link_text: (a.textContent || '').trim().slice(0, 50),
+      page_path: location.pathname
+    });
+  });
+</script>
 </body>
 </html>

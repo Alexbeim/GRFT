@@ -314,6 +314,12 @@
 
   <!-- Use-case pages -->
   <url>
+    <loc>https://graffitiplus.io/trade-show-booth-ideas</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://graffitiplus.io/interactive-graffiti-wall-brand-activation</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>monthly</changefreq>

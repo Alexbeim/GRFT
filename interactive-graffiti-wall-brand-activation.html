@@ -424,7 +424,7 @@
 
 <!-- CITY LINKS -->
 <section class="city-xlinks">
-  <p>Deploying in <a href="/graffiti-wall-rental-los-angeles">Los Angeles</a>, <a href="/graffiti-wall-rental-new-york">New York</a>, <a href="/graffiti-wall-rental-las-vegas">Las Vegas</a>, <a href="/graffiti-wall-rental-san-francisco">San Francisco</a>, <a href="/graffiti-wall-rental-miami">Miami</a> — and <a href="/rentals">everywhere else</a>.</p>
+  <p>Deploying in <a href="/graffiti-wall-rental-los-angeles">Los Angeles</a>, <a href="/graffiti-wall-rental-new-york">New York</a>, <a href="/graffiti-wall-rental-las-vegas">Las Vegas</a>, <a href="/graffiti-wall-rental-san-francisco">San Francisco</a>, <a href="/graffiti-wall-rental-miami">Miami</a> — and <a href="/rentals">everywhere else</a>. Exhibiting soon? <a href="/trade-show-booth-ideas">Trade show booth ideas that stop traffic</a>.</p>
 </section>
 
 <!-- CONTACT -->
@@ -504,6 +504,18 @@
         slides[current].classList.add('active');
       }, interval);
     }, offset);
+  });
+</script>
+<script>
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="mailto:"], a[href^="tel:"]');
+    if (!a || typeof gtag !== 'function') return;
+    var method = a.href.indexOf('tel:') === 0 ? 'phone' : 'email';
+    gtag('event', 'contact_click', {
+      contact_method: method,
+      link_text: (a.textContent || '').trim().slice(0, 50),
+      page_path: location.pathname
+    });
   });
 </script>
 </body>
