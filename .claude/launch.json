@@ -4,20 +4,29 @@
     {
       "name": "static",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "python3 -m http.server ${PORT:-8775}"],
+      "runtimeArgs": [
+        "-c",
+        "python3 -m http.server ${PORT:-8775}"
+      ],
       "port": 8775,
       "autoPort": true
     },
     {
       "name": "static2",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8776"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8776"
+      ],
       "port": 8776
     },
     {
       "name": "followups",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["/Users/alex/Library/Mobile Documents/com~apple~CloudDocs/Dev/graffiti-followups/server.js"],
+      "runtimeArgs": [
+        "/Users/alex/Library/Mobile Documents/com~apple~CloudDocs/Dev/graffiti-followups/server.js"
+      ],
       "port": 8788
     },
     {
@@ -26,8 +35,10 @@
       "runtimeArgs": [
         "/Users/alex/Library/Mobile Documents/com~apple~CloudDocs/Dev/grft-javascript-client/node_modules/vite/bin/vite.js",
         "/Users/alex/Library/Mobile Documents/com~apple~CloudDocs/Dev/grft-javascript-client",
-        "--host", "0.0.0.0",
-        "--port", "5174",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "5174",
         "--strictPort"
       ],
       "port": 5174
