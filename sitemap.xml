@@ -41,6 +41,12 @@
 
   <!-- Gallery detail pages -->
   <url>
+    <loc>https://graffitiplus.io/gal/liuna-convention-2026</loc>
+    <lastmod>2026-11-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://graffitiplus.io/gal/eighteen-years</loc>
     <lastmod>2026-06-15</lastmod>
     <changefreq>monthly</changefreq>
